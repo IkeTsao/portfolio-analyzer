@@ -202,7 +202,7 @@ export function LinksGroup(props: LinksGroupProps) {
   ]);
 
   useEffect(() => {
-    const paths = pathname.split('/');
+    const paths = (pathname || '').split('/');
     // Auto-open navigation groups when a nested link is active
     if (isActive) {
       setOpened(true);

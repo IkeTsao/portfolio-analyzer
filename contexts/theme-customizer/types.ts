@@ -85,7 +85,7 @@ export const defaultThemeConfig: ThemeConfig = {
   },
   appearance: {
     colorScheme: 'light',
-    primaryColor: 'red',
+    primaryColor: 'cyan',
     borderRadius: 'md',
     compact: false,
     cardFeel: 'elevated',

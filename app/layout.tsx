@@ -123,7 +123,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={openSans.className}>
       <head>
-        <title>Manus Dashboard Template</title>
+        <title>投資組合分析工具</title>
         <link rel="icon" href="/favicon.ico" />
         <link rel="manifest" href="/site.webmanifest" />
         <meta

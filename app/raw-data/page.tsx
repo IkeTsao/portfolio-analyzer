@@ -1,39 +1,22 @@
 'use client';
 
-import { Container, Stack } from '@mantine/core';
+import { Container, Stack, Text } from '@mantine/core';
 
-import { PageHeader, RawDataTable } from '@/components';
-import { useFetchData } from '@/hooks';
-
-const PAPER_PROPS = {
-  p: 'md',
-  style: { minHeight: '100%' },
-};
+import { PageHeader } from '@/components';
 
 export default function RawDataPage() {
-  const {
-    data: invoicesData,
-    error: invoicesError,
-    loading: invoicesLoading,
-  } = useFetchData('/mocks/Invoices.json');
-
   return (
     <>
-      <title>Raw Data</title>
+      <title>原始數據</title>
       <meta
         name="description"
-        content="View all invoice data in a comprehensive table format."
+        content="查看投資組合原始數據"
       />
       <Container fluid>
         <Stack gap="lg">
-          <PageHeader title="Raw data" withActions={false} />
+          <PageHeader title="原始數據" withActions={false} />
           
-          <RawDataTable
-            data={invoicesData}
-            error={invoicesError}
-            loading={invoicesLoading}
-            {...PAPER_PROPS}
-          />
+          <Text>此頁面將顯示投資組合的原始數據表格。</Text>
         </Stack>
       </Container>
     </>

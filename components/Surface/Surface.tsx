@@ -28,7 +28,7 @@ const Surface = createPolymorphicComponent<'div', SurfaceProps>(
 
       // Generate classes based on feel and appearance config
       const getCardClasses = () => {
-        const classes = [];
+        const classes: string[] = [];
 
         // Base card class
         classes.push('surface-card');

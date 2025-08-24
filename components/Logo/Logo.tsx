@@ -30,7 +30,7 @@ const Logo = ({ href, showText = true, ...others }: LogoProps) => {
           alt="design sparx logo"
           className={classes.logoImage}
         />
-        {showText && <Text fw={700}>Manus</Text>}
+        {showText && <Text fw={700}>投資組合分析</Text>}
       </Group>
     </UnstyledButton>
   );

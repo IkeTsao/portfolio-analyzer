@@ -1,84 +1,111 @@
 'use client';
 
+import { useState } from 'react';
 import {
   Container,
   Grid,
-  PaperProps,
   Stack,
 } from '@mantine/core';
 
 import {
-  MobileDesktopChart,
   PageHeader,
-  RevenueChart,
-  SalesChart,
-  StatsGrid,
-  TextInsightsGrid,
+  PortfolioStatsGrid,
+  PortfolioDistributionChart,
+  HoldingsTable,
+  HoldingForm,
 } from '@/components';
-import { useFetchData } from '@/hooks';
-
-const PAPER_PROPS: PaperProps = {
-  p: 'md',
-  style: { minHeight: '100%' },
-};
+import { usePortfolio } from '@/hooks/usePortfolio';
 
 export default function HomePage() {
-  const {
-    data: statsData,
-    error: statsError,
-    loading: statsLoading,
-  } = useFetchData('/mocks/StatsGrid.json');
-  const {
-    data: textInsightsData,
-    error: textInsightsError,
-    loading: textInsightsLoading,
-  } = useFetchData('/mocks/TextInsights.json');
+  const [holdingFormOpened, setHoldingFormOpened] = useState(false);
+  const [editingHolding, setEditingHolding] = useState(null);
 
+  const {
+    portfolioStats,
+    loading,
+    lastUpdate,
+    updatePrices,
+    refreshHoldings,
+    getHoldingDetails,
+  } = usePortfolio();
+
+  const holdingDetails = getHoldingDetails();
+
+  const handleAddHolding = () => {
+    setEditingHolding(null);
+    setHoldingFormOpened(true);
+  };
+
+  const handleEditHolding = (holding: any) => {
+    setEditingHolding(holding);
+    setHoldingFormOpened(true);
+  };
+
+  const handleFormClose = () => {
+    setHoldingFormOpened(false);
+    setEditingHolding(null);
+  };
+
+  const handleFormSave = () => {
+    refreshHoldings();
+    handleFormClose();
+  };
 
   return (
     <>
-      <>
-        <title>Dashboard</title>
-        <meta
-          name="description"
-          content="Manus Analytics Dashboard"
-        />
-      </>
+      <title>投資組合總覽</title>
+      <meta
+        name="description"
+        content="投資組合分析工具 - 總覽"
+      />
+      
       <Container fluid>
         <Stack gap="lg">
-          <PageHeader title="Overview" withActions={true} />
+          <PageHeader title="投資組合總覽" withActions={false} />
 
-          {/* Stats Grid - Full Width */}
-          <StatsGrid
-            data={statsData.data}
-            loading={statsLoading}
-            error={statsError}
-            paperProps={PAPER_PROPS}
+          {/* 投資組合統計 */}
+          <PortfolioStatsGrid
+            stats={portfolioStats}
+            loading={loading}
+            lastUpdate={lastUpdate}
+            onRefresh={updatePrices}
           />
 
-          {/* Main Charts Row */}
+          {/* 圖表區域 */}
           <Grid gutter={{ base: 5, xs: 'sm', md: 'md', xl: 'lg' }}>
-
             <Grid.Col span={{ base: 12, md: 6 }}>
-              <MobileDesktopChart {...PAPER_PROPS} />
+              <PortfolioDistributionChart
+                stats={portfolioStats}
+                loading={loading}
+              />
             </Grid.Col>
             <Grid.Col span={{ base: 12, md: 6 }}>
-              <SalesChart {...PAPER_PROPS} />
+              {/* 這裡可以添加其他圖表，比如收益趨勢圖 */}
+              <PortfolioDistributionChart
+                stats={portfolioStats}
+                loading={loading}
+              />
             </Grid.Col>
           </Grid>
 
-          {/* Revenue Chart - Full Width */}
-          <RevenueChart {...PAPER_PROPS} />
-
-          {/* Text Insights - Bottom */}
-          <TextInsightsGrid
-            data={textInsightsData}
-            loading={textInsightsLoading}
-            error={textInsightsError}
-            paperProps={PAPER_PROPS}
+          {/* 持倉明細表格 */}
+          <HoldingsTable
+            holdings={holdingDetails}
+            loading={loading}
+            onAdd={handleAddHolding}
+            onEdit={handleEditHolding}
+            onRefresh={refreshHoldings}
           />
         </Stack>
       </Container>
+
+      {/* 持倉表單 */}
+      <HoldingForm
+        opened={holdingFormOpened}
+        onClose={handleFormClose}
+        holding={editingHolding}
+        onSave={handleFormSave}
+      />
     </>
   );
 }
