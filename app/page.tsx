@@ -13,6 +13,7 @@ import {
   PortfolioDistributionChart,
   HoldingsTable,
   HoldingForm,
+  ExchangeRateDisplay,
 } from '@/components';
 import { usePortfolio } from '@/hooks/usePortfolio';
 
@@ -51,6 +52,11 @@ export default function HomePage() {
     handleFormClose();
   };
 
+  const handleUpdatePrices = async () => {
+    // 直接更新價格，不再詢問共同基金手動輸入
+    await updatePrices();
+  };
+
   return (
     <>
       <title>投資組合總覽</title>
@@ -68,7 +74,7 @@ export default function HomePage() {
             stats={portfolioStats}
             loading={loading}
             lastUpdate={lastUpdate}
-            onRefresh={updatePrices}
+            onRefresh={handleUpdatePrices}
           />
 
           {/* 圖表區域 */}
@@ -77,16 +83,22 @@ export default function HomePage() {
               <PortfolioDistributionChart
                 stats={portfolioStats}
                 loading={loading}
+                type="amount"
+                title="投資組合金額分布"
               />
             </Grid.Col>
             <Grid.Col span={{ base: 12, md: 6 }}>
-              {/* 這裡可以添加其他圖表，比如收益趨勢圖 */}
               <PortfolioDistributionChart
                 stats={portfolioStats}
                 loading={loading}
+                type="gainloss"
+                title="投資組合損益分布"
               />
             </Grid.Col>
           </Grid>
+
+          {/* 即時匯率 */}
+          <ExchangeRateDisplay />
 
           {/* 持倉明細表格 */}
           <HoldingsTable
@@ -94,7 +106,7 @@ export default function HomePage() {
             loading={loading}
             onAdd={handleAddHolding}
             onEdit={handleEditHolding}
-            onRefresh={refreshHoldings}
+            onRefresh={handleUpdatePrices}
           />
         </Stack>
       </Container>

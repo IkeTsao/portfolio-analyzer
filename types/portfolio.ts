@@ -67,6 +67,36 @@ export interface PortfolioStats {
   accountDistribution: {
     [accountId: string]: { value: number; percentage: number };
   };
+
+  // 新增：按類型分布（包含損益）
+  distributionByType: {
+    [key: string]: {
+      totalValue: number;
+      totalCost: number;
+      totalGainLoss: number;
+      percentage: number;
+    };
+  };
+
+  // 新增：按市場分布（包含損益）
+  distributionByMarket: {
+    [key: string]: {
+      totalValue: number;
+      totalCost: number;
+      totalGainLoss: number;
+      percentage: number;
+    };
+  };
+
+  // 新增：按帳戶分布（包含損益）
+  distributionByAccount: {
+    [key: string]: {
+      totalValue: number;
+      totalCost: number;
+      totalGainLoss: number;
+      percentage: number;
+    };
+  };
 }
 
 export interface RiskMetrics {
@@ -100,7 +130,7 @@ export const ACCOUNT_TYPES = [
 
 export const INVESTMENT_TYPES = [
   { value: 'stock', label: '股票' },
-  { value: 'fund', label: '基金' },
+  { value: 'fund', label: '共同基金' },
   { value: 'bond', label: '債券' },
   { value: 'gold', label: '黃金' },
   { value: 'crypto', label: '數位貨幣' },

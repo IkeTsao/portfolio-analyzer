@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Modal,
   TextInput,
@@ -33,15 +33,16 @@ export default function HoldingForm({ opened, onClose, holding, onSave }: Holdin
   
   const form = useForm({
     initialValues: {
-      accountId: holding?.accountId || '',
-      symbol: holding?.symbol || '',
-      name: holding?.name || '',
-      type: holding?.type || 'stock',
-      market: holding?.market || 'US',
-      quantity: holding?.quantity || 0,
-      costBasis: holding?.costBasis || 0,
-      currency: holding?.currency || 'USD',
-      purchaseDate: holding?.purchaseDate || new Date().toISOString().split('T')[0],
+      accountId: '',
+      symbol: '',
+      name: '',
+      type: 'stock',
+      market: 'US',
+      quantity: 0,
+      costBasis: 0,
+      currentPrice: 0,
+      currency: 'USD',
+      purchaseDate: new Date().toISOString().split('T')[0],
     },
     validate: {
       accountId: (value) => (!value ? '請選擇帳戶' : null),
@@ -49,6 +50,7 @@ export default function HoldingForm({ opened, onClose, holding, onSave }: Holdin
       name: (value) => (!value ? '請輸入名稱' : null),
       quantity: (value) => (value <= 0 ? '數量必須大於0' : null),
       costBasis: (value) => (value <= 0 ? '成本價必須大於0' : null),
+      currentPrice: (value) => (value < 0 ? '現價不能為負數' : null),
     },
   });
 
@@ -67,6 +69,8 @@ export default function HoldingForm({ opened, onClose, holding, onSave }: Holdin
         costBasis: values.costBasis,
         currency: values.currency,
         purchaseDate: values.purchaseDate,
+        currentPrice: values.currentPrice > 0 ? values.currentPrice : undefined,
+        lastUpdated: values.currentPrice > 0 ? new Date().toISOString() : undefined,
       };
 
       if (holding?.id) {
@@ -98,6 +102,67 @@ export default function HoldingForm({ opened, onClose, holding, onSave }: Holdin
       setLoading(false);
     }
   };
+
+  // 當holding prop改變時更新表單值
+  useEffect(() => {
+    if (opened && holding) {
+      console.log('設置表單值:', holding);
+      // 使用setTimeout確保DOM完全渲染後再設置值
+      setTimeout(() => {
+        form.setValues({
+          accountId: holding.accountId || '',
+          symbol: holding.symbol || '',
+          name: holding.name || '',
+          type: holding.type || 'stock',
+          market: holding.market || 'US',
+          quantity: holding.quantity || 0,
+          costBasis: holding.costBasis || 0,
+          currentPrice: holding.currentPrice || 0,
+          currency: holding.currency || 'USD',
+          purchaseDate: holding.purchaseDate || new Date().toISOString().split('T')[0],
+        });
+        
+        // 手動觸發輸入事件確保Mantine組件更新
+        setTimeout(() => {
+          const symbolInput = document.querySelector('input[placeholder*="AAPL"]') as HTMLInputElement;
+          const nameInput = document.querySelector('input[placeholder*="蘋果"]') as HTMLInputElement;
+          const quantityInput = document.querySelector('input[placeholder="0"]') as HTMLInputElement;
+          const costInput = document.querySelector('input[placeholder="0.00"]') as HTMLInputElement;
+          
+          if (symbolInput && holding.symbol) {
+            symbolInput.value = holding.symbol;
+            symbolInput.dispatchEvent(new Event('input', { bubbles: true }));
+          }
+          if (nameInput && holding.name) {
+            nameInput.value = holding.name;
+            nameInput.dispatchEvent(new Event('input', { bubbles: true }));
+          }
+          if (quantityInput && holding.quantity) {
+            quantityInput.value = holding.quantity.toString();
+            quantityInput.dispatchEvent(new Event('input', { bubbles: true }));
+          }
+          if (costInput && holding.costBasis) {
+            costInput.value = holding.costBasis.toString();
+            costInput.dispatchEvent(new Event('input', { bubbles: true }));
+          }
+        }, 100);
+      }, 50);
+    } else if (opened && !holding) {
+      console.log('重置表單');
+      form.setValues({
+        accountId: '',
+        symbol: '',
+        name: '',
+        type: 'stock',
+        market: 'US',
+        quantity: 0,
+        costBasis: 0,
+        currentPrice: 0,
+        currency: 'USD',
+        purchaseDate: new Date().toISOString().split('T')[0],
+      });
+    }
+  }, [holding, opened]);
 
   const handleClose = () => {
     form.reset();
@@ -171,12 +236,23 @@ export default function HoldingForm({ opened, onClose, holding, onSave }: Holdin
           </Group>
 
           <Group grow>
+            <NumberInput
+              label="現價"
+              placeholder="0.00"
+              min={0}
+              decimalScale={2}
+              description="選填，如不填寫將自動從網路獲取"
+              {...form.getInputProps('currentPrice')}
+            />
             <Select
               label="計價貨幣"
               data={SUPPORTED_CURRENCIES.map(c => ({ value: c.code, label: `${c.name} (${c.code})` }))}
               required
               {...form.getInputProps('currency')}
             />
+          </Group>
+
+          <Group grow>
             <TextInput
               label="購買日期"
               placeholder="YYYY-MM-DD"

@@ -4,9 +4,11 @@ import ErrorAlert from '@/components/ErrorAlert';
 import FilterDateMenu from '@/components/FilterDateMenu/FilterDateMenu';
 import HoldingForm from '@/components/HoldingForm/HoldingForm';
 import HoldingsTable from '@/components/HoldingsTable/HoldingsTable';
+import ManualPriceInput from '@/components/ManualPriceInput/ManualPriceInput';
 import PageHeader from '@/components/PageHeader/PageHeader';
 import { PortfolioDistributionChart } from '@/components/PortfolioDistributionChart';
 import { PortfolioStatsGrid } from '@/components/PortfolioStatsGrid';
+import ExchangeRateDisplay from '@/components/ExchangeRateDisplay/ExchangeRateDisplay';
 import Surface from '@/components/Surface';
 import ThemeCustomizer from '@/components/theme-customizer';
 
@@ -15,8 +17,10 @@ export {
   FilterDateMenu,
   HoldingForm,
   HoldingsTable,
+  ManualPriceInput,
   PortfolioDistributionChart,
   PortfolioStatsGrid,
+  ExchangeRateDisplay,
   PageHeader,
   Surface,
   ErrorAlert,

@@ -198,10 +198,24 @@ export const getMultipleExchangeRates = async (baseCurrency: string, targetCurre
 };
 
 // 更新所有價格數據
-export const updateAllPrices = async (holdings: any[]): Promise<PriceData[]> => {
+export const updateAllPrices = async (holdings: any[], manualPrices?: { [symbol: string]: number }): Promise<PriceData[]> => {
   const pricePromises: Promise<PriceData | null>[] = [];
   
   for (const holding of holdings) {
+    // 檢查是否有手動輸入的價格
+    if (manualPrices && manualPrices[holding.symbol]) {
+      pricePromises.push(Promise.resolve({
+        symbol: holding.symbol,
+        price: manualPrices[holding.symbol],
+        currency: holding.currency,
+        timestamp: new Date().toISOString(),
+        change: 0,
+        changePercent: 0,
+        source: 'manual' as any,
+      }));
+      continue;
+    }
+
     switch (holding.type) {
       case 'stock':
         pricePromises.push(getStockPrice(holding.symbol, holding.market === 'TW' ? 'TW' : 'US'));

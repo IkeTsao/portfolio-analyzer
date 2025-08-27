@@ -13,14 +13,15 @@ export const calculateHoldingValue = (
   gainLoss: number;
   gainLossPercent: number;
 } => {
-  const costValue = holding.quantity * holding.costBasis;
-  const currentValue = holding.quantity * currentPrice * exchangeRate;
-  const gainLoss = currentValue - costValue;
-  const gainLossPercent = costValue > 0 ? (gainLoss / costValue) : 0;
+  // 統一轉換為台幣計算
+  const costValueTWD = holding.quantity * holding.costBasis * exchangeRate;
+  const currentValueTWD = holding.quantity * currentPrice * exchangeRate;
+  const gainLoss = currentValueTWD - costValueTWD;
+  const gainLossPercent = costValueTWD > 0 ? (gainLoss / costValueTWD) : 0;
 
   return {
-    currentValue,
-    costValue,
+    currentValue: currentValueTWD,
+    costValue: costValueTWD,
     gainLoss,
     gainLossPercent,
   };
@@ -101,9 +102,19 @@ export const calculatePortfolioStats = (
 
   // 計算每個持倉的價值
   holdings.forEach(holding => {
-    // 獲取當前價格
+    // 獲取當前價格 - 優先使用手動輸入的現價
     const price = priceData.find(p => p.symbol === holding.symbol);
-    const currentPrice = price?.price || holding.costBasis; // 如果沒有價格數據，使用成本價
+    let currentPrice: number;
+    if (holding.currentPrice && holding.currentPrice > 0) {
+      // 使用手動輸入的現價
+      currentPrice = holding.currentPrice;
+    } else if (price?.price) {
+      // 使用API獲取的價格
+      currentPrice = price.price;
+    } else {
+      // 使用成本價作為預設
+      currentPrice = holding.costBasis;
+    }
 
     // 獲取匯率
     const exchangeRate = getExchangeRateForCurrency(
@@ -156,6 +167,62 @@ export const calculatePortfolioStats = (
   const totalGainLoss = totalValue - totalCost;
   const totalGainLossPercent = totalCost > 0 ? (totalGainLoss / totalCost) : 0;
 
+  // 創建新的分布格式（包含損益）
+  const distributionByType: { [key: string]: { totalValue: number; totalCost: number; totalGainLoss: number; percentage: number } } = {};
+  const distributionByMarket: { [key: string]: { totalValue: number; totalCost: number; totalGainLoss: number; percentage: number } } = {};
+  const distributionByAccount: { [key: string]: { totalValue: number; totalCost: number; totalGainLoss: number; percentage: number } } = {};
+
+  // 填充類型分布
+  Object.keys(typeDistribution).forEach(type => {
+    const typeCost = holdings
+      .filter(h => h.type === type)
+      .reduce((sum, h) => {
+        const exchangeRate = getExchangeRateForCurrency(h.currency, baseCurrency, exchangeRates);
+        return sum + (h.quantity * h.costBasis * exchangeRate);
+      }, 0);
+    
+    distributionByType[type] = {
+      totalValue: typeDistribution[type].value,
+      totalCost: typeCost,
+      totalGainLoss: typeDistribution[type].value - typeCost,
+      percentage: typeDistribution[type].percentage,
+    };
+  });
+
+  // 填充市場分布
+  Object.keys(marketDistribution).forEach(market => {
+    const marketCost = holdings
+      .filter(h => h.market === market)
+      .reduce((sum, h) => {
+        const exchangeRate = getExchangeRateForCurrency(h.currency, baseCurrency, exchangeRates);
+        return sum + (h.quantity * h.costBasis * exchangeRate);
+      }, 0);
+    
+    distributionByMarket[market] = {
+      totalValue: marketDistribution[market].value,
+      totalCost: marketCost,
+      totalGainLoss: marketDistribution[market].value - marketCost,
+      percentage: marketDistribution[market].percentage,
+    };
+  });
+
+  // 填充帳戶分布
+  Object.keys(accountDistribution).forEach(accountId => {
+    const accountCost = holdings
+      .filter(h => h.accountId === accountId)
+      .reduce((sum, h) => {
+        const exchangeRate = getExchangeRateForCurrency(h.currency, baseCurrency, exchangeRates);
+        return sum + (h.quantity * h.costBasis * exchangeRate);
+      }, 0);
+    
+    distributionByAccount[accountId] = {
+      totalValue: accountDistribution[accountId].value,
+      totalCost: accountCost,
+      totalGainLoss: accountDistribution[accountId].value - accountCost,
+      percentage: accountDistribution[accountId].percentage,
+    };
+  });
+
   return {
     totalValue,
     totalCost,
@@ -164,6 +231,9 @@ export const calculatePortfolioStats = (
     marketDistribution,
     typeDistribution,
     accountDistribution,
+    distributionByType,
+    distributionByMarket,
+    distributionByAccount,
   };
 };
 
@@ -176,7 +246,19 @@ export const calculateHoldingDetails = (
 ) => {
   return holdings.map(holding => {
     const price = priceData.find(p => p.symbol === holding.symbol);
-    const currentPrice = price?.price || holding.costBasis;
+    
+    // 優先使用手動輸入的現價，如果沒有則使用API獲取的價格，最後才使用成本價
+    let currentPrice: number;
+    if (holding.currentPrice && holding.currentPrice > 0) {
+      // 使用手動輸入的現價
+      currentPrice = holding.currentPrice;
+    } else if (price?.price) {
+      // 使用API獲取的價格
+      currentPrice = price.price;
+    } else {
+      // 使用成本價作為預設
+      currentPrice = holding.costBasis;
+    }
     
     const exchangeRate = getExchangeRateForCurrency(
       holding.currency,
@@ -191,9 +273,9 @@ export const calculateHoldingDetails = (
       currentPrice,
       exchangeRate,
       ...calculations,
-      priceChange: price?.change || 0,
-      priceChangePercent: price?.changePercent || 0,
-      lastUpdated: price?.timestamp,
+      priceChange: (holding.currentPrice && holding.currentPrice > 0) ? 0 : (price?.change || 0),
+      priceChangePercent: (holding.currentPrice && holding.currentPrice > 0) ? 0 : (price?.changePercent || 0),
+      lastUpdated: holding.currentPrice ? holding.lastUpdated : price?.timestamp,
     };
   });
 };
@@ -202,10 +284,17 @@ export const calculateHoldingDetails = (
 export const formatCurrency = (
   amount: number,
   currency: string = 'TWD',
-  decimals: number = 2
+  decimals: number = 0
 ): string => {
+  // 對於台幣顯示，去除NT前綴，不顯示小數點
+  if (currency === 'TWD') {
+    return amount.toLocaleString('en-US', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    });
+  }
+
   const currencySymbols: { [key: string]: string } = {
-    TWD: 'NT$',
     USD: '$',
     EUR: '€',
     GBP: '£',

@@ -25,6 +25,7 @@ import {
 import { DataTable } from 'mantine-datatable';
 import { Holding } from '@/types/portfolio';
 import { formatCurrency, formatPercentage } from '@/utils/portfolioCalculations';
+import { formatCurrencyWithSymbol } from '@/utils/currencyUtils';
 import { deleteHolding } from '@/utils/portfolioStorage';
 import { notifications } from '@mantine/notifications';
 
@@ -58,7 +59,7 @@ const TYPE_COLORS: { [key: string]: string } = {
 
 const TYPE_LABELS: { [key: string]: string } = {
   stock: '股票',
-  fund: '基金',
+  fund: '共同基金',
   bond: '債券',
   gold: '黃金',
   crypto: '數位貨幣',
@@ -90,6 +91,7 @@ export default function HoldingsTable({
         message: `已刪除 ${holding.name}`,
         color: 'green',
       });
+      // 刪除後重新計算投資組合
       onRefresh?.();
     } catch (error) {
       notifications.show({
@@ -100,17 +102,31 @@ export default function HoldingsTable({
     }
   };
 
-  // 過濾數據
-  const filteredHoldings = holdings.filter(holding => {
-    const matchesSearch = !searchQuery || 
-      holding.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      holding.symbol.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    const matchesType = !typeFilter || holding.type === typeFilter;
-    const matchesAccount = !accountFilter || holding.accountId === accountFilter;
-    
-    return matchesSearch && matchesType && matchesAccount;
-  });
+  // 過濾和排序數據
+  const filteredHoldings = holdings
+    .filter(holding => {
+      const matchesSearch = !searchQuery || 
+        holding.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        holding.symbol.toLowerCase().includes(searchQuery.toLowerCase());
+      
+      const matchesType = !typeFilter || holding.type === typeFilter;
+      const matchesAccount = !accountFilter || holding.accountId === accountFilter;
+      
+      return matchesSearch && matchesType && matchesAccount;
+    })
+    .sort((a, b) => {
+      // 按帳戶排序：Etrade → 富邦 → 玉山
+      const accountOrder = { 'etrade': 1, 'fubon': 2, 'esun': 3 };
+      const orderA = accountOrder[a.accountId as keyof typeof accountOrder] || 999;
+      const orderB = accountOrder[b.accountId as keyof typeof accountOrder] || 999;
+      
+      if (orderA !== orderB) {
+        return orderA - orderB;
+      }
+      
+      // 相同帳戶內按代碼排序
+      return a.symbol.localeCompare(b.symbol);
+    });
 
   const columns = [
     {
@@ -140,6 +156,23 @@ export default function HoldingsTable({
       ),
     },
     {
+      accessor: 'accountId',
+      title: '帳戶',
+      width: 120,
+      render: (holding: HoldingWithCalculations) => {
+        const accountLabels: { [key: string]: string } = {
+          etrade: 'Etrade',
+          fubon: '富邦銀行',
+          esun: '玉山銀行',
+        };
+        return (
+          <Badge size="sm" variant="light" color="blue">
+            {accountLabels[holding.accountId] || holding.accountId}
+          </Badge>
+        );
+      },
+    },
+    {
       accessor: 'quantity',
       title: '數量',
       width: 100,
@@ -154,7 +187,7 @@ export default function HoldingsTable({
       width: 120,
       textAlign: 'right' as const,
       render: (holding: HoldingWithCalculations) => (
-        <Text size="sm">{formatCurrency(holding.costBasis, holding.currency)}</Text>
+        <Text size="sm">{formatCurrencyWithSymbol(holding.costBasis, holding.currency)}</Text>
       ),
     },
     {
@@ -166,11 +199,11 @@ export default function HoldingsTable({
         <Stack gap={2} align="flex-end">
           <Text size="sm" fw={500}>
             {holding.currentPrice ? 
-              formatCurrency(holding.currentPrice, holding.currency) : 
+              formatCurrencyWithSymbol(holding.currentPrice, holding.currency) : 
               '-'
             }
           </Text>
-          {holding.priceChangePercent !== undefined && (
+          {holding.priceChangePercent !== undefined && holding.priceChangePercent !== 0 && (
             <Text 
               size="xs" 
               c={holding.priceChangePercent >= 0 ? 'green' : 'red'}
@@ -186,15 +219,18 @@ export default function HoldingsTable({
       title: '成本',
       width: 120,
       textAlign: 'right' as const,
-      render: (holding: HoldingWithCalculations) => (
-        <Text size="sm">
-          {holding.costValue ? formatCurrency(holding.costValue) : '-'}
-        </Text>
-      ),
+      render: (holding: HoldingWithCalculations) => {
+        const totalCost = holding.quantity * holding.costBasis;
+        return (
+          <Text size="sm">
+            {formatCurrencyWithSymbol(totalCost, holding.currency)}
+          </Text>
+        );
+      },
     },
     {
       accessor: 'currentValue',
-      title: '市值',
+      title: '市值(台幣)',
       width: 120,
       textAlign: 'right' as const,
       render: (holding: HoldingWithCalculations) => (
@@ -205,7 +241,7 @@ export default function HoldingsTable({
     },
     {
       accessor: 'gainLoss',
-      title: '損益',
+      title: '損益(台幣)',
       width: 140,
       textAlign: 'right' as const,
       render: (holding: HoldingWithCalculations) => (
@@ -230,32 +266,30 @@ export default function HoldingsTable({
     },
     {
       accessor: 'actions',
-      title: '',
-      width: 60,
+      title: '操作',
+      width: 120,
       textAlign: 'center' as const,
-      render: (holding: HoldingWithCalculations) => (
-        <Menu position="bottom-end">
-          <Menu.Target>
-            <ActionIcon variant="subtle" size="sm">
-              <IconDots size={16} />
-            </ActionIcon>
-          </Menu.Target>
-          <Menu.Dropdown>
-            <Menu.Item 
-              leftSection={<IconEdit size={14} />}
-              onClick={() => onEdit?.(holding)}
-            >
-              編輯
-            </Menu.Item>
-            <Menu.Item 
-              leftSection={<IconTrash size={14} />}
-              color="red"
-              onClick={() => handleDelete(holding)}
-            >
-              刪除
-            </Menu.Item>
-          </Menu.Dropdown>
-        </Menu>
+      render: (holding: any) => (
+        <Group gap="xs" justify="center">
+          <ActionIcon 
+            variant="subtle" 
+            size="sm" 
+            color="blue"
+            onClick={() => onEdit?.(holding)}
+            title="編輯"
+          >
+            <IconEdit size={14} />
+          </ActionIcon>
+          <ActionIcon 
+            variant="subtle" 
+            size="sm" 
+            color="red"
+            onClick={() => handleDelete(holding)}
+            title="刪除"
+          >
+            <IconTrash size={14} />
+          </ActionIcon>
+        </Group>
       ),
     },
   ];
@@ -268,9 +302,14 @@ export default function HoldingsTable({
           <Title order={3}>持倉明細</Title>
           <Group gap="xs">
             {onRefresh && (
-              <ActionIcon variant="light" onClick={onRefresh}>
-                <IconRefresh size={16} />
-              </ActionIcon>
+              <Button 
+                variant="light" 
+                leftSection={<IconRefresh size={16} />}
+                onClick={onRefresh}
+                size="sm"
+              >
+                更新價格
+              </Button>
             )}
             {onAdd && (
               <Button leftSection={<IconPlus size={16} />} onClick={onAdd}>
@@ -327,6 +366,8 @@ export default function HoldingsTable({
           minHeight={200}
           striped
           highlightOnHover
+          scrollAreaProps={{ type: 'scroll' }}
+          style={{ width: '100%', overflowX: 'auto' }}
         />
       </Stack>
     </Paper>

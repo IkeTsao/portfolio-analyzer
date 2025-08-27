@@ -64,13 +64,13 @@ export const usePortfolio = () => {
   }, [holdings, priceData, exchangeRates]);
 
   // 更新價格數據
-  const updatePrices = useCallback(async () => {
+  const updatePrices = useCallback(async (manualPrices?: { [symbol: string]: number }) => {
     if (holdings.length === 0) return;
 
     setLoading(true);
     try {
       // 更新股票和其他資產價格
-      const newPriceData = await updateAllPrices(holdings);
+      const newPriceData = await updateAllPrices(holdings, manualPrices);
       setPriceData(newPriceData);
       savePriceData(newPriceData);
 
@@ -102,6 +102,11 @@ export const usePortfolio = () => {
     } finally {
       setLoading(false);
     }
+  }, [holdings]);
+
+  // 獲取需要手動輸入價格的共同基金
+  const getMutualFundsForManualInput = useCallback(() => {
+    return holdings.filter(h => h.type === 'fund');
   }, [holdings]);
 
   // 刷新持倉數據
@@ -136,6 +141,16 @@ export const usePortfolio = () => {
     return diffMinutes > 5; // 5分鐘更新一次
   }, [lastUpdate]);
 
+  // 計算投資組合統計
+  useEffect(() => {
+    if (holdings.length > 0) {
+      const stats = calculatePortfolioStats(holdings, priceData, exchangeRates);
+      setPortfolioStats(stats);
+    } else {
+      setPortfolioStats(null);
+    }
+  }, [holdings, priceData, exchangeRates]);
+
   // 自動更新價格
   useEffect(() => {
     if (holdings.length > 0 && shouldUpdatePrices()) {
@@ -159,6 +174,7 @@ export const usePortfolio = () => {
     getHoldingDetails,
     getHoldingsByAccount,
     getHoldingsByType,
+    getMutualFundsForManualInput,
     shouldUpdatePrices,
   };
 };
