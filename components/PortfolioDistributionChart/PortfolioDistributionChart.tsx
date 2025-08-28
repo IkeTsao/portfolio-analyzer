@@ -173,15 +173,15 @@ export default function PortfolioDistributionChart({
       const isGainLoss = type === 'gainloss';
       
       if (isGainLoss) {
-        // 對於損益分布，根據實際數值判斷獲利或虧損
+        // 對於損益分布，顯示+/-符號
         const value = payload[0].value;
-        const isProfit = value > 0;
+        const sign = value >= 0 ? '+' : '-';
         
         return (
           <Paper p="xs" withBorder shadow="md">
             <Text size="sm" fw={500}>{data.name}</Text>
             <Text size="sm" c="dimmed">
-              {`${isProfit ? '獲利' : '虧損'}: ${formatCurrency(Math.abs(value))}`}
+              {`${sign}${formatCurrency(Math.abs(value))}`}
             </Text>
           </Paper>
         );
@@ -284,22 +284,26 @@ export default function PortfolioDistributionChart({
                 />
                 <ReferenceLine y={0} stroke="#666" strokeDasharray="2 2" />
                 <Tooltip 
-                  formatter={(value, name) => [
-                    formatCurrency(Math.abs(value as number), 'TWD'), 
-                    name === 'profit' ? '獲利' : '虧損'
-                  ]}
+                  formatter={(value, name) => {
+                    const numValue = value as number;
+                    const sign = numValue >= 0 ? '+' : '-';
+                    return [
+                      `${sign}${formatCurrency(Math.abs(numValue), 'TWD')}`, 
+                      ''  // 移除標籤
+                    ];
+                  }}
                   labelFormatter={(label) => `${label}`}
                 />
                 <Bar 
                   dataKey="profit" 
                   fill="#51cf66" 
-                  name="獲利"
+                  name=""
                   maxBarSize={60}  // 限制長條最大寬度
                 />
                 <Bar 
                   dataKey="loss" 
                   fill="#ff6b6b" 
-                  name="虧損"
+                  name=""
                   maxBarSize={60}  // 限制長條最大寬度
                 />
               </BarChart>

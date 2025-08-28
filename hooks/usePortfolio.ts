@@ -20,7 +20,7 @@ import {
 } from '@/utils/portfolioStorage';
 import {
   updateAllPrices,
-  getMultipleExchangeRates,
+  fetchExchangeRates,
 } from '@/utils/priceService';
 import {
   calculatePortfolioStats,
@@ -70,7 +70,7 @@ export const usePortfolio = () => {
     setLoading(true);
     try {
       // 更新股票和其他資產價格
-      const newPriceData = await updateAllPrices(holdings, manualPrices);
+      const newPriceData = await updateAllPrices(holdings);
       setPriceData(newPriceData);
       savePriceData(newPriceData);
 
@@ -80,20 +80,21 @@ export const usePortfolio = () => {
       const otherCurrencies = uniqueCurrencies.filter(c => c !== baseCurrency);
       
       if (otherCurrencies.length > 0) {
-        const newExchangeRates = await getMultipleExchangeRates(baseCurrency, otherCurrencies);
+        const newExchangeRates = await fetchExchangeRates();
         
-        // 也獲取其他貨幣對的匯率
-        const additionalRates: ExchangeRate[] = [];
-        for (const currency of otherCurrencies) {
-          if (currency !== 'USD') {
-            const usdRate = await getMultipleExchangeRates('USD', [currency]);
-            additionalRates.push(...usdRate);
-          }
+        // 轉換為ExchangeRate格式
+        const rateArray: ExchangeRate[] = [];
+        for (const [currency, rate] of Object.entries(newExchangeRates)) {
+          rateArray.push({
+            from: 'TWD',
+            to: currency,
+            rate: 1 / rate, // 轉換為TWD對其他貨幣的匯率
+            timestamp: new Date().toISOString(),
+          });
         }
 
-        const allRates = [...newExchangeRates, ...additionalRates];
-        setExchangeRates(allRates);
-        saveExchangeRates(allRates);
+        setExchangeRates(rateArray);
+        saveExchangeRates(rateArray);
       }
 
       setLastUpdate(new Date().toISOString());

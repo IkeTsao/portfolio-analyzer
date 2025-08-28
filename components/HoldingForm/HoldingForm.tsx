@@ -122,30 +122,7 @@ export default function HoldingForm({ opened, onClose, holding, onSave }: Holdin
           purchaseDate: holding.purchaseDate || new Date().toISOString().split('T')[0],
         });
         
-        // 手動觸發輸入事件確保Mantine組件更新
-        setTimeout(() => {
-          const symbolInput = document.querySelector('input[placeholder*="AAPL"]') as HTMLInputElement;
-          const nameInput = document.querySelector('input[placeholder*="蘋果"]') as HTMLInputElement;
-          const quantityInput = document.querySelector('input[placeholder="0"]') as HTMLInputElement;
-          const costInput = document.querySelector('input[placeholder="0.00"]') as HTMLInputElement;
-          
-          if (symbolInput && holding.symbol) {
-            symbolInput.value = holding.symbol;
-            symbolInput.dispatchEvent(new Event('input', { bubbles: true }));
-          }
-          if (nameInput && holding.name) {
-            nameInput.value = holding.name;
-            nameInput.dispatchEvent(new Event('input', { bubbles: true }));
-          }
-          if (quantityInput && holding.quantity) {
-            quantityInput.value = holding.quantity.toString();
-            quantityInput.dispatchEvent(new Event('input', { bubbles: true }));
-          }
-          if (costInput && holding.costBasis) {
-            costInput.value = holding.costBasis.toString();
-            costInput.dispatchEvent(new Event('input', { bubbles: true }));
-          }
-        }, 100);
+        // Mantine表單會自動更新，不需要手動DOM操作
       }, 50);
     } else if (opened && !holding) {
       console.log('重置表單');
