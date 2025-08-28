@@ -173,15 +173,16 @@ export default function PortfolioDistributionChart({
       const isGainLoss = type === 'gainloss';
       
       if (isGainLoss) {
-        // 對於損益分布，顯示+/-符號
+        // 對於損益分布，根據正負值顯示獲利或虧損
         const value = payload[0].value;
-        const sign = value >= 0 ? '+' : '-';
+        const isProfit = value >= 0;
+        const label = isProfit ? '獲利' : '虧損';
         
         return (
           <Paper p="xs" withBorder shadow="md">
             <Text size="sm" fw={500}>{data.name}</Text>
             <Text size="sm" c="dimmed">
-              {`${sign}${formatCurrency(Math.abs(value))}`}
+              {`${label} ${formatCurrency(Math.abs(value))}`}
             </Text>
           </Paper>
         );
@@ -286,9 +287,10 @@ export default function PortfolioDistributionChart({
                 <Tooltip 
                   formatter={(value, name) => {
                     const numValue = value as number;
-                    const sign = numValue >= 0 ? '+' : '-';
+                    const isProfit = numValue >= 0;
+                    const label = isProfit ? '獲利' : '虧損';
                     return [
-                      `${sign}${formatCurrency(Math.abs(numValue), 'TWD')}`, 
+                      `${label} ${formatCurrency(Math.abs(numValue), 'TWD')}`, 
                       ''  // 移除標籤
                     ];
                   }}
