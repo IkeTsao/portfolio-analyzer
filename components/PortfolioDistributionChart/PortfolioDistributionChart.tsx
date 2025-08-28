@@ -278,7 +278,10 @@ export default function PortfolioDistributionChart({
                 />
                 <YAxis 
                   domain={['dataMin', 'dataMax']}  // 允許負值顯示
-                  tickFormatter={(value) => formatCurrency(Math.abs(value), 'TWD')}
+                  tickFormatter={(value) => {
+                    if (value === 0) return '0';
+                    return value > 0 ? formatCurrency(value, 'TWD') : `-${formatCurrency(Math.abs(value), 'TWD')}`;
+                  }}
                 />
                 <ReferenceLine y={0} stroke="#333" strokeWidth={1} strokeDasharray="3 3" />
                 <Tooltip 
@@ -287,22 +290,21 @@ export default function PortfolioDistributionChart({
                     const isProfit = numValue >= 0;
                     const label = isProfit ? '獲利' : '虧損';
                     return [
-                      `${label} ${formatCurrency(Math.abs(numValue), 'TWD')}`, 
-                      ''  // 移除標籤
+                      `${label} ${formatCurrency(Math.abs(numValue), 'TWD')}`
                     ];
                   }}
                   labelFormatter={(label) => label}
+                  separator=""
                 />
                 <Bar 
                   dataKey="value" 
                   name=""
                   maxBarSize={60}  // 限制長條最大寬度
-                  shape={(props: any) => {
-                    const { payload, ...rest } = props;
-                    const fill = payload.value >= 0 ? '#51cf66' : '#ff6b6b';
-                    return <rect {...rest} fill={fill} />;
-                  }}
-                />
+                >
+                  {data.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.value >= 0 ? '#51cf66' : '#ff6b6b'} />
+                  ))}
+                </Bar>
               </BarChart>
             ) : (
               // 金額分布使用圓餅圖
