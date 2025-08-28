@@ -67,15 +67,14 @@ export default function PortfolioDistributionChart({
     if (!stats?.distributionByType) return [];
     
     if (isGainLoss) {
-      // 為堆疊直條圖準備數據：分離獲利和虧損
+      // 為直條圖準備數據：只顯示實際的損益值
       const categories = Object.entries(stats.distributionByType)
         .filter(([_, data]) => data.totalGainLoss !== 0)
         .map(([type, data]) => ({
           name: TYPE_LABELS[type as keyof typeof TYPE_LABELS] || type,
-          profit: data.totalGainLoss > 0 ? data.totalGainLoss : 0,
-          loss: data.totalGainLoss < 0 ? data.totalGainLoss : 0,  // 保持負值
+          value: data.totalGainLoss,  // 直接使用損益值（正數或負數）
         }))
-        .sort((a, b) => (Math.abs(b.profit + b.loss)) - (Math.abs(a.profit + a.loss)));
+        .sort((a, b) => Math.abs(b.value) - Math.abs(a.value));
       
       return categories;
     }
@@ -97,15 +96,14 @@ export default function PortfolioDistributionChart({
     if (!stats?.distributionByAccount) return [];
     
     if (isGainLoss) {
-      // 為堆疊直條圖準備數據：分離獲利和虧損
+      // 為直條圖準備數據：只顯示實際的損益值
       const categories = Object.entries(stats.distributionByAccount)
         .filter(([_, data]) => data.totalGainLoss !== 0)
         .map(([account, data]) => ({
           name: ACCOUNT_LABELS[account as keyof typeof ACCOUNT_LABELS] || account,
-          profit: data.totalGainLoss > 0 ? data.totalGainLoss : 0,
-          loss: data.totalGainLoss < 0 ? data.totalGainLoss : 0,  // 保持負值
+          value: data.totalGainLoss,  // 直接使用損益值（正數或負數）
         }))
-        .sort((a, b) => (Math.abs(b.profit + b.loss)) - (Math.abs(a.profit + a.loss)));
+        .sort((a, b) => Math.abs(b.value) - Math.abs(a.value));
       
       return categories;
     }
@@ -127,15 +125,14 @@ export default function PortfolioDistributionChart({
     if (!stats?.distributionByMarket) return [];
     
     if (isGainLoss) {
-      // 為堆疊直條圖準備數據：分離獲利和虧損
+      // 為直條圖準備數據：只顯示實際的損益值
       const categories = Object.entries(stats.distributionByMarket)
         .filter(([_, data]) => data.totalGainLoss !== 0)
         .map(([market, data]) => ({
           name: MARKET_LABELS[market as keyof typeof MARKET_LABELS] || market,
-          profit: data.totalGainLoss > 0 ? data.totalGainLoss : 0,
-          loss: data.totalGainLoss < 0 ? data.totalGainLoss : 0,  // 保持負值
+          value: data.totalGainLoss,  // 直接使用損益值（正數或負數）
         }))
-        .sort((a, b) => (Math.abs(b.profit + b.loss)) - (Math.abs(a.profit + a.loss)));
+        .sort((a, b) => Math.abs(b.value) - Math.abs(a.value));
       
       return categories;
     }
@@ -297,16 +294,14 @@ export default function PortfolioDistributionChart({
                   labelFormatter={(label) => `${label}`}
                 />
                 <Bar 
-                  dataKey="profit" 
-                  fill="#51cf66" 
+                  dataKey="value" 
                   name=""
                   maxBarSize={60}  // 限制長條最大寬度
-                />
-                <Bar 
-                  dataKey="loss" 
-                  fill="#ff6b6b" 
-                  name=""
-                  maxBarSize={60}  // 限制長條最大寬度
+                  shape={(props: any) => {
+                    const { payload, ...rest } = props;
+                    const fill = payload.value >= 0 ? '#51cf66' : '#ff6b6b';
+                    return <rect {...rest} fill={fill} />;
+                  }}
                 />
               </BarChart>
             ) : (
@@ -322,7 +317,7 @@ export default function PortfolioDistributionChart({
                   dataKey="value"
                 >
                   {data.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.fill} />
+                    <Cell key={`cell-${index}`} fill={(entry as any).fill || '#868e96'} />
                   ))}
                 </Pie>
                 <Tooltip content={<CustomTooltip />} />
