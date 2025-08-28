@@ -278,9 +278,9 @@ export default function PortfolioDistributionChart({
                 />
                 <YAxis 
                   domain={['dataMin', 'dataMax']}  // 允許負值顯示
-                  tickFormatter={(value) => value === 0 ? '0' : formatCurrency(Math.abs(value), 'TWD')}
+                  tickFormatter={(value) => formatCurrency(Math.abs(value), 'TWD')}
                 />
-                <ReferenceLine y={0} stroke="#666" strokeDasharray="2 2" />
+                <ReferenceLine y={0} stroke="#333" strokeWidth={1} strokeDasharray="3 3" />
                 <Tooltip 
                   formatter={(value, name) => {
                     const numValue = value as number;
@@ -291,7 +291,7 @@ export default function PortfolioDistributionChart({
                       ''  // 移除標籤
                     ];
                   }}
-                  labelFormatter={(label) => `${label}`}
+                  labelFormatter={(label) => label}
                 />
                 <Bar 
                   dataKey="value" 
