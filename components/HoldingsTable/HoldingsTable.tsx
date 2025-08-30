@@ -82,6 +82,7 @@ export default function HoldingsTable({
   const [searchQuery, setSearchQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState<string | null>(null);
   const [accountFilter, setAccountFilter] = useState<string | null>(null);
+  const [regionFilter, setRegionFilter] = useState<string | null>(null);
 
   const handleDelete = async (holding: Holding) => {
     try {
@@ -111,8 +112,9 @@ export default function HoldingsTable({
       
       const matchesType = !typeFilter || holding.type === typeFilter;
       const matchesAccount = !accountFilter || holding.accountId === accountFilter;
+      const matchesRegion = !regionFilter || holding.market === regionFilter;
       
-      return matchesSearch && matchesType && matchesAccount;
+      return matchesSearch && matchesType && matchesAccount && matchesRegion;
     })
     .sort((a, b) => {
       // 按帳戶排序：Etrade → 富邦 → 玉山
@@ -355,6 +357,18 @@ export default function HoldingsTable({
             ]}
             clearable
           />
+          <Select
+            placeholder="區域"
+            value={regionFilter}
+            onChange={setRegionFilter}
+            data={[
+              { value: '', label: '全部區域' },
+              { value: 'US', label: '美國市場' },
+              { value: 'TW', label: '台灣市場' },
+              { value: 'OTHER', label: '其他市場' },
+            ]}
+            clearable
+          />
         </Group>
 
         {/* 數據表格 */}
@@ -373,4 +387,3 @@ export default function HoldingsTable({
     </Paper>
   );
 }
-
