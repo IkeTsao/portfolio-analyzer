@@ -1,4 +1,5 @@
 'use client';
+
 import { useState } from 'react';
 import {
   Paper,
@@ -45,96 +46,99 @@ interface HoldingsTableProps {
   onAdd?: () => void;
   onEdit?: (holding: Holding) => void;
   onRefresh?: () => void;
-  onUpdatePrices?: () => void;
 }
 
-// 類型顏色映射
 const TYPE_COLORS: { [key: string]: string } = {
-  stock: 'blue',
-  fund: 'green',
-  bond: 'orange',
-  gold: 'yellow',
-  crypto: 'purple',
-  cash: 'gray',
+  stock: 'cyan',
+  fund: 'blue',
+  bond: 'indigo',
+  gold: 'teal',
+  crypto: 'green',
+  cash: 'lime',
 };
 
-// 類型標籤映射
 const TYPE_LABELS: { [key: string]: string } = {
   stock: '股票',
-  fund: '基金',
+  fund: '共同基金',
   bond: '債券',
   gold: '黃金',
   crypto: '加密貨幣',
   cash: '現金',
 };
 
-// 市場標籤映射
 const MARKET_LABELS: { [key: string]: string } = {
   US: '美國',
   TW: '台灣',
   OTHER: '其他',
 };
 
-export default function HoldingsTable({
-  holdings,
-  loading = false,
-  onAdd,
-  onEdit,
-  onRefresh,
-  onUpdatePrices,
+export default function HoldingsTable({ 
+  holdings, 
+  loading, 
+  onAdd, 
+  onEdit, 
+  onRefresh 
 }: HoldingsTableProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState<string | null>(null);
   const [accountFilter, setAccountFilter] = useState<string | null>(null);
   const [regionFilter, setRegionFilter] = useState<string | null>(null);
-  const [refreshing, setRefreshing] = useState(false);
 
   const handleDelete = async (holding: Holding) => {
     try {
-      await deleteHolding(holding.id);
+      deleteHolding(holding.id);
       notifications.show({
         title: '刪除成功',
-        message: `已刪除持倉 ${holding.symbol}`,
+        message: `已刪除 ${holding.name}`,
         color: 'green',
       });
-      // 觸發刷新
-      if (onRefresh) {
-        onRefresh();
-      }
+      // 刪除後重新計算投資組合
+      onRefresh?.();
     } catch (error) {
       notifications.show({
         title: '刪除失敗',
-        message: '無法刪除持倉，請稍後再試',
+        message: '請稍後再試',
         color: 'red',
       });
     }
   };
 
-  const handleRefresh = async () => {
-    if (!onRefresh) return;
-    
-    setRefreshing(true);
-    try {
-      await onRefresh();
-    } finally {
-      setRefreshing(false);
-    }
+  // 帳戶排序優先級
+  const getAccountOrder = (accountId: string): number => {
+    const order: { [key: string]: number } = {
+      'etrade': 1,
+      'fubon': 2, 
+      'esun': 3
+    };
+    return order[accountId] || 999;
   };
 
-  const handleUpdatePrices = async () => {
-    if (!onUpdatePrices) return;
-    
-    setRefreshing(true);
-    try {
-      await onUpdatePrices();
-    } finally {
-      setRefreshing(false);
+  // 智能代碼排序
+  const sortBySymbol = (a: string, b: string): number => {
+    // 提取數字和字母部分
+    const extractParts = (str: string) => {
+      const match = str.match(/^(\d*)(.*)$/);
+      return {
+        number: match?.[1] ? parseInt(match[1]) : Infinity,
+        text: match?.[2] || str
+      };
+    };
+
+    const partsA = extractParts(a);
+    const partsB = extractParts(b);
+
+    // 先按數字部分排序
+    if (partsA.number !== partsB.number) {
+      return partsA.number - partsB.number;
     }
+
+    // 數字相同則按字母部分排序
+    return partsA.text.localeCompare(partsB.text);
   };
 
-  // 篩選持倉
+  // 過濾和排序數據
   const filteredHoldings = holdings
-    .filter((holding) => {
+    .filter(holding => {
       const matchesSearch = !searchQuery || 
         holding.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         holding.symbol.toLowerCase().includes(searchQuery.toLowerCase());
@@ -146,23 +150,18 @@ export default function HoldingsTable({
       return matchesSearch && matchesType && matchesAccount && matchesRegion;
     })
     .sort((a, b) => {
-      // 按帳戶排序：Etrade → 富邦銀行 → 玉山銀行
-      const accountOrder = { 'etrade': 1, 'fubon': 2, 'esun': 3 };
-      const aOrder = accountOrder[a.accountId as keyof typeof accountOrder] || 999;
-      const bOrder = accountOrder[b.accountId as keyof typeof accountOrder] || 999;
+      // 1. 按帳戶排序：Etrade → 富邦銀行 → 玉山銀行
+      const orderA = getAccountOrder(a.accountId);
+      const orderB = getAccountOrder(b.accountId);
       
-      if (aOrder !== bOrder) {
-        return aOrder - bOrder;
+      if (orderA !== orderB) {
+        return orderA - orderB;
       }
       
-      // 相同帳戶內按代碼排序（數字和英文字母從 A 到 Z）
-      return a.symbol.localeCompare(b.symbol, 'en', { 
-        numeric: true,  // 數字排序
-        caseFirst: 'upper'  // 大寫字母優先
-      });
+      // 2. 相同帳戶內按代碼智能排序
+      return sortBySymbol(a.symbol, b.symbol);
     });
 
-  // 恢復原始的欄位順序
   const columns = [
     {
       accessor: 'symbol',
@@ -311,6 +310,7 @@ export default function HoldingsTable({
             size="sm" 
             color="blue"
             onClick={() => onEdit?.(holding)}
+            title="編輯"
           >
             <IconEdit size={14} />
           </ActionIcon>
@@ -319,6 +319,7 @@ export default function HoldingsTable({
             size="sm" 
             color="red"
             onClick={() => handleDelete(holding)}
+            title="刪除"
           >
             <IconTrash size={14} />
           </ActionIcon>
@@ -328,23 +329,12 @@ export default function HoldingsTable({
   ];
 
   return (
-    <Paper p="md" shadow="sm" radius="md">
+    <Paper p="md" withBorder>
       <Stack gap="md">
         {/* 標題和操作按鈕 */}
         <Group justify="space-between">
           <Title order={3}>持倉明細</Title>
           <Group gap="xs">
-            {onUpdatePrices && (
-              <Button 
-                variant="light" 
-                leftSection={<IconRefresh size={16} />}
-                onClick={handleUpdatePrices}
-                loading={refreshing || loading}
-                size="sm"
-              >
-                更新價格
-              </Button>
-            )}
             {onAdd && (
               <Button leftSection={<IconPlus size={16} />} onClick={onAdd}>
                 新增持倉
@@ -407,7 +397,7 @@ export default function HoldingsTable({
         <DataTable
           columns={columns}
           records={filteredHoldings}
-          fetching={loading || refreshing}
+          fetching={loading}
           noRecordsText="暫無持倉數據"
           minHeight={200}
           striped
