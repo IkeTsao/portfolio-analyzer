@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import {
   Paper,
   Title,
@@ -21,6 +21,8 @@ import {
   IconTrash, 
   IconRefresh,
   IconSearch,
+  IconDownload,
+  IconUpload,
 } from '@tabler/icons-react';
 import { DataTable } from 'mantine-datatable';
 import { Holding } from '@/types/portfolio';
@@ -28,6 +30,7 @@ import { formatCurrency, formatPercentage } from '@/utils/portfolioCalculations'
 import { formatCurrencyWithSymbol } from '@/utils/currencyUtils';
 import { deleteHolding } from '@/utils/portfolioStorage';
 import { notifications } from '@mantine/notifications';
+import { exportHoldingsToCSV, downloadCSV, importHoldingsFromFile } from '@/utils/csvUtils';
 
 interface HoldingWithCalculations extends Holding {
   currentPrice?: number;
@@ -83,6 +86,7 @@ export default function HoldingsTable({
   const [typeFilter, setTypeFilter] = useState<string | null>(null);
   const [accountFilter, setAccountFilter] = useState<string | null>(null);
   const [regionFilter, setRegionFilter] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleDelete = async (holding: Holding) => {
     try {
@@ -100,6 +104,60 @@ export default function HoldingsTable({
         message: '請稍後再試',
         color: 'red',
       });
+    }
+  };
+
+  // 導出 CSV
+  const handleExportCSV = () => {
+    try {
+      const csvContent = exportHoldingsToCSV(holdings);
+      const filename = `持倉明細_${new Date().toISOString().split('T')[0]}.csv`;
+      downloadCSV(csvContent, filename);
+      
+      notifications.show({
+        title: '導出成功',
+        message: `已導出 ${holdings.length} 筆持倉數據`,
+        color: 'green',
+      });
+    } catch (error) {
+      notifications.show({
+        title: '導出失敗',
+        message: '無法導出 CSV 檔案',
+        color: 'red',
+      });
+    }
+  };
+
+  // 導入 CSV
+  const handleImportCSV = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // 檢查檔案類型
+    if (!file.name.toLowerCase().endsWith('.csv')) {
+      notifications.show({
+        title: '檔案格式錯誤',
+        message: '請選擇 CSV 檔案',
+        color: 'red',
+      });
+      return;
+    }
+
+    try {
+      await importHoldingsFromFile(file);
+      // 導入成功後刷新數據
+      onRefresh?.();
+    } catch (error) {
+      // 錯誤處理已在 importHoldingsFromFile 中完成
+    } finally {
+      // 清空文件輸入
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     }
   };
 
@@ -335,6 +393,24 @@ export default function HoldingsTable({
         <Group justify="space-between">
           <Title order={3}>持倉明細</Title>
           <Group gap="xs">
+            <Button 
+              variant="light" 
+              leftSection={<IconDownload size={16} />}
+              onClick={handleExportCSV}
+              size="sm"
+              color="green"
+            >
+              導出 CSV
+            </Button>
+            <Button 
+              variant="light" 
+              leftSection={<IconUpload size={16} />}
+              onClick={handleImportCSV}
+              size="sm"
+              color="blue"
+            >
+              導入 CSV
+            </Button>
             {onAdd && (
               <Button leftSection={<IconPlus size={16} />} onClick={onAdd}>
                 新增持倉
@@ -342,6 +418,15 @@ export default function HoldingsTable({
             )}
           </Group>
         </Group>
+
+        {/* 隱藏的文件輸入 */}
+        <input
+          type="file"
+          ref={fileInputRef}
+          onChange={handleFileChange}
+          accept=".csv"
+          style={{ display: 'none' }}
+        />
 
         {/* 搜尋和篩選 */}
         <Group>
