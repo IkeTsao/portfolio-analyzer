@@ -214,13 +214,13 @@ export default function HoldingsTable({
       ),
     },
     {
-      accessor: 'costPrice',
+      accessor: 'costBasis',
       title: '成本價',
       width: 120,
       textAlign: 'right' as const,
       render: (holding: HoldingWithCalculations) => (
         <Text size="sm">
-          {formatCurrencyWithSymbol(holding.costPrice, holding.currency)}
+          {formatCurrencyWithSymbol(holding.costBasis, holding.currency)}
         </Text>
       ),
     },
@@ -258,7 +258,7 @@ export default function HoldingsTable({
         <Text size="sm">
           {holding.costValue 
             ? formatCurrencyWithSymbol(holding.costValue, holding.currency)
-            : '-'
+            : formatCurrencyWithSymbol(holding.quantity * holding.costBasis, holding.currency)
           }
         </Text>
       ),
