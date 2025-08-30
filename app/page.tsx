@@ -140,7 +140,6 @@ export default function HomePage() {
             onAdd={handleAddHolding}
             onEdit={handleEditHolding}
             onRefresh={refreshHoldings}
-            onUpdatePrices={handleUpdatePrices}
           />
         </Stack>
       </Container>
