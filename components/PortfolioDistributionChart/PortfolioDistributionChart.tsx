@@ -25,7 +25,7 @@ const TYPE_LABELS = {
   fund: '共同基金',
   bond: '債券',
   gold: '黃金',
-  crypto: '數位貨幣',
+  crypto: '加密貨幣',
   cash: '現金',
 };
 
