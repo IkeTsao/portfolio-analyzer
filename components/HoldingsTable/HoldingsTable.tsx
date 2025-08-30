@@ -47,6 +47,33 @@ interface HoldingsTableProps {
   onRefresh?: () => void;
 }
 
+// 類型顏色映射
+const TYPE_COLORS: { [key: string]: string } = {
+  stock: 'blue',
+  fund: 'green',
+  bond: 'orange',
+  gold: 'yellow',
+  crypto: 'purple',
+  cash: 'gray',
+};
+
+// 類型標籤映射
+const TYPE_LABELS: { [key: string]: string } = {
+  stock: '股票',
+  fund: '基金',
+  bond: '債券',
+  gold: '黃金',
+  crypto: '加密貨幣',
+  cash: '現金',
+};
+
+// 市場標籤映射
+const MARKET_LABELS: { [key: string]: string } = {
+  US: '美國',
+  TW: '台灣',
+  OTHER: '其他',
+};
+
 export default function HoldingsTable({
   holdings,
   loading = false,
@@ -128,68 +155,14 @@ export default function HoldingsTable({
       return a.symbol.localeCompare(b.symbol);
     });
 
-  const getAccountName = (accountId: string) => {
-    switch (accountId) {
-      case 'etrade': return 'Etrade';
-      case 'fubon': return '富邦';
-      case 'esun': return '玉山';
-      default: return accountId;
-    }
-  };
-
-  const getTypeName = (type: string) => {
-    switch (type) {
-      case 'stock': return '股票';
-      case 'fund': return '基金';
-      case 'bond': return '債券';
-      case 'gold': return '黃金';
-      case 'crypto': return '數位貨幣';
-      case 'cash': return '現金';
-      default: return type;
-    }
-  };
-
-  const getTypeColor = (type: string) => {
-    switch (type) {
-      case 'stock': return 'blue';
-      case 'fund': return 'green';
-      case 'bond': return 'orange';
-      case 'gold': return 'yellow';
-      case 'crypto': return 'purple';
-      case 'cash': return 'gray';
-      default: return 'gray';
-    }
-  };
-
+  // 恢復原始的欄位順序
   const columns = [
-    {
-      accessor: 'accountId',
-      title: '帳戶',
-      width: 80,
-      render: (holding: HoldingWithCalculations) => (
-        <Text size="sm" fw={500}>
-          {getAccountName(holding.accountId)}
-        </Text>
-      ),
-    },
-    {
-      accessor: 'type',
-      title: '類型',
-      width: 80,
-      render: (holding: HoldingWithCalculations) => (
-        <Badge color={getTypeColor(holding.type)} size="sm">
-          {getTypeName(holding.type)}
-        </Badge>
-      ),
-    },
     {
       accessor: 'symbol',
       title: '代碼',
       width: 100,
       render: (holding: HoldingWithCalculations) => (
-        <Text size="sm" fw={600}>
-          {holding.symbol}
-        </Text>
+        <Text fw={500}>{holding.symbol}</Text>
       ),
     },
     {
@@ -197,10 +170,35 @@ export default function HoldingsTable({
       title: '名稱',
       width: 200,
       render: (holding: HoldingWithCalculations) => (
-        <Text size="sm" lineClamp={2}>
-          {holding.name}
-        </Text>
+        <Stack gap={2}>
+          <Text size="sm" fw={500}>{holding.name}</Text>
+          <Group gap="xs">
+            <Badge size="xs" color={TYPE_COLORS[holding.type]}>
+              {TYPE_LABELS[holding.type]}
+            </Badge>
+            <Badge size="xs" variant="light">
+              {MARKET_LABELS[holding.market]}
+            </Badge>
+          </Group>
+        </Stack>
       ),
+    },
+    {
+      accessor: 'accountId',
+      title: '帳戶',
+      width: 120,
+      render: (holding: HoldingWithCalculations) => {
+        const accountLabels: { [key: string]: string } = {
+          etrade: 'Etrade',
+          fubon: '富邦銀行',
+          esun: '玉山銀行',
+        };
+        return (
+          <Badge size="sm" variant="light" color="blue">
+            {accountLabels[holding.accountId] || holding.accountId}
+          </Badge>
+        );
+      },
     },
     {
       accessor: 'quantity',
@@ -208,9 +206,7 @@ export default function HoldingsTable({
       width: 100,
       textAlign: 'right' as const,
       render: (holding: HoldingWithCalculations) => (
-        <Text size="sm">
-          {formatCurrency(holding.quantity, '', 0)}
-        </Text>
+        <Text size="sm">{holding.quantity.toLocaleString()}</Text>
       ),
     },
     {
@@ -219,9 +215,7 @@ export default function HoldingsTable({
       width: 120,
       textAlign: 'right' as const,
       render: (holding: HoldingWithCalculations) => (
-        <Text size="sm">
-          {formatCurrencyWithSymbol(holding.costBasis, holding.currency)}
-        </Text>
+        <Text size="sm">{formatCurrencyWithSymbol(holding.costBasis, holding.currency)}</Text>
       ),
     },
     {
@@ -230,20 +224,19 @@ export default function HoldingsTable({
       width: 120,
       textAlign: 'right' as const,
       render: (holding: HoldingWithCalculations) => (
-        <Stack gap={2}>
-          <Text size="sm">
-            {holding.currentPrice 
-              ? formatCurrencyWithSymbol(holding.currentPrice, holding.currency)
-              : '-'
+        <Stack gap={2} align="flex-end">
+          <Text size="sm" fw={500}>
+            {holding.currentPrice ? 
+              formatCurrencyWithSymbol(holding.currentPrice, holding.currency) : 
+              '-'
             }
           </Text>
-          {holding.priceChange !== undefined && holding.priceChangePercent !== undefined && (
+          {holding.priceChangePercent !== undefined && holding.priceChangePercent !== 0 && (
             <Text 
               size="xs" 
-              c={holding.priceChange >= 0 ? 'green' : 'red'}
+              c={holding.priceChangePercent >= 0 ? 'green' : 'red'}
             >
-              {holding.priceChange >= 0 ? '+' : ''}{formatCurrency(holding.priceChange, holding.currency)} 
-              ({holding.priceChangePercent >= 0 ? '+' : ''}{formatPercentage(holding.priceChangePercent)})
+              {formatPercentage(holding.priceChangePercent)}
             </Text>
           )}
         </Stack>
@@ -254,52 +247,46 @@ export default function HoldingsTable({
       title: '成本',
       width: 120,
       textAlign: 'right' as const,
-      render: (holding: HoldingWithCalculations) => (
-        <Text size="sm">
-          {holding.costValue 
-            ? formatCurrencyWithSymbol(holding.costValue, holding.currency)
-            : formatCurrencyWithSymbol(holding.quantity * holding.costBasis, holding.currency)
-          }
-        </Text>
-      ),
+      render: (holding: HoldingWithCalculations) => {
+        const totalCost = holding.quantity * holding.costBasis;
+        return (
+          <Text size="sm">
+            {formatCurrencyWithSymbol(totalCost, holding.currency)}
+          </Text>
+        );
+      },
     },
     {
       accessor: 'currentValue',
-      title: '市值',
+      title: '市值(台幣)',
       width: 120,
       textAlign: 'right' as const,
       render: (holding: HoldingWithCalculations) => (
-        <Text size="sm">
-          {holding.currentValue 
-            ? formatCurrencyWithSymbol(holding.currentValue, holding.currency)
-            : '-'
-          }
+        <Text size="sm" fw={500}>
+          {holding.currentValue ? formatCurrency(holding.currentValue) : '-'}
         </Text>
       ),
     },
     {
       accessor: 'gainLoss',
-      title: '損益',
+      title: '損益(台幣)',
       width: 140,
       textAlign: 'right' as const,
       render: (holding: HoldingWithCalculations) => (
-        <Stack gap={2}>
+        <Stack gap={2} align="flex-end">
           <Text 
             size="sm" 
-            c={holding.gainLoss && holding.gainLoss >= 0 ? 'green' : 'red'}
             fw={500}
+            c={holding.gainLoss && holding.gainLoss >= 0 ? 'green' : 'red'}
           >
-            {holding.gainLoss 
-              ? `${holding.gainLoss >= 0 ? '+' : ''}${formatCurrencyWithSymbol(holding.gainLoss, holding.currency)}`
-              : '-'
-            }
+            {holding.gainLoss ? formatCurrency(holding.gainLoss) : '-'}
           </Text>
           {holding.gainLossPercent !== undefined && (
             <Text 
               size="xs" 
               c={holding.gainLossPercent >= 0 ? 'green' : 'red'}
             >
-              {holding.gainLossPercent >= 0 ? '+' : ''}{formatPercentage(holding.gainLossPercent)}
+              {formatPercentage(holding.gainLossPercent)}
             </Text>
           )}
         </Stack>
@@ -308,31 +295,27 @@ export default function HoldingsTable({
     {
       accessor: 'actions',
       title: '操作',
-      width: 80,
+      width: 120,
       textAlign: 'center' as const,
-      render: (holding: HoldingWithCalculations) => (
-        <Menu shadow="md" width={120}>
-          <Menu.Target>
-            <ActionIcon variant="subtle" color="gray">
-              <IconDots size={16} />
-            </ActionIcon>
-          </Menu.Target>
-          <Menu.Dropdown>
-            <Menu.Item
-              leftSection={<IconEdit size={14} />}
-              onClick={() => onEdit?.(holding)}
-            >
-              編輯
-            </Menu.Item>
-            <Menu.Item
-              leftSection={<IconTrash size={14} />}
-              color="red"
-              onClick={() => handleDelete(holding)}
-            >
-              刪除
-            </Menu.Item>
-          </Menu.Dropdown>
-        </Menu>
+      render: (holding: any) => (
+        <Group gap="xs" justify="center">
+          <ActionIcon 
+            variant="subtle" 
+            size="sm" 
+            color="blue"
+            onClick={() => onEdit?.(holding)}
+          >
+            <IconEdit size={14} />
+          </ActionIcon>
+          <ActionIcon 
+            variant="subtle" 
+            size="sm" 
+            color="red"
+            onClick={() => handleDelete(holding)}
+          >
+            <IconTrash size={14} />
+          </ActionIcon>
+        </Group>
       ),
     },
   ];
@@ -382,7 +365,7 @@ export default function HoldingsTable({
               { value: 'fund', label: '基金' },
               { value: 'bond', label: '債券' },
               { value: 'gold', label: '黃金' },
-              { value: 'crypto', label: '數位貨幣' },
+              { value: 'crypto', label: '加密貨幣' },
               { value: 'cash', label: '現金' },
             ]}
             clearable
