@@ -26,3 +26,23 @@ const fallbackRates: { [key: string]: number } = {
   'GBP': 39.8,  // 英鎊
   'CHF': 35.1,  // 瑞士法郎
 };
+const response = await fetch(`${window.location.origin}/api/scrape-exchange-rate?from=${currency}&to=TWD`);
+
+if (!response.ok) {
+  throw new Error(`HTTP error! status: ${response.status}`);
+}
+
+const data = await response.json();
+if (!data.success) {
+  throw new Error(data.error || 'API returned unsuccessful response');
+}
+try {
+  // API 調用
+} catch (error) {
+  console.error(`Error fetching ${currency} rate:`, error);
+  // 使用備用匯率
+  setRates(prev => ({
+    ...prev,
+    [currency]: fallbackRates[currency] || 30.0
+  }));
+}
