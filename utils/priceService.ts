@@ -14,12 +14,14 @@ export interface ExchangeRate {
   lastUpdated: string;
 }
 
-// 使用API路由獲取股票價格
+// 使用API路由獲取股票價格 (修復 Vercel 環境)
 export async function fetchStockPrice(symbol: string): Promise<PriceData | null> {
   try {
     console.log(`獲取股票價格: ${symbol}`);
     
-    const response = await fetch(`/api/stock-price?symbol=${encodeURIComponent(symbol)}`);
+    // 修復：使用完整 URL 確保在 Vercel 環境中正常工作
+    const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
+    const response = await fetch(`${baseUrl}/api/stock-price?symbol=${encodeURIComponent(symbol)}`);
     
     if (!response.ok) {
       console.error(`API請求失敗: ${response.status}`);
@@ -48,12 +50,14 @@ export async function fetchStockPrice(symbol: string): Promise<PriceData | null>
   }
 }
 
-// 使用API路由獲取匯率
+// 使用API路由獲取匯率 (修復 Vercel 環境)
 export async function fetchExchangeRates(): Promise<Record<string, number>> {
   try {
     console.log('獲取匯率數據');
     
-    const response = await fetch('/api/exchange-rate');
+    // 修復：使用完整 URL 確保在 Vercel 環境中正常工作
+    const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
+    const response = await fetch(`${baseUrl}/api/exchange-rate`);
     
     if (!response.ok) {
       console.error(`匯率API請求失敗: ${response.status}`);
@@ -140,4 +144,3 @@ export async function updateAllPrices(holdings: any[]): Promise<PriceData[]> {
   const results = await Promise.all(pricePromises);
   return results.filter((price): price is PriceData => price !== null);
 }
-
