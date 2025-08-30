@@ -412,3 +412,4 @@ export default function HoldingsTable({
     </Paper>
   );
 }
+
