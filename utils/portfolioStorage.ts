@@ -89,6 +89,25 @@ export const deleteHolding = (holdingId: string): void => {
   saveHoldings(filtered);
 };
 
+// 清空所有持倉數據 (新增函數)
+export const clearAllHoldings = (): void => {
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem(STORAGE_KEYS.HOLDINGS);
+  }
+};
+
+// 批量添加持倉 (新增函數)
+export const addMultipleHoldings = (holdings: Holding[]): void => {
+  const existingHoldings = loadHoldings();
+  const allHoldings = [...existingHoldings, ...holdings];
+  saveHoldings(allHoldings);
+};
+
+// 替換所有持倉數據 (新增函數)
+export const replaceAllHoldings = (holdings: Holding[]): void => {
+  saveHoldings(holdings);
+};
+
 // 匯率數據管理
 export const saveExchangeRates = (rates: ExchangeRate[]): void => {
   if (typeof window !== 'undefined') {
@@ -162,5 +181,31 @@ export const getHoldingsByType = (type: string): Holding[] => {
 export const getHoldingsByMarket = (market: string): Holding[] => {
   const holdings = loadHoldings();
   return holdings.filter(h => h.market === market);
+};
+
+// 獲取持倉統計
+export const getHoldingsStats = () => {
+  const holdings = loadHoldings();
+  return {
+    total: holdings.length,
+    byAccount: {
+      etrade: holdings.filter(h => h.accountId === 'etrade').length,
+      fubon: holdings.filter(h => h.accountId === 'fubon').length,
+      esun: holdings.filter(h => h.accountId === 'esun').length,
+    },
+    byType: {
+      stock: holdings.filter(h => h.type === 'stock').length,
+      fund: holdings.filter(h => h.type === 'fund').length,
+      bond: holdings.filter(h => h.type === 'bond').length,
+      gold: holdings.filter(h => h.type === 'gold').length,
+      crypto: holdings.filter(h => h.type === 'crypto').length,
+      cash: holdings.filter(h => h.type === 'cash').length,
+    },
+    byMarket: {
+      US: holdings.filter(h => h.market === 'US').length,
+      TW: holdings.filter(h => h.market === 'TW').length,
+      OTHER: holdings.filter(h => h.market === 'OTHER').length,
+    }
+  };
 };
 
