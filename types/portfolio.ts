@@ -133,7 +133,7 @@ export const INVESTMENT_TYPES = [
   { value: 'fund', label: '共同基金' },
   { value: 'bond', label: '債券' },
   { value: 'gold', label: '黃金' },
-  { value: 'crypto', label: '數位貨幣' },
+  { value: 'crypto', label: '加密貨幣' },
   { value: 'cash', label: '現金' },
 ];
 
