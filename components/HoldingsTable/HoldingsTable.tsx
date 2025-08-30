@@ -45,6 +45,7 @@ interface HoldingsTableProps {
   onAdd?: () => void;
   onEdit?: (holding: Holding) => void;
   onRefresh?: () => void;
+  onUpdatePrices?: () => void;
 }
 
 // 類型顏色映射
@@ -80,6 +81,7 @@ export default function HoldingsTable({
   onAdd,
   onEdit,
   onRefresh,
+  onUpdatePrices,
 }: HoldingsTableProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState<string | null>(null);
@@ -114,6 +116,17 @@ export default function HoldingsTable({
     setRefreshing(true);
     try {
       await onRefresh();
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
+  const handleUpdatePrices = async () => {
+    if (!onUpdatePrices) return;
+    
+    setRefreshing(true);
+    try {
+      await onUpdatePrices();
     } finally {
       setRefreshing(false);
     }
@@ -321,11 +334,11 @@ export default function HoldingsTable({
         <Group justify="space-between">
           <Title order={3}>持倉明細</Title>
           <Group gap="xs">
-            {onRefresh && (
+            {onUpdatePrices && (
               <Button 
                 variant="light" 
                 leftSection={<IconRefresh size={16} />}
-                onClick={handleRefresh}
+                onClick={handleUpdatePrices}
                 loading={refreshing || loading}
                 size="sm"
               >
