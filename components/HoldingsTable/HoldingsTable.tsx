@@ -133,7 +133,7 @@ export default function HoldingsTable({
       return matchesSearch && matchesType && matchesAccount && matchesRegion;
     })
     .sort((a, b) => {
-      // 按帳戶排序：Etrade → 富邦 → 玉山
+      // 按帳戶排序：Etrade → 富邦銀行 → 玉山銀行
       const accountOrder = { 'etrade': 1, 'fubon': 2, 'esun': 3 };
       const aOrder = accountOrder[a.accountId as keyof typeof accountOrder] || 999;
       const bOrder = accountOrder[b.accountId as keyof typeof accountOrder] || 999;
@@ -142,17 +142,11 @@ export default function HoldingsTable({
         return aOrder - bOrder;
       }
       
-      // 相同帳戶內按類型排序
-      const typeOrder = { 'stock': 1, 'fund': 2, 'bond': 3, 'gold': 4, 'crypto': 5, 'cash': 6 };
-      const aTypeOrder = typeOrder[a.type as keyof typeof typeOrder] || 999;
-      const bTypeOrder = typeOrder[b.type as keyof typeof typeOrder] || 999;
-      
-      if (aTypeOrder !== bTypeOrder) {
-        return aTypeOrder - bTypeOrder;
-      }
-      
-      // 相同類型內按代碼排序
-      return a.symbol.localeCompare(b.symbol);
+      // 相同帳戶內按代碼排序（數字和英文字母從 A 到 Z）
+      return a.symbol.localeCompare(b.symbol, 'en', { 
+        numeric: true,  // 數字排序
+        caseFirst: 'upper'  // 大寫字母優先
+      });
     });
 
   // 恢復原始的欄位順序
@@ -412,4 +406,3 @@ export default function HoldingsTable({
     </Paper>
   );
 }
-
