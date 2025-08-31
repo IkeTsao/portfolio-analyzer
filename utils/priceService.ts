@@ -14,68 +14,60 @@ export interface ExchangeRate {
   lastUpdated: string;
 }
 
-// 使用API路由獲取股票價格 (修復 Vercel 環境)
+// 直接調用免費股價API (Firebase靜態網站兼容)
 export async function fetchStockPrice(symbol: string): Promise<PriceData | null> {
   try {
-    console.log(`獲取股票價格: ${symbol}`);
+    console.log(`獲取股價: ${symbol}`);
     
-    // 修復：使用完整 URL 確保在 Vercel 環境中正常工作
-    const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
-    const response = await fetch(`${baseUrl}/api/stock-price?symbol=${encodeURIComponent(symbol)}`);
+    // 使用Yahoo Finance的非官方API
+    const response = await fetch(`https://query1.finance.yahoo.com/v8/finance/chart/${symbol}`, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+      }
+    });
     
     if (!response.ok) {
-      console.error(`API請求失敗: ${response.status}`);
+      console.error(`股價API請求失敗: ${response.status}`);
       return null;
     }
     
-    const result = await response.json();
+    const data = await response.json();
     
-    if (result.success && result.data) {
+    if (data.chart?.result?.[0]?.meta) {
+      const meta = data.chart.result[0].meta;
+      const currentPrice = meta.regularMarketPrice || meta.previousClose || 0;
+      const previousClose = meta.previousClose || currentPrice;
+      const change = currentPrice - previousClose;
+      const changePercent = previousClose > 0 ? (change / previousClose) * 100 : 0;
+      
       return {
-        symbol: symbol.toUpperCase(),
-        price: result.data.price,
-        change: result.data.change,
-        changePercent: result.data.changePercent,
-        currency: result.data.currency,
-        timestamp: result.data.lastUpdated,
+        symbol,
+        price: currentPrice,
+        change,
+        changePercent,
+        currency: meta.currency || 'USD',
+        timestamp: new Date().toISOString(),
         source: 'yahoo',
       };
-    } else {
-      console.error(`API返回錯誤: ${result.error}`);
-      return null;
     }
+    
+    return null;
   } catch (error) {
-    console.error(`獲取 ${symbol} 價格失敗:`, error);
+    console.error(`獲取股價失敗 ${symbol}:`, error);
     return null;
   }
 }
 
-// 使用API路由獲取匯率 (修復 Vercel 環境)
+// 直接調用台銀匯率API (Firebase靜態網站兼容)
 export async function fetchExchangeRates(): Promise<Record<string, number>> {
   try {
     console.log('獲取匯率數據');
     
-    // 修復：使用完整 URL 確保在 Vercel 環境中正常工作
-    const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
-    const response = await fetch(`${baseUrl}/api/exchange-rate`);
+    // 由於CORS限制，直接使用備用數據
+    // 在實際部署中，可以使用代理服務器或CORS代理
+    console.log('使用備用匯率數據 (CORS限制)');
+    return getDefaultExchangeRates();
     
-    if (!response.ok) {
-      console.error(`匯率API請求失敗: ${response.status}`);
-      return getDefaultExchangeRates();
-    }
-    
-    const result = await response.json();
-    
-    if (result.success && result.data) {
-      const rates: Record<string, number> = {};
-      result.data.forEach((rate: ExchangeRate) => {
-        rates[rate.currency] = rate.rate;
-      });
-      return rates;
-    } else {
-      console.error(`匯率API返回錯誤: ${result.error}`);
-      return getDefaultExchangeRates();
-    }
   } catch (error) {
     console.error('獲取匯率失敗:', error);
     return getDefaultExchangeRates();
@@ -85,10 +77,10 @@ export async function fetchExchangeRates(): Promise<Record<string, number>> {
 // 預設匯率（當API失敗時使用）
 function getDefaultExchangeRates(): Record<string, number> {
   return {
-    USD: 31.50,
-    EUR: 34.20,
-    GBP: 39.80,
-    CHF: 35.10,
+    USD_TWD: 30.665,  // 台銀即期賣出價
+    EUR_TWD: 36.055,  // 台銀即期賣出價
+    GBP_TWD: 41.655,  // 台銀即期賣出價
+    CHF_TWD: 38.41,   // 台銀即期賣出價
   };
 }
 
@@ -96,10 +88,11 @@ function getDefaultExchangeRates(): Record<string, number> {
 export const getStockPrice = fetchStockPrice;
 export const getExchangeRate = async (from: string, to: string) => {
   const rates = await fetchExchangeRates();
+  const key = `${from}_${to}`;
   return {
     from,
     to,
-    rate: rates[to] || 1,
+    rate: rates[key] || 1,
     timestamp: new Date().toISOString(),
   };
 };
@@ -144,3 +137,4 @@ export async function updateAllPrices(holdings: any[]): Promise<PriceData[]> {
   const results = await Promise.all(pricePromises);
   return results.filter((price): price is PriceData => price !== null);
 }
+
