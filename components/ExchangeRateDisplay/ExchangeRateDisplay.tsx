@@ -41,10 +41,10 @@ export default function ExchangeRateDisplay() {
           console.error(`獲取 ${currency} 匯率失敗:`, error);
           // 返回備用數據
           const fallbackRates: { [key: string]: number } = {
-            'USD': 31.5,
-            'EUR': 34.2,
-            'GBP': 39.8,
-            'CHF': 35.1,
+            'USD': 30.5,
+            'EUR': 35.7,
+            'GBP': 41.2,
+            'CHF': 38.2,
           };
           return {
             currency,
@@ -63,10 +63,10 @@ export default function ExchangeRateDisplay() {
       console.error('獲取匯率失敗:', error);
       // 設置備用匯率數據
       const fallbackRates = [
-        { currency: 'USD', rate: 31.5, change: 0, label: '美金', symbol: '$' },
-        { currency: 'EUR', rate: 34.2, change: 0, label: '歐元', symbol: '€' },
-        { currency: 'GBP', rate: 39.8, change: 0, label: '英鎊', symbol: '£' },
-        { currency: 'CHF', rate: 35.1, change: 0, label: '瑞士法郎', symbol: 'CHF' },
+        { currency: 'USD', rate: 30.5, change: 0, label: '美金', symbol: '$' },
+        { currency: 'EUR', rate: 35.7, change: 0, label: '歐元', symbol: '€' },
+        { currency: 'GBP', rate: 41.2, change: 0, label: '英鎊', symbol: '£' },
+        { currency: 'CHF', rate: 38.2, change: 0, label: '瑞士法郎', symbol: 'CHF' },
       ];
       setRates(fallbackRates);
       setLastUpdate(new Date());
