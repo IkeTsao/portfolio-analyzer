@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Paper, Title, Group, Text, Stack, Badge, Loader } from '@mantine/core';
-import { IconRefresh } from '@tabler/icons-react';
+import { Paper, Title, Group, Text, Stack, Badge, Loader, Tooltip } from '@mantine/core';
+import { IconRefresh, IconAlertTriangle } from '@tabler/icons-react';
 
 interface ExchangeRate {
   currency: string;
@@ -10,6 +10,7 @@ interface ExchangeRate {
   change: number;
   label: string;
   symbol: string;
+  isFallback: boolean; // 新增：標記是否為備用數據
 }
 
 export default function ExchangeRateDisplay() {
@@ -30,21 +31,28 @@ export default function ExchangeRateDisplay() {
             throw new Error(`HTTP error! status: ${response.status}`);
           }
           const data = await response.json();
-          return {
-            currency,
-            rate: data.success ? data.rate || 0 : 0,
-            change: data.change || 0,
-            label: getCurrencyLabel(currency),
-            symbol: getCurrencySymbol(currency),
-          };
+          
+          // 檢查是否成功獲取數據
+          if (data.success && data.rate && data.rate > 0) {
+            return {
+              currency,
+              rate: data.rate,
+              change: data.change || 0,
+              label: getCurrencyLabel(currency),
+              symbol: getCurrencySymbol(currency),
+              isFallback: false, // 成功獲取即時數據
+            };
+          } else {
+            throw new Error('API 返回無效數據');
+          }
         } catch (error) {
           console.error(`獲取 ${currency} 匯率失敗:`, error);
           // 返回備用數據
           const fallbackRates: { [key: string]: number } = {
-            'USD': 30.5,
-            'EUR': 35.7,
-            'GBP': 41.2,
-            'CHF': 38.2,
+            'USD': 31.5,
+            'EUR': 34.2,
+            'GBP': 39.8,
+            'CHF': 35.1,
           };
           return {
             currency,
@@ -52,6 +60,7 @@ export default function ExchangeRateDisplay() {
             change: 0,
             label: getCurrencyLabel(currency),
             symbol: getCurrencySymbol(currency),
+            isFallback: true, // 標記為備用數據
           };
         }
       });
@@ -63,10 +72,10 @@ export default function ExchangeRateDisplay() {
       console.error('獲取匯率失敗:', error);
       // 設置備用匯率數據
       const fallbackRates = [
-        { currency: 'USD', rate: 30.5, change: 0, label: '美金', symbol: '$' },
-        { currency: 'EUR', rate: 35.7, change: 0, label: '歐元', symbol: '€' },
-        { currency: 'GBP', rate: 41.2, change: 0, label: '英鎊', symbol: '£' },
-        { currency: 'CHF', rate: 38.2, change: 0, label: '瑞士法郎', symbol: 'CHF' },
+        { currency: 'USD', rate: 31.5, change: 0, label: '美金', symbol: '$', isFallback: true },
+        { currency: 'EUR', rate: 34.2, change: 0, label: '歐元', symbol: '€', isFallback: true },
+        { currency: 'GBP', rate: 39.8, change: 0, label: '英鎊', symbol: '£', isFallback: true },
+        { currency: 'CHF', rate: 35.1, change: 0, label: '瑞士法郎', symbol: 'CHF', isFallback: true },
       ];
       setRates(fallbackRates);
       setLastUpdate(new Date());
@@ -95,6 +104,9 @@ export default function ExchangeRateDisplay() {
     return symbols[currency] || currency;
   };
 
+  // 檢查是否有備用數據
+  const hasFallbackData = rates.some(rate => rate.isFallback);
+
   useEffect(() => {
     fetchExchangeRates();
     // 每5分鐘更新一次匯率
@@ -105,7 +117,22 @@ export default function ExchangeRateDisplay() {
   return (
     <Paper p="md" withBorder>
       <Group justify="space-between" mb="md">
-        <Title order={3}>即時匯率</Title>
+        <Group gap="xs">
+          <Title order={3}>即時匯率</Title>
+          {hasFallbackData && (
+            <Tooltip 
+              label="部分匯率數據無法獲取，正在顯示備用匯率"
+              position="top"
+              withArrow
+            >
+              <IconAlertTriangle 
+                size={18} 
+                color="orange" 
+                style={{ cursor: 'help' }}
+              />
+            </Tooltip>
+          )}
+        </Group>
         <Group gap="xs">
           {lastUpdate && (
             <Text size="xs" c="dimmed">
@@ -128,24 +155,58 @@ export default function ExchangeRateDisplay() {
       ) : (
         <Group gap="md">
           {rates.map((rate) => (
-            <Paper key={rate.currency} p="sm" withBorder bg="gray.0">
+            <Paper 
+              key={rate.currency} 
+              p="sm" 
+              withBorder 
+              bg={rate.isFallback ? "yellow.0" : "gray.0"} // 備用數據使用不同背景色
+            >
               <Stack gap="xs" align="center">
                 <Group gap="xs">
                   <Text fw={500} size="sm">{rate.label}</Text>
                   <Badge size="xs" variant="light">
                     {rate.currency}/TWD
                   </Badge>
+                  {rate.isFallback && (
+                    <Tooltip 
+                      label="此為備用匯率，非即時數據"
+                      position="top"
+                      withArrow
+                    >
+                      <Badge 
+                        size="xs" 
+                        color="orange" 
+                        variant="filled"
+                        style={{ cursor: 'help' }}
+                      >
+                        !
+                      </Badge>
+                    </Tooltip>
+                  )}
                 </Group>
-                <Text size="lg" fw={700} c="blue">
+                <Text 
+                  size="lg" 
+                  fw={700} 
+                  c={rate.isFallback ? "orange" : "blue"} // 備用數據使用橙色
+                >
                   {rate.symbol}1 = NT${rate.rate.toFixed(2)}
                 </Text>
-                {rate.change !== 0 && (
+                {rate.change !== 0 && !rate.isFallback && (
                   <Badge 
                     size="xs" 
                     color={rate.change > 0 ? 'green' : 'red'}
                     variant="light"
                   >
                     {rate.change > 0 ? '+' : ''}{rate.change.toFixed(2)}%
+                  </Badge>
+                )}
+                {rate.isFallback && (
+                  <Badge 
+                    size="xs" 
+                    color="orange"
+                    variant="light"
+                  >
+                    備用數據
                   </Badge>
                 )}
               </Stack>
@@ -156,4 +217,3 @@ export default function ExchangeRateDisplay() {
     </Paper>
   );
 }
-
