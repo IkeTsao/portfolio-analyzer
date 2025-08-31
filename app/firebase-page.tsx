@@ -31,7 +31,7 @@ import '@mantine/notifications/styles.css';
 
 export default function FirebaseHomePage() {
   const [holdingFormOpened, setHoldingFormOpened] = useState(false);
-  const [editingHolding, setEditingHolding] = useState(null);
+  const [editingHolding, setEditingHolding] = useState<any>(null);
 
   const {
     portfolioStats,
@@ -123,7 +123,6 @@ export default function FirebaseHomePage() {
           {/* 頁面標題 */}
           <PageHeader 
             title="投資組合總覽 (Firebase 版本)"
-            subtitle="雲端存儲測試版本"
           />
 
           {/* 統計卡片 */}
@@ -131,13 +130,17 @@ export default function FirebaseHomePage() {
             stats={portfolioStats}
             loading={loading}
             lastUpdate={lastUpdate}
-            onUpdatePrices={handleUpdatePrices}
+            onRefresh={handleRefreshData}
           />
 
           {/* 圖表和匯率 */}
           <Grid>
             <Grid.Col span={{ base: 12, md: 8 }}>
-              <PortfolioDistributionChart />
+              <PortfolioDistributionChart 
+                stats={portfolioStats}
+                type="amount"
+                title="投資組合分布"
+              />
             </Grid.Col>
             <Grid.Col span={{ base: 12, md: 4 }}>
               <ExchangeRateDisplay />
@@ -146,11 +149,12 @@ export default function FirebaseHomePage() {
 
           {/* 持倉表格 */}
           <HoldingsTable
-            onAddHolding={() => {
+            holdings={[]} // Firebase版本暫時傳空數組
+            onAdd={() => {
               setEditingHolding(null);
               setHoldingFormOpened(true);
             }}
-            onEditHolding={(holding) => {
+            onEdit={(holding) => {
               setEditingHolding(holding);
               setHoldingFormOpened(true);
             }}
@@ -164,7 +168,6 @@ export default function FirebaseHomePage() {
               setHoldingFormOpened(false);
               setEditingHolding(null);
             }}
-            editingHolding={editingHolding}
           />
         </Stack>
       </Container>

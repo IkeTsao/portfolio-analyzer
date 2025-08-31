@@ -111,8 +111,8 @@ export const FirebaseHoldingForm = ({
         symbol: formData.symbol.toUpperCase(),
         name: formData.name,
         accountId: formData.accountId,
-        type: formData.type,
-        market: formData.market,
+        type: formData.type as any, // 暫時使用 any 類型
+        market: formData.market as any, // 暫時使用 any 類型
         quantity: formData.quantity,
         costBasis: formData.costBasis,
         currency: formData.currency,

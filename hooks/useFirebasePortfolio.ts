@@ -129,11 +129,9 @@ export const useFirebasePortfolio = () => {
   // 計算投資組合統計
   useEffect(() => {
     if (holdings.length > 0 && exchangeRates.length > 0) {
-      const holdingsWithDetails = holdings.map(holding => 
-        calculateHoldingDetails(holding, priceData, exchangeRates)
-      );
+      const holdingsWithDetails = calculateHoldingDetails(holdings, priceData, exchangeRates);
       
-      const stats = calculatePortfolioStats(holdingsWithDetails, exchangeRates);
+      const stats = calculatePortfolioStats(holdings, priceData, exchangeRates);
       setPortfolioStats(stats);
     } else {
       setPortfolioStats(null);
@@ -142,12 +140,10 @@ export const useFirebasePortfolio = () => {
 
   // 更新價格數據
   const updatePrices = useCallback(async () => {
-    if (holdings.length === 0) return;
-
     setLoading(true);
     try {
-      const symbols = [...new Set(holdings.map(h => h.symbol))];
-      const newPriceData = await updateAllPrices(symbols, priceData);
+      const symbols = Array.from(new Set(holdings.map(h => h.symbol)));
+      const newPriceData = await updateAllPrices(holdings);
       
       setPriceData(newPriceData);
       await savePriceData(newPriceData);
@@ -163,11 +159,15 @@ export const useFirebasePortfolio = () => {
 
   // 更新匯率
   const updateExchangeRates = useCallback(async () => {
-    setLoading(true);
     try {
       const newRates = await fetchExchangeRates();
-      setExchangeRates(newRates);
-      await saveExchangeRates(newRates);
+      // 轉換為 ExchangeRate[] 格式
+      const ratesArray = Object.entries(newRates).map(([key, rate]) => {
+        const [from, to] = key.split('_');
+        return { from, to, rate, timestamp: new Date().toISOString() };
+      });
+      setExchangeRates(ratesArray);
+      await saveExchangeRates(ratesArray);
     } catch (error) {
       console.error('更新匯率失敗:', error);
     } finally {
@@ -206,9 +206,7 @@ export const useFirebasePortfolio = () => {
 
   // 獲取持倉詳細信息
   const getHoldingsWithDetails = useCallback(() => {
-    return holdings.map(holding => 
-      calculateHoldingDetails(holding, priceData, exchangeRates)
-    );
+    return calculateHoldingDetails(holdings, priceData, exchangeRates);
   }, [holdings, priceData, exchangeRates]);
 
   // 按帳戶分組的持倉

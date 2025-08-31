@@ -228,13 +228,13 @@ export const loadLastUpdate = async (): Promise<string | null> => {
 // 數據監聽器 (實時同步)
 export const subscribeToHoldings = (callback: (holdings: Holding[]) => void): Unsubscribe | null => {
   return firebaseStorage.subscribeToData('holdings', (data) => {
-    callback(data || []);
+    callback(Array.isArray(data) ? data : []);
   });
 };
 
 export const subscribeToAccounts = (callback: (accounts: Account[]) => void): Unsubscribe | null => {
   return firebaseStorage.subscribeToData('accounts', (data) => {
-    callback(data || []);
+    callback(Array.isArray(data) ? data : []);
   });
 };
 
