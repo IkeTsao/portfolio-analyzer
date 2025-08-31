@@ -9,7 +9,9 @@ import {
   Text,
   Loader,
   Center,
+  MantineProvider,
 } from '@mantine/core';
+import { Notifications } from '@mantine/notifications';
 import { notifications } from '@mantine/notifications';
 import { IconCloudCheck, IconCloudX, IconDatabase } from '@tabler/icons-react';
 
@@ -22,6 +24,10 @@ import {
   ExchangeRateDisplay,
 } from '@/components';
 import { useFirebasePortfolio } from '@/hooks/useFirebasePortfolio';
+
+// 導入樣式
+import '@mantine/core/styles.css';
+import '@mantine/notifications/styles.css';
 
 export default function FirebaseHomePage() {
   const [holdingFormOpened, setHoldingFormOpened] = useState(false);
@@ -40,14 +46,16 @@ export default function FirebaseHomePage() {
   // 顯示初始化狀態
   if (!authInitialized) {
     return (
-      <Container size="lg" py="xl">
-        <Center>
-          <Stack align="center" gap="md">
-            <Loader size="lg" />
-            <Text>正在初始化 Firebase 連接...</Text>
-          </Stack>
-        </Center>
-      </Container>
+      <MantineProvider>
+        <Container size="lg" py="xl">
+          <Center>
+            <Stack align="center" gap="md">
+              <Loader size="lg" />
+              <Text>正在初始化 Firebase 連接...</Text>
+            </Stack>
+          </Center>
+        </Container>
+      </MantineProvider>
     );
   }
 
@@ -86,78 +94,81 @@ export default function FirebaseHomePage() {
   };
 
   return (
-    <Container size="lg" py="xl">
-      <Stack gap="xl">
-        {/* Firebase 狀態指示器 */}
-        <Alert
-          icon={<IconCloudCheck size={16} />}
-          title="Firebase 雲端存儲"
-          color="green"
-          variant="light"
-        >
-          <Stack gap="xs">
-            <Text size="sm">
-              ✅ 已連接到 Firebase 雲端數據庫
-            </Text>
-            {migrationCompleted && (
-              <Text size="sm" c="blue">
-                🔄 本地數據已成功遷移到雲端
+    <MantineProvider>
+      <Notifications />
+      <Container size="lg" py="xl">
+        <Stack gap="xl">
+          {/* Firebase 狀態指示器 */}
+          <Alert
+            icon={<IconCloudCheck size={16} />}
+            title="Firebase 雲端存儲"
+            color="green"
+            variant="light"
+          >
+            <Stack gap="xs">
+              <Text size="sm">
+                ✅ 已連接到 Firebase 雲端數據庫
               </Text>
-            )}
-            <Text size="xs" c="dimmed">
-              您的投資組合數據現在存儲在雲端，可以跨設備同步
-            </Text>
-          </Stack>
-        </Alert>
+              {migrationCompleted && (
+                <Text size="sm" c="blue">
+                  🔄 本地數據已成功遷移到雲端
+                </Text>
+              )}
+              <Text size="xs" c="dimmed">
+                您的投資組合數據現在存儲在雲端，可以跨設備同步
+              </Text>
+            </Stack>
+          </Alert>
 
-        {/* 頁面標題 */}
-        <PageHeader 
-          title="投資組合總覽 (Firebase 版本)"
-          subtitle="雲端存儲測試版本"
-        />
+          {/* 頁面標題 */}
+          <PageHeader 
+            title="投資組合總覽 (Firebase 版本)"
+            subtitle="雲端存儲測試版本"
+          />
 
-        {/* 統計卡片 */}
-        <PortfolioStatsGrid 
-          stats={portfolioStats}
-          loading={loading}
-          lastUpdate={lastUpdate}
-          onUpdatePrices={handleUpdatePrices}
-        />
+          {/* 統計卡片 */}
+          <PortfolioStatsGrid 
+            stats={portfolioStats}
+            loading={loading}
+            lastUpdate={lastUpdate}
+            onUpdatePrices={handleUpdatePrices}
+          />
 
-        {/* 圖表和匯率 */}
-        <Grid>
-          <Grid.Col span={{ base: 12, md: 8 }}>
-            <PortfolioDistributionChart />
-          </Grid.Col>
-          <Grid.Col span={{ base: 12, md: 4 }}>
-            <ExchangeRateDisplay />
-          </Grid.Col>
-        </Grid>
+          {/* 圖表和匯率 */}
+          <Grid>
+            <Grid.Col span={{ base: 12, md: 8 }}>
+              <PortfolioDistributionChart />
+            </Grid.Col>
+            <Grid.Col span={{ base: 12, md: 4 }}>
+              <ExchangeRateDisplay />
+            </Grid.Col>
+          </Grid>
 
-        {/* 持倉表格 */}
-        <HoldingsTable
-          onAddHolding={() => {
-            setEditingHolding(null);
-            setHoldingFormOpened(true);
-          }}
-          onEditHolding={(holding) => {
-            setEditingHolding(holding);
-            setHoldingFormOpened(true);
-          }}
-          onRefresh={handleRefreshData}
-        />
+          {/* 持倉表格 */}
+          <HoldingsTable
+            onAddHolding={() => {
+              setEditingHolding(null);
+              setHoldingFormOpened(true);
+            }}
+            onEditHolding={(holding) => {
+              setEditingHolding(holding);
+              setHoldingFormOpened(true);
+            }}
+            onRefresh={handleRefreshData}
+          />
 
-        {/* 新增/編輯持倉表單 */}
-        <HoldingForm
-          opened={holdingFormOpened}
-          onClose={() => {
-            setHoldingFormOpened(false);
-            setEditingHolding(null);
-          }}
-          editingHolding={editingHolding}
-        />
-      </Stack>
-    </Container>
+          {/* 新增/編輯持倉表單 */}
+          <HoldingForm
+            opened={holdingFormOpened}
+            onClose={() => {
+              setHoldingFormOpened(false);
+              setEditingHolding(null);
+            }}
+            editingHolding={editingHolding}
+          />
+        </Stack>
+      </Container>
+    </MantineProvider>
   );
 }
 

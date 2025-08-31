@@ -110,13 +110,13 @@ export default function HoldingsTable({
   // 導出 CSV
   const handleExportCSV = () => {
     try {
-      const csvContent = exportHoldingsToCSV(holdings);
+      const csvContent = exportHoldingsToCSV(holdings || []);
       const filename = `持倉明細_${new Date().toISOString().split('T')[0]}.csv`;
       downloadCSV(csvContent, filename);
       
       notifications.show({
         title: '導出成功',
-        message: `已導出 ${holdings.length} 筆持倉數據`,
+        message: `已導出 ${(holdings || []).length} 筆持倉數據`,
         color: 'green',
       });
     } catch (error) {
@@ -195,7 +195,7 @@ export default function HoldingsTable({
   };
 
   // 過濾和排序數據
-  const filteredHoldings = holdings
+  const filteredHoldings = (holdings || [])
     .filter(holding => {
       const matchesSearch = !searchQuery || 
         holding.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
