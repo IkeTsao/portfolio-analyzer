@@ -123,6 +123,15 @@ export async function updateAllPrices(holdings: any[], forceUpdate: boolean = fa
       continue;
     }
 
+    // 針對非共同基金且非現金的項目，在強制更新時先清除現價
+    const shouldClearPrice = forceUpdate && holding.type !== 'fund' && holding.type !== 'cash';
+    
+    // 如果需要清除現價，將 currentPrice 設為 undefined
+    if (shouldClearPrice) {
+      holding.currentPrice = undefined;
+      console.log(`清除 ${holding.symbol} 的現價，準備重新獲取`);
+    }
+
     // 如果不是強制更新且有手動輸入的現價，使用現有價格
     if (!forceUpdate && holding.currentPrice && holding.currentPrice > 0) {
       pricePromises.push(Promise.resolve({
@@ -137,7 +146,8 @@ export async function updateAllPrices(holdings: any[], forceUpdate: boolean = fa
       continue;
     }
 
-    // 強制更新或沒有現價時，使用API獲取價格
+    // 強制更新、清除現價後，或沒有現價時，使用API獲取價格
+    console.log(`正在獲取 ${holding.symbol} 的最新價格 (類型: ${holding.type})`);
     pricePromises.push(fetchStockPrice(holding.symbol));
   }
   
