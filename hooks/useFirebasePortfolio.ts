@@ -18,6 +18,7 @@ import {
   loadLastUpdate,
   subscribeToHoldings,
   subscribeToAccounts,
+  updateHolding,
   migrateFromLocalStorage,
   initializeAuth,
 } from '@/utils/firebaseStorage';
@@ -149,16 +150,45 @@ export const useFirebasePortfolio = () => {
       }
 
       console.log(`📊 準備更新 ${holdings.length} 個持倉的價格`);
-      const newPriceData = await updateAllPrices(holdings);
       
+      // 1. 獲取最新價格數據
+      const newPriceData = await updateAllPrices(holdings);
       console.log(`✅ 成功獲取 ${newPriceData.length} 個價格數據`);
+      
+      // 2. 更新持倉記錄中的currentPrice
+      const updatedHoldings = holdings.map(holding => {
+        const priceInfo = newPriceData.find(p => p.symbol === holding.symbol);
+        if (priceInfo) {
+          console.log(`💰 更新 ${holding.symbol} 價格: ${holding.currentPrice || 'N/A'} → ${priceInfo.price}`);
+          return {
+            ...holding,
+            currentPrice: priceInfo.price,
+            lastUpdated: new Date().toISOString()
+          };
+        }
+        return holding;
+      });
+      
+      // 3. 保存更新後的持倉數據
+      console.log('💾 保存更新後的持倉數據...');
+      for (const holding of updatedHoldings) {
+        if (holding.currentPrice !== holdings.find(h => h.id === holding.id)?.currentPrice) {
+          await updateHolding(holding.id, {
+            currentPrice: holding.currentPrice,
+            lastUpdated: holding.lastUpdated
+          });
+        }
+      }
+      
+      // 4. 更新本地狀態
+      setHoldings(updatedHoldings);
       setPriceData(newPriceData);
       await savePriceData(newPriceData);
       
       const now = new Date().toISOString();
       setLastUpdate(now);
       
-      console.log('🎉 價格更新完成');
+      console.log('🎉 價格更新完成 - 持倉現價和市值已重新計算');
     } catch (error) {
       console.error('❌ 更新價格失敗:', error);
       throw error; // 重新拋出錯誤以便UI處理
