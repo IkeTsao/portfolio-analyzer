@@ -8,10 +8,13 @@ import {
   Stack,
   Text,
   Title,
+  Button,
+  Group,
   rem,
   useMantineTheme,
 } from '@mantine/core';
 import { useColorScheme } from '@mantine/hooks';
+import { IconCloud } from '@tabler/icons-react';
 
 type PageHeaderProps = {
   title: string;
@@ -19,6 +22,7 @@ type PageHeaderProps = {
   breadcrumbItems?: any;
   actionButton?: React.ReactNode;
   actionContent?: React.ReactNode;
+  onSyncClick?: () => void;
 };
 
 const PageHeader = (props: PageHeaderProps) => {
@@ -28,6 +32,7 @@ const PageHeader = (props: PageHeaderProps) => {
     title,
     actionButton,
     actionContent,
+    onSyncClick,
   } = props;
 
   const theme = useMantineTheme();
@@ -65,8 +70,18 @@ const PageHeader = (props: PageHeaderProps) => {
     }
 
     // Default actions for the dashboard view
-    if (withActions) {
-      return null;
+    if (withActions && onSyncClick) {
+      return (
+        <Group>
+          <Button
+            leftSection={<IconCloud size={16} />}
+            variant="light"
+            onClick={onSyncClick}
+          >
+            雲端同步
+          </Button>
+        </Group>
+      );
     }
 
     return null;

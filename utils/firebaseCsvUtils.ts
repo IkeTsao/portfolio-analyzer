@@ -2,7 +2,8 @@ import { Holding } from '@/types/portfolio';
 import { 
   addHolding, 
   deleteHolding, 
-  loadHoldings
+  loadHoldings,
+  initializeAuth
 } from '@/utils/firebaseStorage';
 import { notifications } from '@mantine/notifications';
 
@@ -259,6 +260,14 @@ export async function importHoldingsFromFileToFirebase(file: File): Promise<void
 
         console.log(`🔄 開始導入 ${holdings.length} 筆持倉數據到 Firebase...`);
 
+        // 0. 確保 Firebase 認證完成
+        console.log('🔐 檢查 Firebase 認證狀態...');
+        const user = await initializeAuth();
+        if (!user) {
+          throw new Error('Firebase 認證失敗，無法導入數據');
+        }
+        console.log('✅ Firebase 認證成功:', user.uid);
+
         // 1. 清空現有持倉
         console.log('🗑️ 清空現有持倉數據...');
         const existingHoldings = await loadHoldings();
@@ -313,6 +322,14 @@ export async function importHoldingsFromFileToFirebase(file: File): Promise<void
  */
 export async function exportHoldingsFromFirebaseToCSV(): Promise<string> {
   try {
+    // 0. 確保 Firebase 認證完成
+    console.log('🔐 檢查 Firebase 認證狀態...');
+    const user = await initializeAuth();
+    if (!user) {
+      throw new Error('Firebase 認證失敗，無法導出數據');
+    }
+    console.log('✅ Firebase 認證成功:', user.uid);
+
     console.log('📊 從 Firebase 載入持倉數據...');
     const holdings = await loadHoldings();
     

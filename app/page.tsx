@@ -16,11 +16,13 @@ import {
   HoldingForm,
   ExchangeRateDisplay,
 } from '@/components';
+import { SyncSettings } from '@/components/SyncSettings/SyncSettings';
 import { usePortfolio } from '@/hooks/usePortfolio';
 
 export default function HomePage() {
   const [holdingFormOpened, setHoldingFormOpened] = useState(false);
   const [editingHolding, setEditingHolding] = useState(null);
+  const [syncSettingsOpened, setSyncSettingsOpened] = useState(false);
 
   const {
     portfolioStats,
@@ -100,7 +102,11 @@ export default function HomePage() {
       
       <Container fluid>
         <Stack gap="lg">
-          <PageHeader title="投資組合總覽" withActions={false} />
+          <PageHeader 
+            title="投資組合總覽" 
+            withActions={true}
+            onSyncClick={() => setSyncSettingsOpened(true)}
+          />
 
           {/* 投資組合統計 */}
           <PortfolioStatsGrid
@@ -150,6 +156,23 @@ export default function HomePage() {
         onClose={handleFormClose}
         holding={editingHolding}
         onSave={handleFormSave}
+      />
+
+      {/* 同步設置 */}
+      <SyncSettings
+        opened={syncSettingsOpened}
+        onClose={() => setSyncSettingsOpened(false)}
+        holdings={holdingDetails}
+        accounts={[]} // TODO: 從 usePortfolio 獲取 accounts
+        onDataImported={(holdings, accounts) => {
+          // TODO: 實現數據導入邏輯
+          notifications.show({
+            title: '數據導入成功',
+            message: `已導入 ${holdings.length} 筆持倉數據`,
+            color: 'green',
+          });
+          setSyncSettingsOpened(false);
+        }}
       />
     </>
   );

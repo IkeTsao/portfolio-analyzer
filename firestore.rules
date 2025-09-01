@@ -1,30 +1,9 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // 用戶只能訪問自己的數據
-    match /users/{userId}/{document=**} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
-    }
-    
-    // 匿名用戶可以訪問自己的數據
-    match /users/{userId}/accounts/{document=**} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
-    }
-    
-    match /users/{userId}/holdings/{document=**} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
-    }
-    
-    match /users/{userId}/exchangeRates/{document=**} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
-    }
-    
-    match /users/{userId}/priceData/{document=**} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
-    }
-    
-    match /users/{userId}/lastUpdate/{document=**} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+    // 允許所有已認證用戶（包括匿名用戶）完全訪問
+    match /{document=**} {
+      allow read, write: if request.auth != null;
     }
   }
 }
