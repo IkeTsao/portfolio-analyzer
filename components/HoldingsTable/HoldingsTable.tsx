@@ -49,6 +49,7 @@ interface HoldingsTableProps {
   onAdd?: () => void;
   onEdit?: (holding: Holding) => void;
   onRefresh?: () => void;
+  onUpdatePrices?: () => void;
 }
 
 const TYPE_COLORS: { [key: string]: string } = {
@@ -80,7 +81,8 @@ export default function HoldingsTable({
   loading, 
   onAdd, 
   onEdit, 
-  onRefresh 
+  onRefresh,
+  onUpdatePrices
 }: HoldingsTableProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState<string | null>(null);
@@ -411,6 +413,18 @@ export default function HoldingsTable({
             >
               導入 CSV
             </Button>
+            {onUpdatePrices && (
+              <Button 
+                variant="light" 
+                leftSection={<IconRefresh size={16} />}
+                onClick={onUpdatePrices}
+                size="sm"
+                color="orange"
+                loading={loading}
+              >
+                更新價格
+              </Button>
+            )}
             {onAdd && (
               <Button leftSection={<IconPlus size={16} />} onClick={onAdd}>
                 新增持倉
