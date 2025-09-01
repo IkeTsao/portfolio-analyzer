@@ -30,7 +30,11 @@ import { formatCurrency, formatPercentage } from '@/utils/portfolioCalculations'
 import { formatCurrencyWithSymbol } from '@/utils/currencyUtils';
 import { deleteHolding } from '@/utils/portfolioStorage';
 import { notifications } from '@mantine/notifications';
-import { exportHoldingsToCSV, downloadCSV, importHoldingsFromFile } from '@/utils/csvUtils';
+import { exportHoldingsToCSV, downloadCSV } from '@/utils/csvUtils';
+import { 
+  importHoldingsFromFileToFirebase, 
+  exportHoldingsFromFirebaseToCSV 
+} from '@/utils/firebaseCsvUtils';
 
 interface HoldingWithCalculations extends Holding {
   currentPrice?: number;
@@ -108,21 +112,23 @@ export default function HoldingsTable({
   };
 
   // 導出 CSV
-  const handleExportCSV = () => {
+  const handleExportCSV = async () => {
     try {
-      const csvContent = exportHoldingsToCSV(holdings || []);
+      console.log('📊 開始從 Firebase 導出 CSV...');
+      const csvContent = await exportHoldingsFromFirebaseToCSV();
       const filename = `持倉明細_${new Date().toISOString().split('T')[0]}.csv`;
       downloadCSV(csvContent, filename);
       
       notifications.show({
         title: '導出成功',
-        message: `已導出 ${(holdings || []).length} 筆持倉數據`,
+        message: `已從 Firebase 雲端數據庫導出持倉數據`,
         color: 'green',
       });
     } catch (error) {
+      console.error('❌ 導出 CSV 失敗:', error);
       notifications.show({
         title: '導出失敗',
-        message: '無法導出 CSV 檔案',
+        message: '無法從 Firebase 導出 CSV 檔案',
         color: 'red',
       });
     }
@@ -148,11 +154,14 @@ export default function HoldingsTable({
     }
 
     try {
-      await importHoldingsFromFile(file);
+      console.log('📤 開始導入 CSV 到 Firebase...');
+      await importHoldingsFromFileToFirebase(file);
       // 導入成功後刷新數據
+      console.log('✅ CSV 導入完成，刷新數據...');
       onRefresh?.();
     } catch (error) {
-      // 錯誤處理已在 importHoldingsFromFile 中完成
+      // 錯誤處理已在 importHoldingsFromFileToFirebase 中完成
+      console.error('❌ CSV 導入失敗:', error);
     } finally {
       // 清空文件輸入
       if (fileInputRef.current) {

@@ -169,10 +169,26 @@ export const useFirebasePortfolio = () => {
         return holding;
       });
       
-      // 3. 保存更新後的持倉數據
-      console.log('💾 保存更新後的持倉數據...');
+      // 3. 立即更新本地狀態以觸發統計重新計算
+      console.log('🔄 更新本地狀態以觸發統計重新計算...');
+      setHoldings(updatedHoldings);
+      setPriceData(newPriceData);
+      
+      // 4. 手動觸發統計重新計算
+      console.log('📊 手動重新計算投資組合統計...');
+      const newStats = calculatePortfolioStats(updatedHoldings, newPriceData, exchangeRates);
+      setPortfolioStats(newStats);
+      console.log('📈 統計數據已更新:', {
+        totalValue: newStats?.totalValue,
+        totalCost: newStats?.totalCost,
+        totalGainLoss: newStats?.totalGainLoss
+      });
+      
+      // 5. 保存更新後的持倉數據到Firebase
+      console.log('💾 保存更新後的持倉數據到Firebase...');
       for (const holding of updatedHoldings) {
-        if (holding.currentPrice !== holdings.find(h => h.id === holding.id)?.currentPrice) {
+        const originalHolding = holdings.find(h => h.id === holding.id);
+        if (holding.currentPrice !== originalHolding?.currentPrice) {
           await updateHolding(holding.id, {
             currentPrice: holding.currentPrice,
             lastUpdated: holding.lastUpdated
@@ -180,22 +196,20 @@ export const useFirebasePortfolio = () => {
         }
       }
       
-      // 4. 更新本地狀態
-      setHoldings(updatedHoldings);
-      setPriceData(newPriceData);
+      // 6. 保存價格數據
       await savePriceData(newPriceData);
       
       const now = new Date().toISOString();
       setLastUpdate(now);
       
-      console.log('🎉 價格更新完成 - 持倉現價和市值已重新計算');
+      console.log('🎉 價格更新完成 - 持倉現價、市值和統計數據已全部更新');
     } catch (error) {
       console.error('❌ 更新價格失敗:', error);
       throw error; // 重新拋出錯誤以便UI處理
     } finally {
       setLoading(false);
     }
-  }, [holdings]);
+  }, [holdings, exchangeRates]);
 
   // 更新匯率
   const updateExchangeRates = useCallback(async () => {
