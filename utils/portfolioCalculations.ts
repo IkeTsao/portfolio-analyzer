@@ -37,11 +37,59 @@ export const getExchangeRateForCurrency = (
     return 1;
   }
 
-  // 直接匹配
+  console.log(`🔄 匯率轉換: ${fromCurrency} → ${toCurrency}`);
+
+  // 如果目標是台幣，使用台銀即期賣出價
+  if (toCurrency === 'TWD') {
+    const rateMap: { [key: string]: number } = {
+      'USD': 30.665,  // 台銀即期賣出價
+      'EUR': 36.055,  // 台銀即期賣出價
+      'GBP': 41.655,  // 台銀即期賣出價
+      'CHF': 38.41,   // 台銀即期賣出價
+      'JPY': 0.2089,  // 台銀即期賣出價 (1日圓)
+      'CNY': 4.234,   // 台銀即期賣出價
+      'HKD': 3.932,   // 台銀即期賣出價
+      'SGD': 23.12,   // 台銀即期賣出價
+      'AUD': 20.45,   // 台銀即期賣出價
+      'CAD': 22.78,   // 台銀即期賣出價
+    };
+    
+    const rate = rateMap[fromCurrency];
+    if (rate) {
+      console.log(`✅ 使用台銀即期賣出價: 1 ${fromCurrency} = ${rate} TWD`);
+      return rate;
+    }
+  }
+
+  // 如果來源是台幣，反向計算
+  if (fromCurrency === 'TWD') {
+    const rateMap: { [key: string]: number } = {
+      'USD': 30.665,
+      'EUR': 36.055,
+      'GBP': 41.655,
+      'CHF': 38.41,
+      'JPY': 0.2089,
+      'CNY': 4.234,
+      'HKD': 3.932,
+      'SGD': 23.12,
+      'AUD': 20.45,
+      'CAD': 22.78,
+    };
+    
+    const rate = rateMap[toCurrency];
+    if (rate) {
+      const reverseRate = 1 / rate;
+      console.log(`✅ 反向計算: 1 TWD = ${reverseRate} ${toCurrency}`);
+      return reverseRate;
+    }
+  }
+
+  // 嘗試使用傳入的匯率數據
   const directRate = exchangeRates.find(
     rate => rate.from === fromCurrency && rate.to === toCurrency
   );
   if (directRate) {
+    console.log(`✅ 使用直接匯率: ${directRate.rate}`);
     return directRate.rate;
   }
 
@@ -50,23 +98,13 @@ export const getExchangeRateForCurrency = (
     rate => rate.from === toCurrency && rate.to === fromCurrency
   );
   if (reverseRate) {
-    return 1 / reverseRate.rate;
-  }
-
-  // 通過USD轉換
-  const fromUsdRate = exchangeRates.find(
-    rate => rate.from === 'USD' && rate.to === fromCurrency
-  );
-  const toUsdRate = exchangeRates.find(
-    rate => rate.from === 'USD' && rate.to === toCurrency
-  );
-
-  if (fromUsdRate && toUsdRate) {
-    return toUsdRate.rate / fromUsdRate.rate;
+    const rate = 1 / reverseRate.rate;
+    console.log(`✅ 使用反向匯率: ${rate}`);
+    return rate;
   }
 
   // 默認返回1（無法轉換）
-  console.warn(`Cannot find exchange rate from ${fromCurrency} to ${toCurrency}`);
+  console.warn(`⚠️ 無法找到匯率: ${fromCurrency} → ${toCurrency}，使用預設值 1`);
   return 1;
 };
 

@@ -20,6 +20,7 @@ import {
   updateHolding,
   loadAccounts 
 } from '@/utils/firebaseStorage';
+import { fetchSingleStockPrice } from '@/utils/priceService';
 
 interface FirebaseHoldingFormProps {
   opened: boolean;
@@ -33,6 +34,7 @@ export const FirebaseHoldingForm = ({
   editingHolding 
 }: FirebaseHoldingFormProps) => {
   const [loading, setLoading] = useState(false);
+  const [fetchingPrice, setFetchingPrice] = useState(false);
   const [accounts, setAccounts] = useState<any[]>([]);
   
   // 表單狀態
@@ -44,6 +46,7 @@ export const FirebaseHoldingForm = ({
     market: '',
     quantity: 0,
     costBasis: 0,
+    currentPrice: 0,
     currency: 'USD',
     purchaseDate: new Date(),
   });
@@ -75,6 +78,7 @@ export const FirebaseHoldingForm = ({
         market: editingHolding.market,
         quantity: editingHolding.quantity,
         costBasis: editingHolding.costBasis,
+        currentPrice: editingHolding.currentPrice || 0,
         currency: editingHolding.currency,
         purchaseDate: new Date(editingHolding.purchaseDate),
       });
@@ -88,11 +92,52 @@ export const FirebaseHoldingForm = ({
         market: '',
         quantity: 0,
         costBasis: 0,
+        currentPrice: 0,
         currency: 'USD',
         purchaseDate: new Date(),
       });
     }
   }, [editingHolding, opened]);
+
+  // 獲取股價函數
+  const handleFetchPrice = async () => {
+    if (!formData.symbol) {
+      notifications.show({
+        title: '錯誤',
+        message: '請先輸入股票代碼',
+        color: 'red',
+      });
+      return;
+    }
+
+    setFetchingPrice(true);
+    try {
+      const price = await fetchSingleStockPrice(formData.symbol);
+      if (price) {
+        setFormData({ ...formData, currentPrice: price });
+        notifications.show({
+          title: '獲取成功',
+          message: `${formData.symbol} 當前價格: $${price}`,
+          color: 'green',
+        });
+      } else {
+        notifications.show({
+          title: '獲取失敗',
+          message: `無法獲取 ${formData.symbol} 的股價`,
+          color: 'orange',
+        });
+      }
+    } catch (error) {
+      console.error('獲取股價失敗:', error);
+      notifications.show({
+        title: '獲取失敗',
+        message: '網路錯誤，請稍後再試',
+        color: 'red',
+      });
+    } finally {
+      setFetchingPrice(false);
+    }
+  };
 
   const handleSubmit = async () => {
     if (!formData.symbol || !formData.name || !formData.accountId) {
@@ -106,6 +151,25 @@ export const FirebaseHoldingForm = ({
 
     setLoading(true);
     try {
+      // 如果沒有手動輸入現價，自動獲取股價
+      let currentPrice = formData.currentPrice;
+      if (!currentPrice || currentPrice === 0) {
+        console.log(`🔍 自動獲取 ${formData.symbol} 股價`);
+        const fetchedPrice = await fetchSingleStockPrice(formData.symbol);
+        if (fetchedPrice) {
+          currentPrice = fetchedPrice;
+          console.log(`✅ 獲取到股價: ${fetchedPrice}`);
+          notifications.show({
+            title: '股價已更新',
+            message: `${formData.symbol} 當前價格: $${fetchedPrice}`,
+            color: 'blue',
+          });
+        } else {
+          console.log(`⚠️ 無法獲取 ${formData.symbol} 股價，使用成本價`);
+          currentPrice = formData.costBasis;
+        }
+      }
+
       const holdingData: Holding = {
         id: editingHolding?.id || `${formData.symbol}-${Date.now()}`,
         symbol: formData.symbol.toUpperCase(),
@@ -115,9 +179,9 @@ export const FirebaseHoldingForm = ({
         market: formData.market as any, // 暫時使用 any 類型
         quantity: formData.quantity,
         costBasis: formData.costBasis,
+        currentPrice: currentPrice,
         currency: formData.currency,
         purchaseDate: formData.purchaseDate.toISOString(),
-        currentPrice: editingHolding?.currentPrice || 0,
         lastUpdated: new Date().toISOString(),
       };
 
@@ -233,14 +297,25 @@ export const FirebaseHoldingForm = ({
           decimalScale={4}
         />
 
-        <NumberInput
-          label="成本價格"
-          placeholder="0.00"
-          value={formData.costBasis}
-          onChange={(value) => setFormData({ ...formData, costBasis: Number(value) || 0 })}
-          min={0}
-          decimalScale={2}
-        />
+        <Group grow>
+          <NumberInput
+            label="成本價格"
+            placeholder="0.00"
+            value={formData.costBasis}
+            onChange={(value) => setFormData({ ...formData, costBasis: Number(value) || 0 })}
+            min={0}
+            decimalScale={2}
+          />
+          <NumberInput
+            label="現價"
+            placeholder="0.00"
+            value={formData.currentPrice || 0}
+            onChange={(value) => setFormData({ ...formData, currentPrice: Number(value) || 0 })}
+            min={0}
+            decimalScale={2}
+            description="選填，存檔時會自動獲取最新價格"
+          />
+        </Group>
 
         <Select
           label="貨幣"

@@ -140,22 +140,32 @@ export const useFirebasePortfolio = () => {
 
   // 更新價格數據
   const updatePrices = useCallback(async () => {
+    console.log('🔄 開始批量更新價格...');
     setLoading(true);
     try {
-      const symbols = Array.from(new Set(holdings.map(h => h.symbol)));
+      if (holdings.length === 0) {
+        console.log('⚠️ 沒有持倉數據，跳過價格更新');
+        return;
+      }
+
+      console.log(`📊 準備更新 ${holdings.length} 個持倉的價格`);
       const newPriceData = await updateAllPrices(holdings);
       
+      console.log(`✅ 成功獲取 ${newPriceData.length} 個價格數據`);
       setPriceData(newPriceData);
       await savePriceData(newPriceData);
       
       const now = new Date().toISOString();
       setLastUpdate(now);
+      
+      console.log('🎉 價格更新完成');
     } catch (error) {
-      console.error('更新價格失敗:', error);
+      console.error('❌ 更新價格失敗:', error);
+      throw error; // 重新拋出錯誤以便UI處理
     } finally {
       setLoading(false);
     }
-  }, [holdings, priceData]);
+  }, [holdings]);
 
   // 更新匯率
   const updateExchangeRates = useCallback(async () => {
