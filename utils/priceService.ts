@@ -105,24 +105,10 @@ export const getExchangeRate = async (from: string, to: string) => {
 };
 
 // 批量更新價格
-export async function updateAllPrices(holdings: any[]): Promise<PriceData[]> {
+export async function updateAllPrices(holdings: any[], forceUpdate: boolean = false): Promise<PriceData[]> {
   const pricePromises: Promise<PriceData | null>[] = [];
   
   for (const holding of holdings) {
-    // 如果有手動輸入的現價，跳過API獲取
-    if (holding.currentPrice && holding.currentPrice > 0) {
-      pricePromises.push(Promise.resolve({
-        symbol: holding.symbol,
-        price: holding.currentPrice,
-        change: 0,
-        changePercent: 0,
-        currency: holding.currency,
-        timestamp: holding.lastUpdated || new Date().toISOString(),
-        source: 'yahoo' as const,
-      }));
-      continue;
-    }
-
     // 現金類型不需要價格更新
     if (holding.type === 'cash') {
       pricePromises.push(Promise.resolve({
@@ -137,7 +123,21 @@ export async function updateAllPrices(holdings: any[]): Promise<PriceData[]> {
       continue;
     }
 
-    // 其他類型使用API獲取價格
+    // 如果不是強制更新且有手動輸入的現價，使用現有價格
+    if (!forceUpdate && holding.currentPrice && holding.currentPrice > 0) {
+      pricePromises.push(Promise.resolve({
+        symbol: holding.symbol,
+        price: holding.currentPrice,
+        change: 0,
+        changePercent: 0,
+        currency: holding.currency,
+        timestamp: holding.lastUpdated || new Date().toISOString(),
+        source: 'yahoo' as const,
+      }));
+      continue;
+    }
+
+    // 強制更新或沒有現價時，使用API獲取價格
     pricePromises.push(fetchStockPrice(holding.symbol));
   }
   

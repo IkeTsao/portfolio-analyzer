@@ -64,13 +64,13 @@ export const usePortfolio = () => {
   }, [holdings, priceData, exchangeRates]);
 
   // 更新價格數據
-  const updatePrices = useCallback(async (manualPrices?: { [symbol: string]: number }) => {
+  const updatePrices = useCallback(async (manualPrices?: { [symbol: string]: number }, forceUpdate: boolean = true) => {
     if (holdings.length === 0) return;
 
     setLoading(true);
     try {
-      // 更新股票和其他資產價格
-      const newPriceData = await updateAllPrices(holdings);
+      // 更新股票和其他資產價格，默認強制更新
+      const newPriceData = await updateAllPrices(holdings, forceUpdate);
       setPriceData(newPriceData);
       savePriceData(newPriceData);
 
@@ -155,7 +155,8 @@ export const usePortfolio = () => {
   // 自動更新價格
   useEffect(() => {
     if (holdings.length > 0 && shouldUpdatePrices()) {
-      updatePrices();
+      // 自動更新使用非強制模式，保留手動輸入的價格
+      updatePrices(undefined, false);
     }
   }, [holdings, shouldUpdatePrices, updatePrices]);
 
