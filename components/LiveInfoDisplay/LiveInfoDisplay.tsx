@@ -426,13 +426,13 @@ export default function LiveInfoDisplay() {
           <Text size="sm" c="dimmed">載入即時資訊中...</Text>
         </Group>
       ) : (
-        <Tabs defaultValue="stocks" variant="outline">
+        <Tabs defaultValue="markets" variant="outline">
           <Tabs.List>
-            <Tabs.Tab value="stocks" leftSection={<IconTrendingUp size={16} />}>
-              指標股
-            </Tabs.Tab>
             <Tabs.Tab value="markets" leftSection={<IconTrendingUp size={16} />}>
               市場指數
+            </Tabs.Tab>
+            <Tabs.Tab value="stocks" leftSection={<IconTrendingUp size={16} />}>
+              指標股
             </Tabs.Tab>
             <Tabs.Tab value="bonds" leftSection={<IconChartLine size={16} />}>
               債券利率
@@ -445,16 +445,16 @@ export default function LiveInfoDisplay() {
             </Tabs.Tab>
           </Tabs.List>
 
-          <Tabs.Panel value="stocks" pt="md">
-            <CustomStocksPanel />
-          </Tabs.Panel>
-
           <Tabs.Panel value="markets" pt="md">
             <SimpleGrid cols={{ base: 2, sm: 3, md: 4 }} spacing="md">
               {indicators
                 .filter(ind => ind.category === 'index')
                 .map(renderIndicatorCard)}
             </SimpleGrid>
+          </Tabs.Panel>
+
+          <Tabs.Panel value="stocks" pt="md">
+            <CustomStocksPanel />
           </Tabs.Panel>
 
           <Tabs.Panel value="bonds" pt="md">
