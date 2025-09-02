@@ -94,6 +94,7 @@ export const calculatePortfolioStats = (
     bond: { value: 0, percentage: 0 },
     gold: { value: 0, percentage: 0 },
     crypto: { value: 0, percentage: 0 },
+    commodity: { value: 0, percentage: 0 },
     cash: { value: 0, percentage: 0 },
   };
 

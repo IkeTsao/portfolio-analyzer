@@ -1,0 +1,46 @@
+{
+  "timestamp": "2025-09-02T15:06:45.804Z",
+  "summary": {
+    "total": 7,
+    "passed": 7,
+    "failed": 0,
+    "successRate": "100.0"
+  },
+  "tests": [
+    {
+      "name": "TypeScript 類型定義檢查",
+      "status": "PASSED",
+      "message": "TypeScript 類型定義正確包含 commodity 類型"
+    },
+    {
+      "name": "投資類別名稱更新檢查",
+      "status": "PASSED",
+      "message": "投資類別名稱已正確更新"
+    },
+    {
+      "name": "匯率組件檢查",
+      "status": "PASSED",
+      "message": "ExchangeRateDisplay 組件包含日圓支援"
+    },
+    {
+      "name": "價格服務邏輯檢查",
+      "status": "PASSED",
+      "message": "價格更新邏輯已正確修改"
+    },
+    {
+      "name": "持倉表格組件檢查",
+      "status": "PASSED",
+      "message": "HoldingsTable 組件包含更新價格功能"
+    },
+    {
+      "name": "投資組合計算檢查",
+      "status": "PASSED",
+      "message": "portfolioCalculations 正確支援 commodity 類型"
+    },
+    {
+      "name": "構建配置檢查",
+      "status": "PASSED",
+      "message": "構建配置和依賴正確"
+    }
+  ]
+}
