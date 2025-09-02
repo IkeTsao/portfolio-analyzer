@@ -58,15 +58,17 @@ const TYPE_COLORS: { [key: string]: string } = {
   bond: 'indigo',
   gold: 'teal',
   crypto: 'green',
+  commodity: 'orange',
   cash: 'lime',
 };
 
 const TYPE_LABELS: { [key: string]: string } = {
-  stock: '股票',
-  fund: '共同基金',
+  stock: '股票與ETF',
+  fund: '股票共同基金',
   bond: '債券',
   gold: '黃金',
   crypto: '加密貨幣',
+  commodity: '大宗物資',
   cash: '現金',
 };
 
@@ -457,11 +459,12 @@ export default function HoldingsTable({
             onChange={setTypeFilter}
             data={[
               { value: '', label: '全部類型' },
-              { value: 'stock', label: '股票' },
-              { value: 'fund', label: '基金' },
+              { value: 'stock', label: '股票與ETF' },
+              { value: 'fund', label: '股票共同基金' },
               { value: 'bond', label: '債券' },
               { value: 'gold', label: '黃金' },
               { value: 'crypto', label: '加密貨幣' },
+              { value: 'commodity', label: '大宗物資' },
               { value: 'cash', label: '現金' },
             ]}
             clearable

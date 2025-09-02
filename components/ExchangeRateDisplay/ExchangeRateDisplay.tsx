@@ -21,7 +21,7 @@ export default function ExchangeRateDisplay() {
   const fetchExchangeRates = async () => {
     setLoading(true);
     try {
-      const currencies = ['USD', 'EUR', 'GBP', 'CHF'];
+      const currencies = ['USD', 'EUR', 'GBP', 'CHF', 'JPY'];
       const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
       
       const ratePromises = currencies.map(async (currency) => {
@@ -53,6 +53,7 @@ export default function ExchangeRateDisplay() {
             'EUR': 34.2,
             'GBP': 39.8,
             'CHF': 35.1,
+            'JPY': 0.21,
           };
           return {
             currency,
@@ -76,6 +77,7 @@ export default function ExchangeRateDisplay() {
         { currency: 'EUR', rate: 34.2, change: 0, label: '歐元', symbol: '€', isFallback: true },
         { currency: 'GBP', rate: 39.8, change: 0, label: '英鎊', symbol: '£', isFallback: true },
         { currency: 'CHF', rate: 35.1, change: 0, label: '瑞士法郎', symbol: 'CHF', isFallback: true },
+        { currency: 'JPY', rate: 0.21, change: 0, label: '日圓', symbol: '¥', isFallback: true },
       ];
       setRates(fallbackRates);
       setLastUpdate(new Date());
@@ -90,6 +92,7 @@ export default function ExchangeRateDisplay() {
       EUR: '歐元',
       GBP: '英鎊',
       CHF: '瑞士法郎',
+      JPY: '日圓',
     };
     return labels[currency] || currency;
   };
@@ -100,6 +103,7 @@ export default function ExchangeRateDisplay() {
       EUR: '€',
       GBP: '£',
       CHF: 'CHF',
+      JPY: '¥',
     };
     return symbols[currency] || currency;
   };

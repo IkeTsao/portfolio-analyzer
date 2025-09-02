@@ -17,15 +17,17 @@ const TYPE_COLORS = {
   bond: '#5c7cfa',
   gold: '#20c997',
   crypto: '#51cf66',
+  commodity: '#fd7e14',
   cash: '#94d82d',
 };
 
 const TYPE_LABELS = {
-  stock: '股票',
-  fund: '共同基金',
+  stock: '股票與ETF',
+  fund: '股票共同基金',
   bond: '債券',
   gold: '黃金',
   crypto: '加密貨幣',
+  commodity: '大宗物資',
   cash: '現金',
 };
 
