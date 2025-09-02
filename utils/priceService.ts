@@ -123,8 +123,8 @@ export async function updateAllPrices(holdings: any[], forceUpdate: boolean = fa
       continue;
     }
 
-    // 針對非共同基金且非現金的項目，在強制更新時先清除現價
-    const shouldClearPrice = forceUpdate && holding.type !== 'fund' && holding.type !== 'cash';
+    // 針對所有非現金的項目，在強制更新時先清除現價
+    const shouldClearPrice = forceUpdate && holding.type !== 'cash';
     
     // 如果需要清除現價，將 currentPrice 設為 undefined
     if (shouldClearPrice) {
