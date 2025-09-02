@@ -1,0 +1,15 @@
+# This workflow is disabled to prevent automatic deployments
+# All GitHub Actions have been intentionally disabled for this repository
+
+name: Disabled Workflows
+
+# This workflow will never run because it has no triggers
+on: []
+
+jobs:
+  disabled:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Workflows Disabled
+        run: echo "All GitHub Actions workflows have been disabled for this repository"
+
