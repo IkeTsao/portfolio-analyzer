@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Paper, Title, Group, Text, Stack, Badge, Loader, Tooltip, SimpleGrid, Tabs } from '@mantine/core';
 import { IconRefresh, IconAlertTriangle, IconTrendingUp, IconCurrencyDollar, IconChartLine } from '@tabler/icons-react';
+import CustomStocksPanel from '../CustomStocksPanel/CustomStocksPanel';
 
 interface ExchangeRate {
   currency: string;
@@ -20,7 +21,7 @@ interface FinancialIndicator {
   change: number;
   changePercent: number;
   unit: string;
-  category: 'index' | 'bond' | 'commodity' | 'crypto';
+  category: 'index' | 'bond' | 'commodity' | 'crypto' | 'currency' | 'stock';
   isFallback: boolean;
 }
 
@@ -96,23 +97,29 @@ export default function LiveInfoDisplay() {
       
       // 定義要獲取的金融指標
       const indicatorSymbols = [
-        // 美國指數
-        { symbol: 'DX-Y.NYB', name: '美元指數', category: 'index' as const },
+        // 市場指數 (移除美元指數，新增 VIX 和日經指數)
         { symbol: '^DJI', name: '道瓊指數', category: 'index' as const },
         { symbol: '^GSPC', name: 'S&P 500', category: 'index' as const },
-        
-        // 台股指數
+        { symbol: '^VIX', name: 'VIX 恐慌指數', category: 'index' as const },
+        { symbol: '^N225', name: '日經指數', category: 'index' as const },
         { symbol: '^TWII', name: '台股指數', category: 'index' as const },
         
-        // 債券利率
+        // 債券利率 (新增20年公債)
         { symbol: '^TNX', name: '美國10年公債', category: 'bond' as const },
         { symbol: '^TYX', name: '美國30年公債', category: 'bond' as const },
+        { symbol: '^FVX', name: '美國5年公債', category: 'bond' as const },
         
-        // 商品
+        // 商品 (新增原油指數)
         { symbol: 'GC=F', name: '黃金', category: 'commodity' as const },
+        { symbol: 'BZ=F', name: 'Brent 原油', category: 'commodity' as const },
+        { symbol: 'CL=F', name: 'WTI 原油', category: 'commodity' as const },
         
         // 加密貨幣
         { symbol: 'BTC-USD', name: '比特幣', category: 'crypto' as const },
+        { symbol: 'ETH-USD', name: '以太坊', category: 'crypto' as const },
+        
+        // 美元指數移到匯率類別
+        { symbol: 'DX-Y.NYB', name: '美元指數', category: 'currency' as const },
       ];
 
       const indicatorPromises = indicatorSymbols.map(async (item) => {
@@ -158,14 +165,29 @@ export default function LiveInfoDisplay() {
       console.error('獲取金融指標失敗:', error);
       // 設置備用數據
       const fallbackIndicators: FinancialIndicator[] = [
-        { symbol: 'DX-Y.NYB', name: '美元指數', value: 104.5, change: 0, changePercent: 0, unit: '', category: 'index', isFallback: true },
+        // 市場指數
         { symbol: '^DJI', name: '道瓊指數', value: 34500, change: 0, changePercent: 0, unit: '', category: 'index', isFallback: true },
         { symbol: '^GSPC', name: 'S&P 500', value: 4400, change: 0, changePercent: 0, unit: '', category: 'index', isFallback: true },
+        { symbol: '^VIX', name: 'VIX 恐慌指數', value: 18.5, change: 0, changePercent: 0, unit: '', category: 'index', isFallback: true },
+        { symbol: '^N225', name: '日經指數', value: 33000, change: 0, changePercent: 0, unit: '', category: 'index', isFallback: true },
         { symbol: '^TWII', name: '台股指數', value: 17000, change: 0, changePercent: 0, unit: '', category: 'index', isFallback: true },
+        
+        // 債券利率
         { symbol: '^TNX', name: '美國10年公債', value: 4.5, change: 0, changePercent: 0, unit: '%', category: 'bond', isFallback: true },
         { symbol: '^TYX', name: '美國30年公債', value: 4.8, change: 0, changePercent: 0, unit: '%', category: 'bond', isFallback: true },
+        { symbol: '^FVX', name: '美國5年公債', value: 4.2, change: 0, changePercent: 0, unit: '%', category: 'bond', isFallback: true },
+        
+        // 商品
         { symbol: 'GC=F', name: '黃金', value: 2000, change: 0, changePercent: 0, unit: '$', category: 'commodity', isFallback: true },
+        { symbol: 'BZ=F', name: 'Brent 原油', value: 85, change: 0, changePercent: 0, unit: '$', category: 'commodity', isFallback: true },
+        { symbol: 'CL=F', name: 'WTI 原油', value: 82, change: 0, changePercent: 0, unit: '$', category: 'commodity', isFallback: true },
+        
+        // 加密貨幣
         { symbol: 'BTC-USD', name: '比特幣', value: 45000, change: 0, changePercent: 0, unit: '$', category: 'crypto', isFallback: true },
+        { symbol: 'ETH-USD', name: '以太坊', value: 2800, change: 0, changePercent: 0, unit: '$', category: 'crypto', isFallback: true },
+        
+        // 美元指數
+        { symbol: 'DX-Y.NYB', name: '美元指數', value: 104.5, change: 0, changePercent: 0, unit: '', category: 'currency', isFallback: true },
       ];
       setIndicators(fallbackIndicators);
     }
@@ -204,21 +226,37 @@ export default function LiveInfoDisplay() {
   };
 
   const getIndicatorUnit = (symbol: string): string => {
-    if (symbol.includes('TNX') || symbol.includes('TYX')) return '%';
-    if (symbol.includes('GC=F') || symbol.includes('BTC-USD')) return '$';
+    if (symbol.includes('TNX') || symbol.includes('TYX') || symbol.includes('FVX')) return '%';
+    if (symbol.includes('GC=F') || symbol.includes('BTC-USD') || symbol.includes('ETH-USD') || 
+        symbol.includes('BZ=F') || symbol.includes('CL=F')) return '$';
     return '';
   };
 
   const getFallbackValue = (symbol: string): number => {
     const fallbackValues: { [key: string]: number } = {
-      'DX-Y.NYB': 104.5,
+      // 市場指數
       '^DJI': 34500,
       '^GSPC': 4400,
+      '^VIX': 18.5,
+      '^N225': 33000,
       '^TWII': 17000,
+      
+      // 債券利率
       '^TNX': 4.5,
       '^TYX': 4.8,
+      '^FVX': 4.2,
+      
+      // 商品
       'GC=F': 2000,
+      'BZ=F': 85,
+      'CL=F': 82,
+      
+      // 加密貨幣
       'BTC-USD': 45000,
+      'ETH-USD': 2800,
+      
+      // 美元指數
+      'DX-Y.NYB': 104.5,
     };
     return fallbackValues[symbol] || 0;
   };
@@ -407,8 +445,11 @@ export default function LiveInfoDisplay() {
             <Tabs.Tab value="commodities" leftSection={<IconCurrencyDollar size={16} />}>
               商品 & 加密貨幣
             </Tabs.Tab>
+            <Tabs.Tab value="stocks" leftSection={<IconTrendingUp size={16} />}>
+              指標股
+            </Tabs.Tab>
             <Tabs.Tab value="exchange" leftSection={<IconCurrencyDollar size={16} />}>
-              匯率
+              匯率 & 美元指數
             </Tabs.Tab>
           </Tabs.List>
 
@@ -436,10 +477,30 @@ export default function LiveInfoDisplay() {
             </SimpleGrid>
           </Tabs.Panel>
 
+          <Tabs.Panel value="stocks" pt="md">
+            <CustomStocksPanel />
+          </Tabs.Panel>
+
           <Tabs.Panel value="exchange" pt="md">
-            <SimpleGrid cols={{ base: 2, sm: 3, md: 5 }} spacing="md">
-              {rates.map(renderRateCard)}
-            </SimpleGrid>
+            <Stack gap="md">
+              {/* 美元指數 */}
+              <div>
+                <Text size="sm" fw={500} mb="sm" c="dimmed">美元指數</Text>
+                <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md">
+                  {indicators
+                    .filter(ind => ind.category === 'currency')
+                    .map(renderIndicatorCard)}
+                </SimpleGrid>
+              </div>
+              
+              {/* 匯率 */}
+              <div>
+                <Text size="sm" fw={500} mb="sm" c="dimmed">主要貨幣匯率</Text>
+                <SimpleGrid cols={{ base: 2, sm: 3, md: 5 }} spacing="md">
+                  {rates.map(renderRateCard)}
+                </SimpleGrid>
+              </div>
+            </Stack>
           </Tabs.Panel>
         </Tabs>
       )}

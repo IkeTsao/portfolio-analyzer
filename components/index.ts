@@ -10,6 +10,7 @@ import { PortfolioDistributionChart } from '@/components/PortfolioDistributionCh
 import { PortfolioStatsGrid } from '@/components/PortfolioStatsGrid';
 import ExchangeRateDisplay from '@/components/ExchangeRateDisplay/ExchangeRateDisplay';
 import LiveInfoDisplay from '@/components/LiveInfoDisplay/LiveInfoDisplay';
+import CustomStocksPanel from '@/components/CustomStocksPanel/CustomStocksPanel';
 import Surface from '@/components/Surface';
 import ThemeCustomizer from '@/components/theme-customizer';
 
@@ -23,6 +24,7 @@ export {
   PortfolioStatsGrid,
   ExchangeRateDisplay,
   LiveInfoDisplay,
+  CustomStocksPanel,
   PageHeader,
   Surface,
   ErrorAlert,
