@@ -11,6 +11,7 @@ import { PortfolioStatsGrid } from '@/components/PortfolioStatsGrid';
 import ExchangeRateDisplay from '@/components/ExchangeRateDisplay/ExchangeRateDisplay';
 import LiveInfoDisplay from '@/components/LiveInfoDisplay/LiveInfoDisplay';
 import CustomStocksPanel from '@/components/CustomStocksPanel/CustomStocksPanel';
+import HistoricalDataManager from '@/components/HistoricalDataManager/HistoricalDataManager';
 import Surface from '@/components/Surface';
 import ThemeCustomizer from '@/components/theme-customizer';
 
@@ -25,6 +26,7 @@ export {
   ExchangeRateDisplay,
   LiveInfoDisplay,
   CustomStocksPanel,
+  HistoricalDataManager,
   PageHeader,
   Surface,
   ErrorAlert,
