@@ -14,7 +14,7 @@ import {
   PortfolioDistributionChart,
   HoldingsTable,
   HoldingForm,
-  ExchangeRateDisplay,
+  LiveInfoDisplay,
 } from '@/components';
 import { usePortfolio } from '@/hooks/usePortfolio';
 
@@ -130,8 +130,8 @@ export default function HomePage() {
             </Grid.Col>
           </Grid>
 
-          {/* 即時匯率 */}
-          <ExchangeRateDisplay />
+          {/* 即時資訊 */}
+          <LiveInfoDisplay />
 
           {/* 持倉明細表格 */}
           <HoldingsTable
