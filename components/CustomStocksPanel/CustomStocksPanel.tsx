@@ -128,8 +128,8 @@ export default function CustomStocksPanel({ onStocksUpdate }: CustomStocksPanelP
   };
 
   const handleAddStock = () => {
-    if (stocks.length >= 10) {
-      alert('最多只能添加10支股票');
+    if (stocks.length >= 12) {
+      alert('最多只能添加12支股票');
       return;
     }
     setEditingStock(null);
@@ -287,7 +287,7 @@ export default function CustomStocksPanel({ onStocksUpdate }: CustomStocksPanelP
       <Stack gap="md">
         <Group justify="space-between">
           <Group gap="xs">
-            <Text fw={500} size="sm">自訂指標股 ({stocks.length}/10)</Text>
+            <Text fw={500} size="sm">自訂指標股 ({stocks.length}/12)</Text>
             {hasFallbackData && (
               <Tooltip 
                 label="部分股票數據無法獲取，正在顯示備用數據"
@@ -306,7 +306,7 @@ export default function CustomStocksPanel({ onStocksUpdate }: CustomStocksPanelP
             size="xs"
             leftSection={<IconPlus size={14} />}
             onClick={handleAddStock}
-            disabled={stocks.length >= 10}
+            disabled={stocks.length >= 12}
           >
             新增股票
           </Button>
