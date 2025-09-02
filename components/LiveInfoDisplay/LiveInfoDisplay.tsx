@@ -108,13 +108,11 @@ export default function LiveInfoDisplay() {
         { symbol: '^TNX', name: '美國10年公債', category: 'bond' as const },
         { symbol: '^TYX', name: '美國30年公債', category: 'bond' as const },
         
-        // 商品 (重新排列：黃金、原油，移除以太坊)
+        // 商品 (調整排列：黃金、比特幣、原油)
         { symbol: 'GC=F', name: '黃金', category: 'commodity' as const },
+        { symbol: 'BTC-USD', name: '比特幣', category: 'crypto' as const },
         { symbol: 'BZ=F', name: 'Brent 原油', category: 'commodity' as const },
         { symbol: 'CL=F', name: 'WTI 原油', category: 'commodity' as const },
-        
-        // 加密貨幣 (保留比特幣，移除以太坊)
-        { symbol: 'BTC-USD', name: '比特幣', category: 'crypto' as const },
         
         // 美元指數移到匯率類別
         { symbol: 'DX-Y.NYB', name: '美元指數', category: 'currency' as const },

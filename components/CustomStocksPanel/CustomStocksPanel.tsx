@@ -185,8 +185,9 @@ export default function CustomStocksPanel({ onStocksUpdate }: CustomStocksPanelP
   };
 
   const formatValue = (value: number): string => {
+    // 顯示完整數字，不使用縮寫
     if (value >= 1000) {
-      return `$${(value / 1000).toFixed(1)}K`;
+      return `$${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
     }
     return `$${value.toFixed(2)}`;
   };
