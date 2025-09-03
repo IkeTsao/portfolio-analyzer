@@ -212,6 +212,8 @@ export const calculatePortfolioStats = (
 
     // 獲取CSV匯率（用於現金匯差計算）
     let csvExchangeRate: number | undefined;
+    let isUsingCsvRates = false;
+    
     if (holding.type === 'cash' && holding.currency !== 'TWD') {
       try {
         const today = new Date().toISOString().split('T')[0];
@@ -223,6 +225,10 @@ export const calculatePortfolioStats = (
           
           if (todayRecord && todayRecord.exchangeRates && todayRecord.exchangeRates[holding.currency]) {
             csvExchangeRate = parseFloat(todayRecord.exchangeRates[holding.currency].toFixed(2));
+            // 檢查是否正在使用CSV匯率作為effectiveExchangeRates
+            isUsingCsvRates = effectiveExchangeRates.some(rate => 
+              rate.from === holding.currency && Math.abs(rate.rate - csvExchangeRate!) < 0.01
+            );
           }
         }
       } catch (error) {
@@ -230,12 +236,12 @@ export const calculatePortfolioStats = (
       }
     }
 
-    // 計算價值
+    // 計算價值 - 如果正在使用CSV匯率，則不傳入csvExchangeRate避免重複計算
     const { currentValue, costValue } = calculateHoldingValue(
       holding,
       currentPrice,
       exchangeRate,
-      csvExchangeRate
+      isUsingCsvRates ? undefined : csvExchangeRate
     );
 
     totalValue += currentValue;
