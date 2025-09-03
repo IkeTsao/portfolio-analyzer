@@ -15,23 +15,38 @@ export const calculateHoldingValue = (
   gainLossPercent: number;
 } => {
   // 現金類別特殊處理：計算匯差損益
-  if (holding.type === 'cash' && holding.currency !== 'TWD') {
-    // 現金的面值永遠是1，但要考慮匯差
+  if (holding.type === 'cash') {
     const quantity = holding.quantity;
     
-    // 如果有CSV匯率資料，計算匯差
+    // 現金的基本價值（面值永遠是1）
+    const faceValue = quantity * 1;
+    
+    // 台幣現金沒有匯差
+    if (holding.currency === 'TWD') {
+      return {
+        currentValue: faceValue,
+        costValue: faceValue,
+        gainLoss: 0,
+        gainLossPercent: 0,
+      };
+    }
+    
+    // 外幣現金：如果有CSV匯率資料，計算匯差
     if (csvExchangeRate && csvExchangeRate !== exchangeRate) {
-      // 成本以CSV匯率計算（上次記錄的匯率）
-      const costValueTWD = quantity * csvExchangeRate;
+      // 匯差 = 數量 × (當前匯率 - CSV匯率)
+      const exchangeDiff = exchangeRate - csvExchangeRate;
+      const gainLoss = quantity * exchangeDiff;
+      
+      // 以CSV匯率為基準計算百分比
+      const baseValueTWD = quantity * csvExchangeRate;
+      const gainLossPercent = baseValueTWD > 0 ? (gainLoss / baseValueTWD) : 0;
+      
       // 現值以當前匯率計算
       const currentValueTWD = quantity * exchangeRate;
-      // 匯差損益
-      const gainLoss = currentValueTWD - costValueTWD;
-      const gainLossPercent = costValueTWD > 0 ? (gainLoss / costValueTWD) : 0;
       
       return {
         currentValue: currentValueTWD,
-        costValue: costValueTWD,
+        costValue: baseValueTWD, // 以CSV匯率為成本基準
         gainLoss,
         gainLossPercent,
       };
