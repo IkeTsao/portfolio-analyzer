@@ -131,11 +131,10 @@ export default function LiveInfoDisplay() {
         { symbol: '^GSPC', name: 'S&P 500', category: 'index' as const },
         { symbol: '^TWII', name: '台股指數', category: 'index' as const },
         
-        // 債券利率 (按年份排序，新增德國 10 年公債)
+        // 債券利率 (按年份排序)
         { symbol: '^FVX', name: '美國5年公債', category: 'bond' as const },
         { symbol: '^TNX', name: '美國10年公債', category: 'bond' as const },
         { symbol: '^TYX', name: '美國30年公債', category: 'bond' as const },
-        { symbol: 'DE10Y', name: '德國10年公債', category: 'bond' as const },
         
         // 商品 (調整排列：黃金、比特幣、原油)
         { symbol: 'GC=F', name: '黃金', category: 'commodity' as const },
@@ -271,7 +270,7 @@ export default function LiveInfoDisplay() {
   };
 
   const getIndicatorUnit = (symbol: string): string => {
-    if (symbol.includes('TNX') || symbol.includes('TYX') || symbol.includes('FVX') || symbol === 'DE10Y') return '%';
+    if (symbol.includes('TNX') || symbol.includes('TYX') || symbol.includes('FVX')) return '%';
     if (symbol.includes('GC=F') || symbol.includes('BTC-USD') || 
         symbol.includes('BZ=F') || symbol.includes('CL=F')) return '$';
     return '';
@@ -285,11 +284,10 @@ export default function LiveInfoDisplay() {
       '^GSPC': 4400,
       '^TWII': 17000,
       
-      // 債券利率 (按年份排序，新增德國公債)
+      // 債券利率 (按年份排序)
       '^FVX': 4.2,
       '^TNX': 4.5,
       '^TYX': 4.8,
-      'DE10Y': 2.8,
       
       // 商品 (按新順序)
       'GC=F': 2000,
