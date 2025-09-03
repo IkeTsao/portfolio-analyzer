@@ -14,52 +14,21 @@ export const calculateHoldingValue = (
   gainLoss: number;
   gainLossPercent: number;
 } => {
-  // 現金類別特殊處理：計算匯差損益
+  // 現金類別特殊處理：強制匯差為0
   if (holding.type === 'cash') {
     const quantity = holding.quantity;
     
     // 現金的基本價值（面值永遠是1）
     const faceValue = quantity * 1;
     
-    // 台幣現金沒有匯差
-    if (holding.currency === 'TWD') {
-      return {
-        currentValue: faceValue,
-        costValue: faceValue,
-        gainLoss: 0,
-        gainLossPercent: 0,
-      };
-    }
-    
-    // 外幣現金：如果有CSV匯率資料，計算匯差
-    if (csvExchangeRate && csvExchangeRate !== exchangeRate) {
-      // 匯差 = 數量 × (當前匯率 - CSV匯率)
-      const exchangeDiff = exchangeRate - csvExchangeRate;
-      const gainLoss = quantity * exchangeDiff;
-      
-      // 以CSV匯率為基準計算百分比
-      const baseValueTWD = quantity * csvExchangeRate;
-      const gainLossPercent = baseValueTWD > 0 ? (gainLoss / baseValueTWD) : 0;
-      
-      // 現值以當前匯率計算
-      const currentValueTWD = quantity * exchangeRate;
-      
-      return {
-        currentValue: currentValueTWD,
-        costValue: baseValueTWD, // 以CSV匯率為成本基準
-        gainLoss,
-        gainLossPercent,
-      };
-    } else {
-      // 沒有CSV匯率資料，匯差為0
-      const valueAtCurrentRate = quantity * exchangeRate;
-      return {
-        currentValue: valueAtCurrentRate,
-        costValue: valueAtCurrentRate,
-        gainLoss: 0,
-        gainLossPercent: 0,
-      };
-    }
+    // 所有現金類別都強制匯差為0
+    const valueAtCurrentRate = quantity * exchangeRate;
+    return {
+      currentValue: valueAtCurrentRate,
+      costValue: valueAtCurrentRate,
+      gainLoss: 0,  // 強制匯差為0
+      gainLossPercent: 0,
+    };
   }
   
   // 非現金類別的正常計算
@@ -237,11 +206,13 @@ export const calculatePortfolioStats = (
     }
 
     // 計算價值 - 如果正在使用CSV匯率，則不傳入csvExchangeRate避免重複計算
-    const { currentValue, costValue } = calculateHoldingValue(
+    const finalCsvExchangeRate = isUsingCsvRates ? undefined : csvExchangeRate;
+    
+    const { currentValue, costValue, gainLoss } = calculateHoldingValue(
       holding,
       currentPrice,
       exchangeRate,
-      isUsingCsvRates ? undefined : csvExchangeRate
+      finalCsvExchangeRate
     );
 
     totalValue += currentValue;
