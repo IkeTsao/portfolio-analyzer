@@ -125,6 +125,7 @@ export function exportHoldingsToCSV(holdings: Holding[], exchangeRates?: any): s
     '貨幣',
     '購買日期',
     '現價',
+    '台幣市值',
     '更新時間'
   ];
 
@@ -135,6 +136,28 @@ export function exportHoldingsToCSV(holdings: Holding[], exchangeRates?: any): s
 
   // 數據行（使用排序後的數據）
   const rows = sortedHoldings.map(holding => {
+    // 計算台幣市值
+    const quantity = holding.quantity || 0;
+    const currentPrice = holding.currentPrice || 0;
+    const currency = holding.currency || 'TWD';
+    
+    let exchangeRate = 1;
+    if (currency !== 'TWD' && exchangeRates) {
+      if (currency === 'USD' && exchangeRates.USD) {
+        exchangeRate = exchangeRates.USD;
+      } else if (currency === 'EUR' && exchangeRates.EUR) {
+        exchangeRate = exchangeRates.EUR;
+      } else if (currency === 'GBP' && exchangeRates.GBP) {
+        exchangeRate = exchangeRates.GBP;
+      } else if (currency === 'CHF' && exchangeRates.CHF) {
+        exchangeRate = exchangeRates.CHF;
+      } else if (currency === 'JPY' && exchangeRates.JPY) {
+        exchangeRate = exchangeRates.JPY;
+      }
+    }
+    
+    const twdValue = quantity * currentPrice * exchangeRate;
+
     const row = [
       holding.id,
       getAccountDisplayName(holding.accountId),
@@ -147,6 +170,7 @@ export function exportHoldingsToCSV(holdings: Holding[], exchangeRates?: any): s
       holding.currency,
       holding.purchaseDate,
       holding.currentPrice?.toString() || '',
+      twdValue.toFixed(2),
       holding.lastUpdated || ''
     ];
 
@@ -220,7 +244,8 @@ export function parseHoldingsFromCSV(csvContent: string): { holdings: Holding[],
         currency: values[8]?.toUpperCase() || 'USD',
         purchaseDate: values[9] || new Date().toISOString().split('T')[0],
         currentPrice: values[10] ? parseFloat(values[10]) : undefined,
-        lastUpdated: values[11] || undefined
+        // 跳過台幣市值欄位 (values[11])，因為這是計算值
+        lastUpdated: values[12] || undefined
       };
 
       // 驗證必要欄位
@@ -232,13 +257,13 @@ export function parseHoldingsFromCSV(csvContent: string): { holdings: Holding[],
       holdings.push(holding);
 
       // 如果是第一行且包含匯率資料，解析匯率
-      if (i === 1 && hasExchangeRates && values.length >= 17) {
-        const usdRate = parseFloat(values[12]);
-        const eurRate = parseFloat(values[13]);
-        const gbpRate = parseFloat(values[14]);
-        const chfRate = parseFloat(values[15]);
-        const jpyRate = parseFloat(values[16]); // 日圓排最後
-        const rateTimestamp = values[17];
+      if (i === 1 && hasExchangeRates && values.length >= 18) {
+        const usdRate = parseFloat(values[13]);
+        const eurRate = parseFloat(values[14]);
+        const gbpRate = parseFloat(values[15]);
+        const chfRate = parseFloat(values[16]);
+        const jpyRate = parseFloat(values[17]); // 日圓排最後
+        const rateTimestamp = values[18];
 
         if (!isNaN(usdRate) || !isNaN(eurRate) || !isNaN(gbpRate) || !isNaN(chfRate) || !isNaN(jpyRate)) {
           exchangeRates = {
@@ -402,9 +427,41 @@ export async function importHoldingsFromFile(file: File): Promise<void> {
         // 保存新的持倉數據
         addMultipleHoldings(holdings);
 
-        // 如果有匯率資料，可以在這裡處理（例如保存到歷史匯率）
+        // 如果有匯率資料，保存到今日的歷史記錄中
         if (exchangeRates) {
-          console.log('導入的匯率資料:', exchangeRates);
+          try {
+            const today = new Date().toISOString().split('T')[0];
+            const saved = localStorage.getItem('portfolioHistoricalData');
+            let records = saved ? JSON.parse(saved) : [];
+            
+            // 檢查今日是否已有記錄
+            const existingRecordIndex = records.findIndex((r: any) => r.date === today);
+            
+            if (existingRecordIndex >= 0) {
+              // 更新現有記錄的匯率資料
+              records[existingRecordIndex].exchangeRates = exchangeRates;
+            } else {
+              // 創建新的今日記錄（僅包含匯率資料）
+              const newRecord = {
+                date: today,
+                timestamp: Date.now(),
+                data: holdings,
+                exchangeRates: exchangeRates,
+                totalValue: 0, // 將在後續計算中更新
+                totalCost: 0,
+                totalGainLoss: 0,
+                recordCount: holdings.length,
+              };
+              records.push(newRecord);
+            }
+            
+            // 保存更新後的記錄
+            localStorage.setItem('portfolioHistoricalData', JSON.stringify(records));
+            
+            console.log('CSV匯率資料已保存到歷史記錄:', exchangeRates);
+          } catch (error) {
+            console.warn('保存匯率資料到歷史記錄失敗:', error);
+          }
         }
 
         notifications.show({

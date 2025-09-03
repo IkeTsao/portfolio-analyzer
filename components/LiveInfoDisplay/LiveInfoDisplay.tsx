@@ -34,10 +34,37 @@ export default function LiveInfoDisplay() {
 
   const fetchExchangeRates = async () => {
     try {
+      // 首先檢查是否有今日的歷史匯率記錄（來自CSV導入）
+      const today = new Date().toISOString().split('T')[0];
+      const saved = localStorage.getItem('portfolioHistoricalData');
+      let csvRates: any = null;
+      
+      if (saved) {
+        const records = JSON.parse(saved);
+        const todayRecord = records.find((r: any) => r.date === today);
+        if (todayRecord && todayRecord.exchangeRates) {
+          csvRates = todayRecord.exchangeRates;
+          console.log('使用CSV導入的匯率資料:', csvRates);
+        }
+      }
+
       const currencies = ['USD', 'EUR', 'GBP', 'CHF', 'JPY']; // 日圓排最後
       const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
       
       const ratePromises = currencies.map(async (currency) => {
+        // 如果有CSV匯率資料，優先使用
+        if (csvRates && csvRates[currency]) {
+          return {
+            currency,
+            rate: csvRates[currency],
+            change: 0, // CSV資料沒有變化資訊
+            label: getCurrencyLabel(currency),
+            symbol: getCurrencySymbol(currency),
+            isFallback: false,
+          };
+        }
+
+        // 否則嘗試獲取即時匯率
         try {
           const response = await fetch(`${baseUrl}/api/scrape-exchange-rate?from=${currency}&to=TWD`);
           if (!response.ok) {
@@ -189,9 +216,31 @@ export default function LiveInfoDisplay() {
     }
   };
 
-  const fetchAllData = async () => {
+  const fetchAllData = async (forceUpdateRates: boolean = false) => {
     setLoading(true);
     try {
+      if (forceUpdateRates) {
+        // 強制更新時，先清除今日的CSV匯率記錄
+        try {
+          const today = new Date().toISOString().split('T')[0];
+          const saved = localStorage.getItem('portfolioHistoricalData');
+          
+          if (saved) {
+            const records = JSON.parse(saved);
+            const todayRecordIndex = records.findIndex((r: any) => r.date === today);
+            
+            if (todayRecordIndex >= 0) {
+              // 清除今日記錄的匯率資料，但保留其他資料
+              delete records[todayRecordIndex].exchangeRates;
+              localStorage.setItem('portfolioHistoricalData', JSON.stringify(records));
+              console.log('已清除今日CSV匯率記錄，將獲取新的即時匯率');
+            }
+          }
+        } catch (error) {
+          console.warn('清除CSV匯率記錄失敗:', error);
+        }
+      }
+      
       await Promise.all([fetchExchangeRates(), fetchFinancialIndicators()]);
       setLastUpdate(new Date());
     } finally {
@@ -418,7 +467,7 @@ export default function LiveInfoDisplay() {
           <IconRefresh 
             size={16} 
             style={{ cursor: 'pointer' }} 
-            onClick={fetchAllData}
+            onClick={() => fetchAllData(true)}
           />
         </Group>
       </Group>
