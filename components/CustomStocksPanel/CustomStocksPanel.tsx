@@ -10,6 +10,7 @@ interface CustomStock {
   value: number;
   change: number;
   changePercent: number;
+  changeAmount?: number; // 新增漲跌金額欄位
   isFallback: boolean;
 }
 
@@ -50,12 +51,17 @@ export default function CustomStocksPanel({ onStocksUpdate }: CustomStocksPanelP
       const data = await response.json();
       
       if (data.success && data.data) {
+        const currentPrice = data.data.price || 0;
+        const changePercent = data.data.changePercent || 0;
+        const changeAmount = currentPrice * (changePercent / 100); // 計算漲跌金額
+        
         return {
           symbol,
           name,
-          value: data.data.price || 0,
+          value: currentPrice,
           change: data.data.change || 0,
-          changePercent: data.data.changePercent || 0,
+          changePercent: changePercent,
+          changeAmount: changeAmount,
           isFallback: false,
         };
       } else {
@@ -69,6 +75,7 @@ export default function CustomStocksPanel({ onStocksUpdate }: CustomStocksPanelP
         value: getFallbackPrice(symbol),
         change: 0,
         changePercent: 0,
+        changeAmount: 0,
         isFallback: true,
       };
     }
@@ -247,16 +254,28 @@ export default function CustomStocksPanel({ onStocksUpdate }: CustomStocksPanelP
             {formatValue(stock.value)}
           </Text>
           
-          {/* 漲跌幅 - 放大顯示 */}
+          {/* 漲跌幅和漲跌金額 - 放大顯示 */}
           {stock.change !== 0 && !stock.isFallback && (
-            <Badge 
-              size="lg" 
-              color={stock.change > 0 ? 'green' : 'red'}
-              variant="filled"
-              fw={700}
-            >
-              {stock.change > 0 ? '+' : ''}{stock.changePercent.toFixed(2)}%
-            </Badge>
+            <Stack gap={2} align="center">
+              <Badge 
+                size="lg" 
+                color={stock.change > 0 ? 'green' : 'red'}
+                variant="filled"
+                fw={700}
+              >
+                {stock.change > 0 ? '+' : ''}{stock.changePercent.toFixed(2)}%
+              </Badge>
+              {stock.changeAmount !== undefined && (
+                <Text 
+                  size="sm" 
+                  fw={600}
+                  c={stock.change > 0 ? 'green' : 'red'}
+                  ta="center"
+                >
+                  {stock.change > 0 ? '+' : ''}{formatValue(Math.abs(stock.changeAmount))}
+                </Text>
+              )}
+            </Stack>
           )}
           
           {/* 備用數據標示 */}

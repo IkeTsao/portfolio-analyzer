@@ -136,11 +136,42 @@ export default function HoldingsTable({
   };
 
   // 執行儲存當日資料
-  const saveTodayData = () => {
+  const saveTodayData = async () => {
     setSavingToday(true);
     
     try {
       const todayString = getTodayString();
+      
+      // 獲取當日匯率資料
+      let exchangeRates = {};
+      try {
+        const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
+        const rateResponse = await fetch(`${baseUrl}/api/exchange-rate`);
+        if (rateResponse.ok) {
+          const rateData = await rateResponse.json();
+          if (rateData.success && rateData.data) {
+            exchangeRates = {
+              USD: rateData.data.USD || 32.0,
+              EUR: rateData.data.EUR || 35.0,
+              JPY: rateData.data.JPY || 0.22,
+              GBP: rateData.data.GBP || 40.0,
+              AUD: rateData.data.AUD || 21.0,
+              timestamp: Date.now(),
+            };
+          }
+        }
+      } catch (error) {
+        console.warn('獲取匯率資料失敗，使用備用匯率:', error);
+        // 使用備用匯率
+        exchangeRates = {
+          USD: 32.0,
+          EUR: 35.0,
+          JPY: 0.22,
+          GBP: 40.0,
+          AUD: 21.0,
+          timestamp: Date.now(),
+        };
+      }
       
       // 計算投資組合摘要
       let totalValue = 0;
@@ -157,11 +188,12 @@ export default function HoldingsTable({
       
       const totalGainLoss = totalValue - totalCost;
       
-      // 準備新記錄
+      // 準備新記錄（包含匯率資料）
       const newRecord = {
         date: todayString,
         timestamp: Date.now(),
         data: holdings,
+        exchangeRates, // 新增匯率資料
         totalValue,
         totalCost,
         totalGainLoss,
@@ -183,7 +215,7 @@ export default function HoldingsTable({
       
       notifications.show({
         title: '儲存成功',
-        message: `今日 (${todayString}) 的投資組合資料已儲存`,
+        message: `今日 (${todayString}) 的投資組合資料和匯率已儲存`,
         color: 'green',
       });
     } catch (error) {
