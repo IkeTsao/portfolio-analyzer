@@ -56,7 +56,7 @@ export default function LiveInfoDisplay() {
         if (csvRates && csvRates[currency]) {
           return {
             currency,
-            rate: csvRates[currency],
+            rate: parseFloat(csvRates[currency].toFixed(2)), // 統一為小數點後兩位
             change: 0, // CSV資料沒有變化資訊
             label: getCurrencyLabel(currency),
             symbol: getCurrencySymbol(currency),
@@ -75,7 +75,7 @@ export default function LiveInfoDisplay() {
           if (data.success && data.rate && data.rate > 0) {
             return {
               currency,
-              rate: data.rate,
+              rate: parseFloat(data.rate.toFixed(2)), // 統一為小數點後兩位
               change: data.change || 0,
               label: getCurrencyLabel(currency),
               symbol: getCurrencySymbol(currency),

@@ -207,7 +207,7 @@ export const calculatePortfolioStats = (
           const todayRecord = records.find((r: any) => r.date === today);
           
           if (todayRecord && todayRecord.exchangeRates && todayRecord.exchangeRates[holding.currency]) {
-            csvExchangeRate = todayRecord.exchangeRates[holding.currency];
+            csvExchangeRate = parseFloat(todayRecord.exchangeRates[holding.currency].toFixed(2));
           }
         }
       } catch (error) {
@@ -407,7 +407,7 @@ export const calculateHoldingDetails = (
           const todayRecord = records.find((r: any) => r.date === today);
           
           if (todayRecord && todayRecord.exchangeRates && todayRecord.exchangeRates[holding.currency]) {
-            csvExchangeRate = todayRecord.exchangeRates[holding.currency];
+            csvExchangeRate = parseFloat(todayRecord.exchangeRates[holding.currency].toFixed(2));
           }
         }
       } catch (error) {

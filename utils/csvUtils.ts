@@ -177,11 +177,11 @@ export function exportHoldingsToCSV(holdings: Holding[], exchangeRates?: any): s
     // 如果有匯率資料，新增匯率數據（只在第一行添加）
     if (exchangeRates && holdings.indexOf(holding) === 0) {
       row.push(
-        exchangeRates.USD?.toString() || '',
-        exchangeRates.EUR?.toString() || '',
-        exchangeRates.GBP?.toString() || '',
-        exchangeRates.CHF?.toString() || '',
-        exchangeRates.JPY?.toString() || '', // 日圓排最後
+        exchangeRates.USD ? exchangeRates.USD.toFixed(2) : '',
+        exchangeRates.EUR ? exchangeRates.EUR.toFixed(2) : '',
+        exchangeRates.GBP ? exchangeRates.GBP.toFixed(2) : '',
+        exchangeRates.CHF ? exchangeRates.CHF.toFixed(2) : '',
+        exchangeRates.JPY ? exchangeRates.JPY.toFixed(2) : '', // 日圓排最後
         exchangeRates.timestamp ? new Date(exchangeRates.timestamp).toISOString() : ''
       );
     } else if (exchangeRates) {
@@ -267,11 +267,11 @@ export function parseHoldingsFromCSV(csvContent: string): { holdings: Holding[],
 
         if (!isNaN(usdRate) || !isNaN(eurRate) || !isNaN(gbpRate) || !isNaN(chfRate) || !isNaN(jpyRate)) {
           exchangeRates = {
-            USD: !isNaN(usdRate) ? usdRate : undefined,
-            EUR: !isNaN(eurRate) ? eurRate : undefined,
-            GBP: !isNaN(gbpRate) ? gbpRate : undefined,
-            CHF: !isNaN(chfRate) ? chfRate : undefined,
-            JPY: !isNaN(jpyRate) ? jpyRate : undefined, // 日圓排最後
+            USD: !isNaN(usdRate) ? parseFloat(usdRate.toFixed(2)) : undefined,
+            EUR: !isNaN(eurRate) ? parseFloat(eurRate.toFixed(2)) : undefined,
+            GBP: !isNaN(gbpRate) ? parseFloat(gbpRate.toFixed(2)) : undefined,
+            CHF: !isNaN(chfRate) ? parseFloat(chfRate.toFixed(2)) : undefined,
+            JPY: !isNaN(jpyRate) ? parseFloat(jpyRate.toFixed(2)) : undefined, // 日圓排最後
             timestamp: rateTimestamp ? new Date(rateTimestamp).getTime() : Date.now(),
           };
         }
