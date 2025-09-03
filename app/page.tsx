@@ -15,6 +15,7 @@ import {
   HoldingsTable,
   HoldingForm,
   LiveInfoDisplay,
+  AccountManager,
 } from '@/components';
 import { usePortfolio } from '@/hooks/usePortfolio';
 
@@ -112,21 +113,31 @@ export default function HomePage() {
 
           {/* 圖表區域 */}
           <Grid gutter={{ base: 5, xs: 'sm', md: 'md', xl: 'lg' }}>
-            <Grid.Col span={{ base: 12, md: 6 }}>
-              <PortfolioDistributionChart
-                stats={portfolioStats}
-                loading={loading}
-                type="amount"
-                title="投資組合金額分布"
-              />
+            {/* 左側：帳號管理 */}
+            <Grid.Col span={{ base: 12, lg: 3 }}>
+              <AccountManager onAccountsUpdated={refreshHoldings} />
             </Grid.Col>
-            <Grid.Col span={{ base: 12, md: 6 }}>
-              <PortfolioDistributionChart
-                stats={portfolioStats}
-                loading={loading}
-                type="gainloss"
-                title="投資組合損益分布"
-              />
+            
+            {/* 右側：投資組合分布圖表 */}
+            <Grid.Col span={{ base: 12, lg: 9 }}>
+              <Grid gutter={{ base: 5, xs: 'sm', md: 'md', xl: 'lg' }}>
+                <Grid.Col span={{ base: 12, md: 6 }}>
+                  <PortfolioDistributionChart
+                    stats={portfolioStats}
+                    loading={loading}
+                    type="amount"
+                    title="投資組合金額分布"
+                  />
+                </Grid.Col>
+                <Grid.Col span={{ base: 12, md: 6 }}>
+                  <PortfolioDistributionChart
+                    stats={portfolioStats}
+                    loading={loading}
+                    type="gainloss"
+                    title="投資組合損益分布"
+                  />
+                </Grid.Col>
+              </Grid>
             </Grid.Col>
           </Grid>
 

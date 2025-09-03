@@ -127,6 +127,8 @@ export const ACCOUNT_TYPES = [
   { value: 'etrade', label: 'Etrade' },
   { value: 'fubon', label: '富邦銀行' },
   { value: 'esun', label: '玉山銀行' },
+  { value: 'account4', label: '帳號4' },
+  { value: 'account5', label: '帳號5' },
 ];
 
 export const INVESTMENT_TYPES = [
