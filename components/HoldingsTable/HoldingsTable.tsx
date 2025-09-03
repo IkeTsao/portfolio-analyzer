@@ -251,15 +251,45 @@ export default function HoldingsTable({
   };
 
   // 導出 CSV
-  const handleExportCSV = () => {
+  const handleExportCSV = async () => {
     try {
-      const csvContent = exportHoldingsToCSV(holdings);
+      // 獲取當前匯率資料
+      let exchangeRates: any = null;
+      try {
+        const response = await fetch('/api/exchange-rate');
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success) {
+            exchangeRates = {
+              USD: data.rates?.USD || 1,
+              EUR: data.rates?.EUR || 0.85,
+              JPY: data.rates?.JPY || 110,
+              GBP: data.rates?.GBP || 0.75,
+              AUD: data.rates?.AUD || 1.35,
+              timestamp: Date.now(),
+            };
+          }
+        }
+      } catch (error) {
+        console.error('獲取匯率失敗:', error);
+        // 使用備用匯率
+        exchangeRates = {
+          USD: 1,
+          EUR: 0.85,
+          JPY: 110,
+          GBP: 0.75,
+          AUD: 1.35,
+          timestamp: Date.now(),
+        };
+      }
+
+      const csvContent = exportHoldingsToCSV(holdings, exchangeRates);
       const filename = `持倉明細_${new Date().toISOString().split('T')[0]}.csv`;
       downloadCSV(csvContent, filename);
       
       notifications.show({
         title: '導出成功',
-        message: `已導出 ${holdings.length} 筆持倉數據`,
+        message: `已導出 ${holdings.length} 筆持倉數據（包含匯率資料）`,
         color: 'green',
       });
     } catch (error) {

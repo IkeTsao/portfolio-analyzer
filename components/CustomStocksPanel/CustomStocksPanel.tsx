@@ -272,7 +272,7 @@ export default function CustomStocksPanel({ onStocksUpdate }: CustomStocksPanelP
                   c={stock.change > 0 ? 'green' : 'red'}
                   ta="center"
                 >
-                  {stock.change > 0 ? '+' : ''}{formatValue(stock.changeAmount)}
+                  {stock.changeAmount >= 0 ? '+' : '-'}${Math.abs(stock.changeAmount).toFixed(2)}
                 </Text>
               )}
             </Stack>
