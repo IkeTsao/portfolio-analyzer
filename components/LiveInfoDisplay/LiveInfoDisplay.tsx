@@ -327,55 +327,59 @@ export default function LiveInfoDisplay() {
   const renderIndicatorCard = (indicator: FinancialIndicator) => (
     <Paper 
       key={indicator.symbol} 
-      p="md" 
+      p="xs" 
       withBorder 
       bg={indicator.isFallback ? "yellow.0" : "gray.0"}
     >
-      <Stack gap="sm" align="center">
-        <Group gap="xs">
-          <Text fw={600} size="md">{indicator.name}</Text>
+      <Stack gap="xs">
+        <Group justify="space-between" align="flex-start">
+          <Stack gap={2}>
+            <Text fw={700} size="md" lineClamp={1}>{indicator.name}</Text>
+            <Text size="sm" c="dimmed" fw={600}>{indicator.symbol}</Text>
+          </Stack>
           {indicator.isFallback && (
             <Tooltip 
               label="此為備用數據，非即時數據"
               position="top"
               withArrow
             >
-              <Badge 
-                size="sm" 
+              <IconAlertTriangle 
+                size={18} 
                 color="orange" 
-                variant="filled"
                 style={{ cursor: 'help' }}
-              >
-                !
-              </Badge>
+              />
             </Tooltip>
           )}
         </Group>
-        <Text 
-          size="xl" 
-          fw={700} 
-          c={indicator.isFallback ? "orange" : "blue"}
-        >
-          {formatValue(indicator.value, indicator.unit)}
-        </Text>
-        {indicator.change !== 0 && !indicator.isFallback && (
-          <Badge 
-            size="md" 
-            color={indicator.change > 0 ? 'green' : 'red'}
-            variant="light"
+        <Stack gap={4} align="center">
+          <Text 
+            size="xl" 
+            fw={700} 
+            c={indicator.isFallback ? "orange" : "blue"}
+            ta="center"
           >
-            {indicator.change > 0 ? '+' : ''}{indicator.changePercent.toFixed(2)}%
-          </Badge>
-        )}
-        {indicator.isFallback && (
-          <Badge 
-            size="xs" 
-            color="orange"
-            variant="light"
-          >
-            備用數據
-          </Badge>
-        )}
+            {formatValue(indicator.value, indicator.unit)}
+          </Text>
+          {indicator.change !== 0 && !indicator.isFallback && (
+            <Badge 
+              size="lg" 
+              color={indicator.change > 0 ? 'green' : 'red'}
+              variant="filled"
+              fw={700}
+            >
+              {indicator.change > 0 ? '+' : ''}{indicator.changePercent.toFixed(2)}%
+            </Badge>
+          )}
+          {indicator.isFallback && (
+            <Badge 
+              size="sm" 
+              color="orange"
+              variant="filled"
+            >
+              備用數據
+            </Badge>
+          )}
+        </Stack>
       </Stack>
     </Paper>
   );
@@ -383,16 +387,16 @@ export default function LiveInfoDisplay() {
   const renderRateCard = (rate: ExchangeRate) => (
     <Paper 
       key={rate.currency} 
-      p="md" 
+      p="xs" 
       withBorder 
       bg={rate.isFallback ? "yellow.0" : "gray.0"}
     >
-      <Stack gap="sm" align="center">
-        <Group gap="xs">
-          <Text fw={600} size="md">{rate.label}</Text>
-          <Badge size="sm" variant="light">
-            {rate.currency}/TWD
-          </Badge>
+      <Stack gap="xs">
+        <Group justify="space-between" align="flex-start">
+          <Stack gap={2}>
+            <Text fw={700} size="md" lineClamp={1}>{rate.label}</Text>
+            <Text size="sm" c="dimmed" fw={600}>{rate.currency}/TWD</Text>
+          </Stack>
           {rate.isFallback && (
             <Tooltip 
               label="此為備用匯率，非即時數據"
@@ -410,31 +414,35 @@ export default function LiveInfoDisplay() {
             </Tooltip>
           )}
         </Group>
-        <Text 
-          size="xl" 
-          fw={700} 
-          c={rate.isFallback ? "orange" : "blue"}
-        >
-          {rate.symbol}1 = NT${rate.rate.toFixed(2)}
-        </Text>
-        {rate.change !== 0 && !rate.isFallback && (
-          <Badge 
-            size="md" 
-            color={rate.change > 0 ? 'green' : 'red'}
-            variant="light"
+        <Stack gap={4} align="center">
+          <Text 
+            size="xl" 
+            fw={700} 
+            c={rate.isFallback ? "orange" : "blue"}
+            ta="center"
           >
-            {rate.change > 0 ? '+' : ''}{rate.change.toFixed(2)}%
-          </Badge>
-        )}
-        {rate.isFallback && (
-          <Badge 
-            size="xs" 
-            color="orange"
-            variant="light"
-          >
-            備用數據
-          </Badge>
-        )}
+            {rate.symbol}1 = NT${rate.rate.toFixed(2)}
+          </Text>
+          {rate.change !== 0 && !rate.isFallback && (
+            <Badge 
+              size="lg" 
+              color={rate.change > 0 ? 'green' : 'red'}
+              variant="filled"
+              fw={700}
+            >
+              {rate.change > 0 ? '+' : ''}{rate.change.toFixed(2)}%
+            </Badge>
+          )}
+          {rate.isFallback && (
+            <Badge 
+              size="sm" 
+              color="orange"
+              variant="filled"
+            >
+              備用數據
+            </Badge>
+          )}
+        </Stack>
       </Stack>
     </Paper>
   );
