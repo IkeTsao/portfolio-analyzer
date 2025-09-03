@@ -65,6 +65,53 @@ const MARKET_MAP: { [key: string]: string } = {
  * 將持倉數據導出為 CSV 格式（包含匯率資料）
  */
 export function exportHoldingsToCSV(holdings: Holding[], exchangeRates?: any): string {
+  // 帳戶排序優先級（與持倉清單一致）
+  const getAccountOrder = (accountId: string): number => {
+    const order: { [key: string]: number } = {
+      'etrade': 1,
+      'fubon': 2, 
+      'esun': 3
+    };
+    return order[accountId] || 999;
+  };
+
+  // 智能代碼排序（與持倉清單一致）
+  const sortBySymbol = (a: string, b: string): number => {
+    // 提取數字和字母部分
+    const extractParts = (str: string) => {
+      const match = str.match(/^(\d*)(.*)$/);
+      return {
+        number: match?.[1] ? parseInt(match[1]) : Infinity,
+        text: match?.[2] || str
+      };
+    };
+
+    const partsA = extractParts(a);
+    const partsB = extractParts(b);
+
+    // 先按數字部分排序
+    if (partsA.number !== partsB.number) {
+      return partsA.number - partsB.number;
+    }
+
+    // 數字相同則按字母部分排序
+    return partsA.text.localeCompare(partsB.text);
+  };
+
+  // 排序持倉數據（與持倉清單相同的排序邏輯）
+  const sortedHoldings = [...holdings].sort((a, b) => {
+    // 1. 按帳戶排序：Etrade → 富邦銀行 → 玉山銀行
+    const orderA = getAccountOrder(a.accountId);
+    const orderB = getAccountOrder(b.accountId);
+    
+    if (orderA !== orderB) {
+      return orderA - orderB;
+    }
+    
+    // 2. 相同帳戶內按代碼智能排序
+    return sortBySymbol(a.symbol, b.symbol);
+  });
+
   // CSV 標題行
   const headers = [
     'ID',
@@ -86,8 +133,8 @@ export function exportHoldingsToCSV(holdings: Holding[], exchangeRates?: any): s
     headers.push('USD匯率', 'EUR匯率', 'GBP匯率', 'CHF匯率', 'JPY匯率', '匯率時間'); // 日圓排最後
   }
 
-  // 數據行
-  const rows = holdings.map(holding => {
+  // 數據行（使用排序後的數據）
+  const rows = sortedHoldings.map(holding => {
     const row = [
       holding.id,
       getAccountDisplayName(holding.accountId),
