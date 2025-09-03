@@ -204,81 +204,81 @@ export default function CustomStocksPanel({ onStocksUpdate }: CustomStocksPanelP
   const renderStockCard = (stock: CustomStock) => (
     <Paper 
       key={stock.symbol} 
-      p="sm" 
+      p="xs" 
       withBorder 
       bg={stock.isFallback ? "yellow.0" : "gray.0"}
     >
       <Stack gap="xs">
-        <Group justify="space-between">
-          <div>
-            <Text fw={500} size="sm">{stock.name}</Text>
-            <Text size="xs" c="dimmed">{stock.symbol}</Text>
-          </div>
-          <Group gap="xs">
+        {/* 標題區域 - 緊湊排列 */}
+        <Group justify="space-between" align="flex-start">
+          <Stack gap={2}>
+            <Text fw={700} size="md" lineClamp={1}>{stock.name}</Text>
+            <Text size="sm" c="dimmed" fw={600}>{stock.symbol}</Text>
+          </Stack>
+          <Group gap={4}>
             <Button
               size="xs"
               variant="subtle"
+              p={4}
               onClick={() => handleEditStock(stock)}
             >
-              <IconEdit size={12} />
+              <IconEdit size={14} />
             </Button>
             <Button
               size="xs"
               variant="subtle"
               color="red"
+              p={4}
               onClick={() => handleDeleteStock(stock.symbol)}
             >
-              <IconTrash size={12} />
+              <IconTrash size={14} />
             </Button>
           </Group>
         </Group>
         
-        <Group justify="space-between" align="center">
+        {/* 價格區域 - 放大顯示 */}
+        <Stack gap={4} align="center">
           <Text 
-            size="lg" 
+            size="xl" 
             fw={700} 
             c={stock.isFallback ? "orange" : "blue"}
+            ta="center"
           >
             {formatValue(stock.value)}
           </Text>
           
-          {stock.isFallback && (
-            <Tooltip 
-              label="此為備用數據，非即時數據"
-              position="top"
-              withArrow
+          {/* 漲跌幅 - 放大顯示 */}
+          {stock.change !== 0 && !stock.isFallback && (
+            <Badge 
+              size="lg" 
+              color={stock.change > 0 ? 'green' : 'red'}
+              variant="filled"
+              fw={700}
             >
-              <Badge 
-                size="xs" 
-                color="orange" 
-                variant="filled"
-                style={{ cursor: 'help' }}
-              >
-                !
-              </Badge>
-            </Tooltip>
+              {stock.change > 0 ? '+' : ''}{stock.changePercent.toFixed(2)}%
+            </Badge>
           )}
-        </Group>
-        
-        {stock.change !== 0 && !stock.isFallback && (
-          <Badge 
-            size="xs" 
-            color={stock.change > 0 ? 'green' : 'red'}
-            variant="light"
-          >
-            {stock.change > 0 ? '+' : ''}{stock.changePercent.toFixed(2)}%
-          </Badge>
-        )}
-        
-        {stock.isFallback && (
-          <Badge 
-            size="xs" 
-            color="orange"
-            variant="light"
-          >
-            備用數據
-          </Badge>
-        )}
+          
+          {/* 備用數據標示 */}
+          {stock.isFallback && (
+            <Group gap={4} justify="center">
+              <Tooltip 
+                label="此為備用數據，非即時數據"
+                position="top"
+                withArrow
+              >
+                <Badge 
+                  size="sm" 
+                  color="orange" 
+                  variant="filled"
+                  style={{ cursor: 'help' }}
+                >
+                  備用數據
+                </Badge>
+              </Tooltip>
+            </Group>
+          )}
+        </Stack>
       </Stack>
     </Paper>
   );
@@ -319,7 +319,7 @@ export default function CustomStocksPanel({ onStocksUpdate }: CustomStocksPanelP
             <Text size="sm" c="dimmed">載入股票數據中...</Text>
           </Group>
         ) : (
-          <SimpleGrid cols={{ base: 2, sm: 3, md: 4 }} spacing="md">
+          <SimpleGrid cols={{ base: 2, sm: 3, md: 4 }} spacing="xs">
             {stocks.map(renderStockCard)}
           </SimpleGrid>
         )}
