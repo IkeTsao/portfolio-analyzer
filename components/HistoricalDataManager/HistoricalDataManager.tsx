@@ -182,7 +182,7 @@ export default function HistoricalDataManager({ currentPortfolioData, onDataSave
           // 設定獲取到的匯率
           validRates.forEach((result) => {
             if (result) {
-              exchangeRates[result.currency] = result.rate;
+              exchangeRates[result.currency] = parseFloat(result.rate.toFixed(2));
             }
           });
           
@@ -356,11 +356,11 @@ export default function HistoricalDataManager({ currentPortfolioData, onDataSave
         // 如果有匯率資料，新增匯率數據（只在第一行添加）
         if (exchangeRates && index === 0) {
           row.push(
-            exchangeRates.USD?.toString() || '',
-            exchangeRates.EUR?.toString() || '',
-            exchangeRates.GBP?.toString() || '',
-            exchangeRates.CHF?.toString() || '',
-            exchangeRates.JPY?.toString() || '', // 日圓排最後
+            exchangeRates.USD ? exchangeRates.USD.toFixed(2) : '',
+            exchangeRates.EUR ? exchangeRates.EUR.toFixed(2) : '',
+            exchangeRates.GBP ? exchangeRates.GBP.toFixed(2) : '',
+            exchangeRates.CHF ? exchangeRates.CHF.toFixed(2) : '',
+            exchangeRates.JPY ? exchangeRates.JPY.toFixed(2) : '', // 日圓排最後
             exchangeRates.timestamp ? new Date(exchangeRates.timestamp).toISOString() : ''
           );
         } else if (exchangeRates) {

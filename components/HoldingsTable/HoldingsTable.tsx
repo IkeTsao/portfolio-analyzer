@@ -174,7 +174,7 @@ export default function HoldingsTable({
           // 設定獲取到的匯率
           validRates.forEach((result) => {
             if (result) {
-              exchangeRates[result.currency] = result.rate;
+              exchangeRates[result.currency] = parseFloat(result.rate.toFixed(2));
             }
           });
           
@@ -328,7 +328,7 @@ export default function HoldingsTable({
           // 設定獲取到的匯率
           validRates.forEach((result) => {
             if (result) {
-              exchangeRates[result.currency] = result.rate;
+              exchangeRates[result.currency] = parseFloat(result.rate.toFixed(2));
             }
           });
           
