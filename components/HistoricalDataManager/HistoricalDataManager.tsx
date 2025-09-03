@@ -397,9 +397,35 @@ export default function HistoricalDataManager({ currentPortfolioData, onDataSave
           {historicalRecords.length === 0 && (
             <Alert icon={<IconDatabase size={16} />} color="blue">
               <Text size="sm">
-                尚無歷史記錄。選擇日期並儲存當前投資組合資料，即可開始建立歷史記錄用於趨勢分析。
+                尚無歷史記錄。選擇日期並儲存當前投資組合資料，即可開始建立歷史記錄用於趋勢分析。
               </Text>
             </Alert>
+          )}
+
+          {/* 顯示已有資料的日期 */}
+          {historicalRecords.length > 0 && (
+            <Stack gap="sm">
+              <Text size="sm" fw={500} c="blue">
+                📅 已有資料的日期 ({historicalRecords.length} 筆)
+              </Text>
+              <Group gap="xs">
+                {historicalRecords.slice(0, 10).map((record) => (
+                  <Badge 
+                    key={record.date} 
+                    variant="light" 
+                    color="blue" 
+                    size="sm"
+                  >
+                    {record.date}
+                  </Badge>
+                ))}
+                {historicalRecords.length > 10 && (
+                  <Badge variant="light" color="gray" size="sm">
+                    +{historicalRecords.length - 10} 更多
+                  </Badge>
+                )}
+              </Group>
+            </Stack>
           )}
         </Stack>
       </Paper>

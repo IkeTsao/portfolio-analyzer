@@ -13,6 +13,8 @@ import {
   Stack,
   TextInput,
   Select,
+  Modal,
+  Alert,
 } from '@mantine/core';
 import { 
   IconPlus, 
@@ -23,6 +25,8 @@ import {
   IconSearch,
   IconDownload,
   IconUpload,
+  IconDatabase,
+  IconAlertCircle,
 } from '@tabler/icons-react';
 import { DataTable } from 'mantine-datatable';
 import { Holding } from '@/types/portfolio';
@@ -90,7 +94,110 @@ export default function HoldingsTable({
   const [typeFilter, setTypeFilter] = useState<string | null>(null);
   const [accountFilter, setAccountFilter] = useState<string | null>(null);
   const [regionFilter, setRegionFilter] = useState<string | null>(null);
+  const [confirmModalOpened, setConfirmModalOpened] = useState(false);
+  const [savingToday, setSavingToday] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // 獲取今天的日期字串
+  const getTodayString = (): string => {
+    return new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+  };
+
+  // 檢查今天是否已有記錄
+  const checkTodayExists = (): boolean => {
+    try {
+      const saved = localStorage.getItem('portfolioHistoricalData');
+      if (saved) {
+        const records = JSON.parse(saved);
+        return records.some((record: any) => record.date === getTodayString());
+      }
+    } catch (error) {
+      console.error('檢查今日記錄失敗:', error);
+    }
+    return false;
+  };
+
+  // 儲存當日 CSV 資料
+  const handleSaveTodayCSV = () => {
+    if (!holdings || holdings.length === 0) {
+      notifications.show({
+        title: '無資料可儲存',
+        message: '目前沒有持倉資料可以儲存',
+        color: 'orange',
+      });
+      return;
+    }
+
+    if (checkTodayExists()) {
+      setConfirmModalOpened(true);
+    } else {
+      saveTodayData();
+    }
+  };
+
+  // 執行儲存當日資料
+  const saveTodayData = () => {
+    setSavingToday(true);
+    
+    try {
+      const todayString = getTodayString();
+      
+      // 計算投資組合摘要
+      let totalValue = 0;
+      let totalCost = 0;
+      
+      holdings.forEach((holding) => {
+        const quantity = holding.quantity || 0;
+        const currentPrice = holding.currentPrice || 0;
+        const costBasis = holding.costBasis || 0;
+        
+        totalValue += quantity * currentPrice;
+        totalCost += quantity * costBasis;
+      });
+      
+      const totalGainLoss = totalValue - totalCost;
+      
+      // 準備新記錄
+      const newRecord = {
+        date: todayString,
+        timestamp: Date.now(),
+        data: holdings,
+        totalValue,
+        totalCost,
+        totalGainLoss,
+        recordCount: holdings.length,
+      };
+
+      // 獲取現有記錄
+      const saved = localStorage.getItem('portfolioHistoricalData');
+      let records = saved ? JSON.parse(saved) : [];
+      
+      // 移除今天的舊記錄（如果存在）
+      records = records.filter((record: any) => record.date !== todayString);
+      
+      // 添加新記錄
+      records.push(newRecord);
+      
+      // 儲存到 localStorage
+      localStorage.setItem('portfolioHistoricalData', JSON.stringify(records));
+      
+      notifications.show({
+        title: '儲存成功',
+        message: `今日 (${todayString}) 的投資組合資料已儲存`,
+        color: 'green',
+      });
+    } catch (error) {
+      console.error('儲存今日資料失敗:', error);
+      notifications.show({
+        title: '儲存失敗',
+        message: '儲存今日投資組合資料時發生錯誤',
+        color: 'red',
+      });
+    } finally {
+      setSavingToday(false);
+      setConfirmModalOpened(false);
+    }
+  };
 
   const handleDelete = async (holding: Holding) => {
     try {
@@ -391,12 +498,23 @@ export default function HoldingsTable({
   ];
 
   return (
+    <>
     <Paper p="md" withBorder>
       <Stack gap="md">
         {/* 標題和操作按鈕 */}
         <Group justify="space-between">
           <Title order={3}>持倉明細</Title>
           <Group gap="xs">
+            <Button 
+              variant="light" 
+              leftSection={<IconDatabase size={16} />}
+              onClick={handleSaveTodayCSV}
+              size="sm"
+              color="purple"
+              loading={savingToday}
+            >
+              儲存當日
+            </Button>
             <Button 
               variant="light" 
               leftSection={<IconDownload size={16} />}
@@ -509,5 +627,37 @@ export default function HoldingsTable({
         />
       </Stack>
     </Paper>
+
+    {/* 確認覆蓋 Modal */}
+    <Modal
+      opened={confirmModalOpened}
+      onClose={() => setConfirmModalOpened(false)}
+      title="確認覆蓋今日資料"
+      size="sm"
+    >
+      <Stack gap="md">
+        <Alert icon={<IconAlertCircle size={16} />} color="orange">
+          <Text size="sm">
+            今日 ({getTodayString()}) 已有投資組合記錄。確定要覆蓋現有資料嗎？
+          </Text>
+        </Alert>
+        <Group justify="flex-end" gap="sm">
+          <Button 
+            variant="outline" 
+            onClick={() => setConfirmModalOpened(false)}
+          >
+            取消
+          </Button>
+          <Button 
+            color="orange"
+            onClick={saveTodayData}
+            loading={savingToday}
+          >
+            確認覆蓋
+          </Button>
+        </Group>
+      </Stack>
+    </Modal>
+  </>
   );
 }
