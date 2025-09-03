@@ -774,6 +774,47 @@ export default function HoldingsTable({
           scrollAreaProps={{ type: 'scroll' }}
           style={{ width: '100%', overflowX: 'auto' }}
         />
+
+        {/* 小計行 */}
+        {filteredHoldings.length > 0 && (
+          <Paper p="sm" withBorder style={{ backgroundColor: '#f8f9fa' }}>
+            <Group justify="space-between" align="center">
+              <Group gap="md">
+                <Text fw={600} size="sm" c="dimmed">
+                  小計 ({filteredHoldings.length} 筆)
+                </Text>
+              </Group>
+              <Group gap="xl">
+                <Group gap="xs">
+                  <Text size="sm" c="dimmed">總台幣市值:</Text>
+                  <Text fw={600} size="sm">
+                    {formatCurrency(
+                      filteredHoldings.reduce((sum, holding) => 
+                        sum + (holding.currentValue || 0), 0
+                      )
+                    )}
+                  </Text>
+                </Group>
+                <Group gap="xs">
+                  <Text size="sm" c="dimmed">總台幣損益:</Text>
+                  <Text 
+                    fw={600} 
+                    size="sm"
+                    c={filteredHoldings.reduce((sum, holding) => 
+                      sum + (holding.gainLoss || 0), 0
+                    ) >= 0 ? 'green' : 'red'}
+                  >
+                    {formatCurrency(
+                      filteredHoldings.reduce((sum, holding) => 
+                        sum + (holding.gainLoss || 0), 0
+                      )
+                    )}
+                  </Text>
+                </Group>
+              </Group>
+            </Group>
+          </Paper>
+        )}
       </Stack>
     </Paper>
 
