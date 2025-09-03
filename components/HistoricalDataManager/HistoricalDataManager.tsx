@@ -10,6 +10,7 @@ interface HistoricalRecord {
   date: string; // YYYY-MM-DD format
   timestamp: number;
   data: any; // Portfolio data
+  exchangeRates?: any; // 新增匯率資料
   totalValue: number;
   totalCost: number;
   totalGainLoss: number;
@@ -94,7 +95,7 @@ export default function HistoricalDataManager({ currentPortfolioData, onDataSave
     return { totalValue, totalCost, totalGainLoss, recordCount };
   };
 
-  const handleSaveData = () => {
+  const handleSaveData = async () => {
     if (!selectedDate) {
       notifications.show({
         title: '請選擇日期',
@@ -119,20 +120,95 @@ export default function HistoricalDataManager({ currentPortfolioData, onDataSave
       setRecordToOverwrite(dateStr);
       setConfirmModalOpened(true);
     } else {
-      saveDataToDate(dateStr);
+      await saveDataToDate(dateStr);
     }
   };
 
-  const saveDataToDate = (dateStr: string) => {
+  const saveDataToDate = async (dateStr: string) => {
     setSaving(true);
     
     try {
+      // 獲取匯率資料（與 saveTodayData 相同邏輯）
+      let exchangeRates: any = {};
+      try {
+        const currencies = ['USD', 'EUR', 'GBP', 'CHF', 'JPY']; // 日圓排最後
+        const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
+        
+        const ratePromises = currencies.map(async (currency) => {
+          try {
+            const response = await fetch(`${baseUrl}/api/scrape-exchange-rate?from=${currency}&to=TWD`);
+            if (response.ok) {
+              const data = await response.json();
+              if (data.success && data.rate && data.rate > 0) {
+                return { currency, rate: data.rate };
+              }
+            }
+          } catch (error) {
+            console.warn(`獲取 ${currency} 匯率失敗:`, error);
+          }
+          return null;
+        });
+        
+        const rateResults = await Promise.all(ratePromises);
+        const validRates = rateResults.filter(result => result !== null);
+        
+        if (validRates.length > 0) {
+          exchangeRates = {
+            timestamp: Date.now(),
+          };
+          
+          // 設定獲取到的匯率
+          validRates.forEach((result) => {
+            if (result) {
+              exchangeRates[result.currency] = result.rate;
+            }
+          });
+          
+          // 補充備用匯率（如果某些匯率獲取失敗）
+          const fallbackRates = {
+            USD: 32.0,
+            EUR: 35.0,
+            GBP: 40.0,
+            CHF: 35.5,
+            JPY: 0.22,
+          };
+          
+          currencies.forEach(currency => {
+            if (!exchangeRates[currency]) {
+              exchangeRates[currency] = fallbackRates[currency];
+            }
+          });
+        } else {
+          // 全部失敗時使用備用匯率
+          exchangeRates = {
+            USD: 32.0,
+            EUR: 35.0,
+            GBP: 40.0,
+            CHF: 35.5,
+            JPY: 0.22,
+            timestamp: Date.now(),
+          };
+        }
+      } catch (error) {
+        console.warn('獲取匯率資料失敗，使用備用匯率:', error);
+        // 使用備用匯率
+        exchangeRates = {
+          USD: 32.0,
+          EUR: 35.0,
+          GBP: 40.0,
+          CHF: 35.5,
+          JPY: 0.22,
+          timestamp: Date.now(),
+        };
+      }
+
       const summary = calculatePortfolioSummary(currentPortfolioData);
       
       const newRecord: HistoricalRecord = {
         date: dateStr,
         timestamp: Date.now(),
         data: currentPortfolioData,
+        exchangeRates, // 新增匯率資料
         ...summary,
       };
 
@@ -143,7 +219,7 @@ export default function HistoricalDataManager({ currentPortfolioData, onDataSave
       
       notifications.show({
         title: '儲存成功',
-        message: `${dateStr} 的投資組合資料已儲存`,
+        message: `${dateStr} 的投資組合資料已儲存（包含匯率資料）`,
         color: 'green',
       });
 
@@ -159,6 +235,12 @@ export default function HistoricalDataManager({ currentPortfolioData, onDataSave
       });
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleConfirmOverwrite = async () => {
+    if (recordToOverwrite) {
+      await saveDataToDate(recordToOverwrite);
       setConfirmModalOpened(false);
       setRecordToOverwrite(null);
     }
@@ -186,10 +268,20 @@ export default function HistoricalDataManager({ currentPortfolioData, onDataSave
         return;
       }
 
-      // 準備 CSV 標頭
+      // 準備 CSV 標頭（與持倉明細格式一致）
       const headers = [
-        '股票代碼', '股票名稱', '投資類型', '數量', '成本價', '目前價格', 
-        '總成本', '目前價值', '損益', '損益率(%)', '記錄日期'
+        'ID',
+        '帳戶',
+        '代碼',
+        '名稱', 
+        '類型',
+        '市場',
+        '數量',
+        '成本價',
+        '貨幣',
+        '購買日期',
+        '現價',
+        '更新時間'
       ];
 
       // 如果有匯率資料，新增匯率欄位
@@ -197,28 +289,21 @@ export default function HistoricalDataManager({ currentPortfolioData, onDataSave
         headers.push('USD匯率', 'EUR匯率', 'GBP匯率', 'CHF匯率', 'JPY匯率', '匯率時間'); // 日圓排最後
       }
 
-      // 準備 CSV 資料
+      // 準備 CSV 資料（與持倉明細格式一致）
       const csvData = record.data.map((item: any, index: number) => {
-        const quantity = parseFloat(item.quantity) || 0;
-        const cost = parseFloat(item.cost) || 0;
-        const currentPrice = parseFloat(item.currentPrice) || 0;
-        const totalCost = quantity * cost;
-        const currentValue = quantity * currentPrice;
-        const gainLoss = currentValue - totalCost;
-        const gainLossPercent = totalCost > 0 ? (gainLoss / totalCost) * 100 : 0;
-
         const row = [
+          item.id || '',
+          item.accountId || '',
           item.symbol || '',
           item.name || '',
           item.type || '',
-          quantity.toString(),
-          cost.toFixed(2),
-          currentPrice.toFixed(2),
-          totalCost.toFixed(2),
-          currentValue.toFixed(2),
-          gainLoss.toFixed(2),
-          gainLossPercent.toFixed(2),
-          record.date
+          item.market || '',
+          item.quantity?.toString() || '',
+          item.costBasis?.toString() || '',
+          item.currency || '',
+          item.purchaseDate || '',
+          item.currentPrice?.toString() || '',
+          item.lastUpdated || ''
         ];
 
         // 如果有匯率資料，新增匯率數據（只在第一行添加）
@@ -240,11 +325,10 @@ export default function HistoricalDataManager({ currentPortfolioData, onDataSave
         return row;
       });
 
-      // 組合 CSV 內容
-      const csvContent = [
-        headers.join(','),
-        ...csvData.map(row => row.map(cell => `"${cell}"`).join(','))
-      ].join('\n');
+      // 組合 CSV 內容（與持倉明細格式一致）
+      const csvContent = [headers, ...csvData]
+        .map(row => row.map(field => `"${field}"`).join(','))
+        .join('\n');
 
       // 下載 CSV 檔案
       const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
