@@ -778,41 +778,48 @@ export default function HoldingsTable({
         {/* 小計行 */}
         {filteredHoldings.length > 0 && (
           <Paper p="sm" withBorder style={{ backgroundColor: '#f8f9fa' }}>
-            <Group justify="space-between" align="center">
-              <Group gap="md">
+            <div style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+              {/* 左側：小計標籤 - 對應前面的欄位 */}
+              <div style={{ flex: '0 0 400px', display: 'flex', alignItems: 'center' }}>
                 <Text fw={600} size="sm" c="dimmed">
                   小計 ({filteredHoldings.length} 筆)
                 </Text>
-              </Group>
-              <Group gap="xl">
-                <Group gap="xs">
-                  <Text size="sm" c="dimmed">總台幣市值:</Text>
-                  <Text fw={600} size="sm">
-                    {formatCurrency(
-                      filteredHoldings.reduce((sum, holding) => 
-                        sum + (holding.currentValue || 0), 0
-                      )
-                    )}
-                  </Text>
-                </Group>
-                <Group gap="xs">
-                  <Text size="sm" c="dimmed">總台幣損益:</Text>
-                  <Text 
-                    fw={600} 
-                    size="sm"
-                    c={filteredHoldings.reduce((sum, holding) => 
+              </div>
+              
+              {/* 中間：成本欄位 - 留空對齊 */}
+              <div style={{ flex: '0 0 120px' }}></div>
+              
+              {/* 總台幣市值 - 對齊市值欄位 */}
+              <div style={{ flex: '0 0 140px', textAlign: 'right' }}>
+                <Text fw={600} size="sm">
+                  {formatCurrency(
+                    filteredHoldings.reduce((sum, holding) => 
+                      sum + (holding.currentValue || 0), 0
+                    )
+                  )}
+                </Text>
+              </div>
+              
+              {/* 總台幣損益 - 對齊損益欄位 */}
+              <div style={{ flex: '0 0 140px', textAlign: 'right' }}>
+                <Text 
+                  fw={600} 
+                  size="sm"
+                  c={filteredHoldings.reduce((sum, holding) => 
+                    sum + (holding.gainLoss || 0), 0
+                  ) >= 0 ? 'green' : 'red'}
+                >
+                  {formatCurrency(
+                    filteredHoldings.reduce((sum, holding) => 
                       sum + (holding.gainLoss || 0), 0
-                    ) >= 0 ? 'green' : 'red'}
-                  >
-                    {formatCurrency(
-                      filteredHoldings.reduce((sum, holding) => 
-                        sum + (holding.gainLoss || 0), 0
-                      )
-                    )}
-                  </Text>
-                </Group>
-              </Group>
-            </Group>
+                    )
+                  )}
+                </Text>
+              </div>
+              
+              {/* 右側：操作欄位 - 留空對齊 */}
+              <div style={{ flex: '0 0 120px' }}></div>
+            </div>
           </Paper>
         )}
       </Stack>
