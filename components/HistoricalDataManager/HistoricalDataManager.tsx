@@ -303,6 +303,7 @@ export default function HistoricalDataManager({ currentPortfolioData, onDataSave
         '貨幣',
         '購買日期',
         '現價',
+        '台幣市值',
         '更新時間'
       ];
 
@@ -313,6 +314,29 @@ export default function HistoricalDataManager({ currentPortfolioData, onDataSave
 
       // 準備 CSV 資料（與持倉明細格式一致）
       const csvData = record.data.map((item: any, index: number) => {
+        // 計算台幣市值
+        const quantity = item.quantity || 0;
+        const currentPrice = item.currentPrice || 0;
+        const currency = item.currency || 'TWD';
+        
+        let exchangeRate = 1;
+        const exchangeRates = (record as any).exchangeRates;
+        if (currency !== 'TWD' && exchangeRates) {
+          if (currency === 'USD' && exchangeRates.USD) {
+            exchangeRate = exchangeRates.USD;
+          } else if (currency === 'EUR' && exchangeRates.EUR) {
+            exchangeRate = exchangeRates.EUR;
+          } else if (currency === 'GBP' && exchangeRates.GBP) {
+            exchangeRate = exchangeRates.GBP;
+          } else if (currency === 'CHF' && exchangeRates.CHF) {
+            exchangeRate = exchangeRates.CHF;
+          } else if (currency === 'JPY' && exchangeRates.JPY) {
+            exchangeRate = exchangeRates.JPY;
+          }
+        }
+        
+        const twdValue = quantity * currentPrice * exchangeRate;
+
         const row = [
           item.id || '',
           item.accountId || '',
@@ -325,11 +349,11 @@ export default function HistoricalDataManager({ currentPortfolioData, onDataSave
           item.currency || '',
           item.purchaseDate || '',
           item.currentPrice?.toString() || '',
+          twdValue.toFixed(2),
           item.lastUpdated || ''
         ];
 
         // 如果有匯率資料，新增匯率數據（只在第一行添加）
-        const exchangeRates = (record as any).exchangeRates;
         if (exchangeRates && index === 0) {
           row.push(
             exchangeRates.USD?.toString() || '',
