@@ -387,7 +387,10 @@ export default function HistoricalDataManager({ currentPortfolioData, onDataSave
 
           {/* 儲存新記錄 */}
           <Stack gap="sm">
-            <Text size="sm" fw={500}>儲存當前資料</Text>
+            <Text size="sm" fw={500}>儲存持倉明細到指定日期</Text>
+            <Text size="xs" c="dimmed">
+              將當前主頁面的持倉明細資料（包含價格和匯率）儲存到選定的日期
+            </Text>
             <Group>
               <DatePickerInput
                 value={selectedDate}
@@ -404,7 +407,7 @@ export default function HistoricalDataManager({ currentPortfolioData, onDataSave
                 size="sm"
                 leftSection={<IconDatabase size={16} />}
               >
-                儲存
+                儲存當下持倉明細
               </Button>
             </Group>
             {selectedDate && checkDateExists(formatDate(selectedDate)) && (
