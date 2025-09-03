@@ -8,4 +8,5 @@ export const PATH_DASHBOARD = {
   root: '/',
   default: '/',
   rawData: '/raw-data',
+  accountSettings: '/account-settings',
 };

@@ -155,7 +155,7 @@ export default function AccountManager({ onAccountsUpdated }: AccountManagerProp
           <Title order={4}>
             <Group gap="xs">
               <IconBuilding size={20} />
-              帳號管理
+              帳號名稱設定
             </Group>
           </Title>
           <Badge variant="light" color="blue">
