@@ -30,10 +30,11 @@ export default function LiveInfoDisplay() {
   const [indicators, setIndicators] = useState<FinancialIndicator[]>([]);
   const [loading, setLoading] = useState(true);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
+  const [activeTab, setActiveTab] = useState<string>('markets'); // 新增 activeTab 狀態
 
   const fetchExchangeRates = async () => {
     try {
-      const currencies = ['USD', 'EUR', 'GBP', 'CHF', 'JPY'];
+      const currencies = ['USD', 'EUR', 'GBP', 'CHF', 'JPY']; // 日圓排最後
       const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
       
       const ratePromises = currencies.map(async (currency) => {
@@ -428,7 +429,7 @@ export default function LiveInfoDisplay() {
           <Text size="sm" c="dimmed">載入即時資訊中...</Text>
         </Group>
       ) : (
-        <Tabs defaultValue="markets" variant="outline">
+        <Tabs value={activeTab} onChange={(value) => setActiveTab(value || 'markets')} variant="outline">
           <Tabs.List>
             <Tabs.Tab value="markets" leftSection={<IconTrendingUp size={16} />}>
               市場指數

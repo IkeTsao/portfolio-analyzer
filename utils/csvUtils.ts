@@ -83,7 +83,7 @@ export function exportHoldingsToCSV(holdings: Holding[], exchangeRates?: any): s
 
   // 如果有匯率資料，新增匯率欄位
   if (exchangeRates) {
-    headers.push('USD匯率', 'EUR匯率', 'JPY匯率', 'GBP匯率', 'AUD匯率', '匯率時間');
+    headers.push('USD匯率', 'EUR匯率', 'GBP匯率', 'CHF匯率', 'JPY匯率', '匯率時間'); // 日圓排最後
   }
 
   // 數據行
@@ -108,9 +108,9 @@ export function exportHoldingsToCSV(holdings: Holding[], exchangeRates?: any): s
       row.push(
         exchangeRates.USD?.toString() || '',
         exchangeRates.EUR?.toString() || '',
-        exchangeRates.JPY?.toString() || '',
         exchangeRates.GBP?.toString() || '',
-        exchangeRates.AUD?.toString() || '',
+        exchangeRates.CHF?.toString() || '',
+        exchangeRates.JPY?.toString() || '', // 日圓排最後
         exchangeRates.timestamp ? new Date(exchangeRates.timestamp).toISOString() : ''
       );
     } else if (exchangeRates) {
@@ -130,9 +130,9 @@ export function exportHoldingsToCSV(holdings: Holding[], exchangeRates?: any): s
 }
 
 /**
- * 從 CSV 內容解析持倉數據
+ * 從 CSV 內容解析持倉數據（支援匯率資料）
  */
-export function parseHoldingsFromCSV(csvContent: string): Holding[] {
+export function parseHoldingsFromCSV(csvContent: string): { holdings: Holding[], exchangeRates?: any } {
   const lines = csvContent.trim().split('\n');
   
   if (lines.length < 2) {
@@ -141,6 +141,10 @@ export function parseHoldingsFromCSV(csvContent: string): Holding[] {
 
   // 解析標題行
   const headers = lines[0].split(',').map(h => h.replace(/"/g, '').trim());
+  
+  // 檢查是否包含匯率欄位
+  const hasExchangeRates = headers.includes('USD匯率') || headers.includes('CHF匯率'); // 檢查 CHF 匯率
+  let exchangeRates: any = null;
   
   // 解析數據行
   const holdings: Holding[] = [];
@@ -179,13 +183,38 @@ export function parseHoldingsFromCSV(csvContent: string): Holding[] {
       }
 
       holdings.push(holding);
+
+      // 如果是第一行且包含匯率資料，解析匯率
+      if (i === 1 && hasExchangeRates && values.length >= 17) {
+        const usdRate = parseFloat(values[12]);
+        const eurRate = parseFloat(values[13]);
+        const gbpRate = parseFloat(values[14]);
+        const chfRate = parseFloat(values[15]);
+        const jpyRate = parseFloat(values[16]); // 日圓排最後
+        const rateTimestamp = values[17];
+
+        if (!isNaN(usdRate) || !isNaN(eurRate) || !isNaN(gbpRate) || !isNaN(chfRate) || !isNaN(jpyRate)) {
+          exchangeRates = {
+            USD: !isNaN(usdRate) ? usdRate : undefined,
+            EUR: !isNaN(eurRate) ? eurRate : undefined,
+            GBP: !isNaN(gbpRate) ? gbpRate : undefined,
+            CHF: !isNaN(chfRate) ? chfRate : undefined,
+            JPY: !isNaN(jpyRate) ? jpyRate : undefined, // 日圓排最後
+            timestamp: rateTimestamp ? new Date(rateTimestamp).getTime() : Date.now(),
+          };
+        }
+      }
     } catch (error) {
-      console.warn(`第 ${i + 1} 行解析失敗:`, error);
+      console.error(`解析第 ${i + 1} 行時發生錯誤:`, error);
       continue;
     }
   }
 
-  return holdings;
+  if (holdings.length === 0) {
+    throw new Error('CSV 檔案中沒有有效的持倉數據');
+  }
+
+  return { holdings, exchangeRates };
 }
 
 /**
@@ -312,7 +341,9 @@ export async function importHoldingsFromFile(file: File): Promise<void> {
     reader.onload = async (e) => {
       try {
         const csvContent = e.target?.result as string;
-        const holdings = parseHoldingsFromCSV(csvContent);
+        const result = parseHoldingsFromCSV(csvContent);
+        const holdings = result.holdings;
+        const exchangeRates = result.exchangeRates;
         
         if (holdings.length === 0) {
           throw new Error('CSV 檔案中沒有有效的持倉數據');
@@ -324,9 +355,14 @@ export async function importHoldingsFromFile(file: File): Promise<void> {
         // 保存新的持倉數據
         addMultipleHoldings(holdings);
 
+        // 如果有匯率資料，可以在這裡處理（例如保存到歷史匯率）
+        if (exchangeRates) {
+          console.log('導入的匯率資料:', exchangeRates);
+        }
+
         notifications.show({
           title: '導入成功',
-          message: `已成功導入 ${holdings.length} 筆持倉數據`,
+          message: `已成功導入 ${holdings.length} 筆持倉數據${exchangeRates ? '（包含匯率資料）' : ''}`,
           color: 'green',
         });
 
@@ -343,16 +379,15 @@ export async function importHoldingsFromFile(file: File): Promise<void> {
     };
 
     reader.onerror = () => {
-      const error = new Error('檔案讀取失敗');
       notifications.show({
-        title: '檔案讀取失敗',
-        message: '無法讀取選擇的檔案',
+        title: '讀取失敗',
+        message: '無法讀取檔案內容',
         color: 'red',
       });
-      reject(error);
+      reject(new Error('檔案讀取失敗'));
     };
 
-    reader.readAsText(file, 'UTF-8');
+    reader.readAsText(file, 'utf-8');
   });
 }
 

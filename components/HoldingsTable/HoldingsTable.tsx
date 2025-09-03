@@ -142,23 +142,66 @@ export default function HoldingsTable({
     try {
       const todayString = getTodayString();
       
-      // 獲取當日匯率資料
-      let exchangeRates = {};
+      // 獲取匯率資料（使用匯率頁顯示的5種匯率）
+      let exchangeRates: any = {};
       try {
+        const currencies = ['USD', 'EUR', 'GBP', 'CHF', 'JPY']; // 日圓排最後
         const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
-        const rateResponse = await fetch(`${baseUrl}/api/exchange-rate`);
-        if (rateResponse.ok) {
-          const rateData = await rateResponse.json();
-          if (rateData.success && rateData.data) {
-            exchangeRates = {
-              USD: rateData.data.USD || 32.0,
-              EUR: rateData.data.EUR || 35.0,
-              JPY: rateData.data.JPY || 0.22,
-              GBP: rateData.data.GBP || 40.0,
-              AUD: rateData.data.AUD || 21.0,
-              timestamp: Date.now(),
-            };
+        
+        const ratePromises = currencies.map(async (currency) => {
+          try {
+            const response = await fetch(`${baseUrl}/api/scrape-exchange-rate?from=${currency}&to=TWD`);
+            if (response.ok) {
+              const data = await response.json();
+              if (data.success && data.rate && data.rate > 0) {
+                return { currency, rate: data.rate };
+              }
+            }
+          } catch (error) {
+            console.warn(`獲取 ${currency} 匯率失敗:`, error);
           }
+          return null;
+        });
+        
+        const rateResults = await Promise.all(ratePromises);
+        const validRates = rateResults.filter(result => result !== null);
+        
+        if (validRates.length > 0) {
+          exchangeRates = {
+            timestamp: Date.now(),
+          };
+          
+          // 設定獲取到的匯率
+          validRates.forEach((result) => {
+            if (result) {
+              exchangeRates[result.currency] = result.rate;
+            }
+          });
+          
+          // 補充備用匯率（如果某些匯率獲取失敗）
+          const fallbackRates = {
+            USD: 32.0,
+            EUR: 35.0,
+            GBP: 40.0,
+            CHF: 35.5,
+            JPY: 0.22,
+          };
+          
+          currencies.forEach(currency => {
+            if (!exchangeRates[currency]) {
+              exchangeRates[currency] = fallbackRates[currency];
+            }
+          });
+        } else {
+          // 全部失敗時使用備用匯率
+          exchangeRates = {
+            USD: 32.0,
+            EUR: 35.0,
+            GBP: 40.0,
+            CHF: 35.5,
+            JPY: 0.22,
+            timestamp: Date.now(),
+          };
         }
       } catch (error) {
         console.warn('獲取匯率資料失敗，使用備用匯率:', error);
@@ -168,7 +211,7 @@ export default function HoldingsTable({
           EUR: 35.0,
           JPY: 0.22,
           GBP: 40.0,
-          AUD: 21.0,
+          CHF: 35.5,
           timestamp: Date.now(),
         };
       }
@@ -253,32 +296,76 @@ export default function HoldingsTable({
   // 導出 CSV
   const handleExportCSV = async () => {
     try {
-      // 獲取當前匯率資料
-      let exchangeRates: any = null;
+      // 獲取當前匯率資料（使用匯率頁的5種匯率）
+      let exchangeRates: any = {};
       try {
-        const response = await fetch('/api/exchange-rate');
-        if (response.ok) {
-          const data = await response.json();
-          if (data.success) {
-            exchangeRates = {
-              USD: data.rates?.USD || 1,
-              EUR: data.rates?.EUR || 0.85,
-              JPY: data.rates?.JPY || 110,
-              GBP: data.rates?.GBP || 0.75,
-              AUD: data.rates?.AUD || 1.35,
-              timestamp: Date.now(),
-            };
+        const currencies = ['USD', 'EUR', 'GBP', 'CHF', 'JPY']; // 日圓排最後
+        const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
+        
+        const ratePromises = currencies.map(async (currency) => {
+          try {
+            const response = await fetch(`${baseUrl}/api/scrape-exchange-rate?from=${currency}&to=TWD`);
+            if (response.ok) {
+              const data = await response.json();
+              if (data.success && data.rate && data.rate > 0) {
+                return { currency, rate: data.rate };
+              }
+            }
+          } catch (error) {
+            console.warn(`獲取 ${currency} 匯率失敗:`, error);
           }
+          return null;
+        });
+        
+        const rateResults = await Promise.all(ratePromises);
+        const validRates = rateResults.filter(result => result !== null);
+        
+        if (validRates.length > 0) {
+          exchangeRates = {
+            timestamp: Date.now(),
+          };
+          
+          // 設定獲取到的匯率
+          validRates.forEach((result) => {
+            if (result) {
+              exchangeRates[result.currency] = result.rate;
+            }
+          });
+          
+          // 補充備用匯率（如果某些匯率獲取失敗）
+          const fallbackRates = {
+            USD: 32.0,
+            EUR: 35.0,
+            GBP: 40.0,
+            CHF: 35.5,
+            JPY: 0.22,
+          };
+          
+          currencies.forEach(currency => {
+            if (!exchangeRates[currency]) {
+              exchangeRates[currency] = fallbackRates[currency];
+            }
+          });
+        } else {
+          // 全部失敗時使用備用匯率
+          exchangeRates = {
+            USD: 32.0,
+            EUR: 35.0,
+            GBP: 40.0,
+            CHF: 35.5,
+            JPY: 0.22,
+            timestamp: Date.now(),
+          };
         }
       } catch (error) {
         console.error('獲取匯率失敗:', error);
         // 使用備用匯率
         exchangeRates = {
-          USD: 1,
-          EUR: 0.85,
-          JPY: 110,
-          GBP: 0.75,
-          AUD: 1.35,
+          USD: 32.0,
+          EUR: 35.0,
+          JPY: 0.22,
+          GBP: 40.0,
+          CHF: 35.5,
           timestamp: Date.now(),
         };
       }
