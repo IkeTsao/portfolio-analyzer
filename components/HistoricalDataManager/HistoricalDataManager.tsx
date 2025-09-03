@@ -192,8 +192,13 @@ export default function HistoricalDataManager({ currentPortfolioData, onDataSave
         '總成本', '目前價值', '損益', '損益率(%)', '記錄日期'
       ];
 
+      // 如果有匯率資料，新增匯率欄位
+      if ((record as any).exchangeRates) {
+        headers.push('USD匯率', 'EUR匯率', 'JPY匯率', 'GBP匯率', 'AUD匯率', '匯率時間');
+      }
+
       // 準備 CSV 資料
-      const csvData = record.data.map((item: any) => {
+      const csvData = record.data.map((item: any, index: number) => {
         const quantity = parseFloat(item.quantity) || 0;
         const cost = parseFloat(item.cost) || 0;
         const currentPrice = parseFloat(item.currentPrice) || 0;
@@ -202,7 +207,7 @@ export default function HistoricalDataManager({ currentPortfolioData, onDataSave
         const gainLoss = currentValue - totalCost;
         const gainLossPercent = totalCost > 0 ? (gainLoss / totalCost) * 100 : 0;
 
-        return [
+        const row = [
           item.symbol || '',
           item.name || '',
           item.type || '',
@@ -215,6 +220,24 @@ export default function HistoricalDataManager({ currentPortfolioData, onDataSave
           gainLossPercent.toFixed(2),
           record.date
         ];
+
+        // 如果有匯率資料，新增匯率數據（只在第一行添加）
+        const exchangeRates = (record as any).exchangeRates;
+        if (exchangeRates && index === 0) {
+          row.push(
+            exchangeRates.USD?.toString() || '',
+            exchangeRates.EUR?.toString() || '',
+            exchangeRates.JPY?.toString() || '',
+            exchangeRates.GBP?.toString() || '',
+            exchangeRates.AUD?.toString() || '',
+            exchangeRates.timestamp ? new Date(exchangeRates.timestamp).toISOString() : ''
+          );
+        } else if (exchangeRates) {
+          // 其他行填入空值
+          row.push('', '', '', '', '', '');
+        }
+
+        return row;
       });
 
       // 組合 CSV 內容

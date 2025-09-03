@@ -62,9 +62,9 @@ const MARKET_MAP: { [key: string]: string } = {
 };
 
 /**
- * 將持倉數據導出為 CSV 格式
+ * 將持倉數據導出為 CSV 格式（包含匯率資料）
  */
-export function exportHoldingsToCSV(holdings: Holding[]): string {
+export function exportHoldingsToCSV(holdings: Holding[], exchangeRates?: any): string {
   // CSV 標題行
   const headers = [
     'ID',
@@ -81,21 +81,45 @@ export function exportHoldingsToCSV(holdings: Holding[]): string {
     '更新時間'
   ];
 
+  // 如果有匯率資料，新增匯率欄位
+  if (exchangeRates) {
+    headers.push('USD匯率', 'EUR匯率', 'JPY匯率', 'GBP匯率', 'AUD匯率', '匯率時間');
+  }
+
   // 數據行
-  const rows = holdings.map(holding => [
-    holding.id,
-    getAccountDisplayName(holding.accountId),
-    holding.symbol,
-    holding.name,
-    getTypeDisplayName(holding.type),
-    getMarketDisplayName(holding.market),
-    holding.quantity.toString(),
-    holding.costBasis.toString(),
-    holding.currency,
-    holding.purchaseDate,
-    holding.currentPrice?.toString() || '',
-    holding.lastUpdated || ''
-  ]);
+  const rows = holdings.map(holding => {
+    const row = [
+      holding.id,
+      getAccountDisplayName(holding.accountId),
+      holding.symbol,
+      holding.name,
+      getTypeDisplayName(holding.type),
+      getMarketDisplayName(holding.market),
+      holding.quantity.toString(),
+      holding.costBasis.toString(),
+      holding.currency,
+      holding.purchaseDate,
+      holding.currentPrice?.toString() || '',
+      holding.lastUpdated || ''
+    ];
+
+    // 如果有匯率資料，新增匯率數據（只在第一行添加）
+    if (exchangeRates && holdings.indexOf(holding) === 0) {
+      row.push(
+        exchangeRates.USD?.toString() || '',
+        exchangeRates.EUR?.toString() || '',
+        exchangeRates.JPY?.toString() || '',
+        exchangeRates.GBP?.toString() || '',
+        exchangeRates.AUD?.toString() || '',
+        exchangeRates.timestamp ? new Date(exchangeRates.timestamp).toISOString() : ''
+      );
+    } else if (exchangeRates) {
+      // 其他行填入空值
+      row.push('', '', '', '', '', '');
+    }
+
+    return row;
+  });
 
   // 組合 CSV 內容
   const csvContent = [headers, ...rows]

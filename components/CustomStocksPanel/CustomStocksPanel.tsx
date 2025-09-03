@@ -53,7 +53,7 @@ export default function CustomStocksPanel({ onStocksUpdate }: CustomStocksPanelP
       if (data.success && data.data) {
         const currentPrice = data.data.price || 0;
         const changePercent = data.data.changePercent || 0;
-        const changeAmount = currentPrice * (changePercent / 100); // 計算漲跌金額
+        const changeAmount = data.data.change || 0; // 使用 API 返回的實際漲跌值
         
         return {
           symbol,
@@ -272,7 +272,7 @@ export default function CustomStocksPanel({ onStocksUpdate }: CustomStocksPanelP
                   c={stock.change > 0 ? 'green' : 'red'}
                   ta="center"
                 >
-                  {stock.change > 0 ? '+' : ''}{formatValue(Math.abs(stock.changeAmount))}
+                  {stock.change > 0 ? '+' : ''}{formatValue(stock.changeAmount)}
                 </Text>
               )}
             </Stack>
