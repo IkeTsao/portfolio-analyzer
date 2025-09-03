@@ -6,14 +6,48 @@ import { Holding, PortfolioStats, PriceData, ExchangeRate } from '@/types/portfo
 export const calculateHoldingValue = (
   holding: Holding,
   currentPrice: number,
-  exchangeRate: number = 1
+  exchangeRate: number = 1,
+  csvExchangeRate?: number
 ): {
   currentValue: number;
   costValue: number;
   gainLoss: number;
   gainLossPercent: number;
 } => {
-  // 統一轉換為台幣計算
+  // 現金類別特殊處理：計算匯差損益
+  if (holding.type === 'cash' && holding.currency !== 'TWD') {
+    // 現金的面值永遠是1，但要考慮匯差
+    const quantity = holding.quantity;
+    
+    // 如果有CSV匯率資料，計算匯差
+    if (csvExchangeRate && csvExchangeRate !== exchangeRate) {
+      // 成本以CSV匯率計算（上次記錄的匯率）
+      const costValueTWD = quantity * csvExchangeRate;
+      // 現值以當前匯率計算
+      const currentValueTWD = quantity * exchangeRate;
+      // 匯差損益
+      const gainLoss = currentValueTWD - costValueTWD;
+      const gainLossPercent = costValueTWD > 0 ? (gainLoss / costValueTWD) : 0;
+      
+      return {
+        currentValue: currentValueTWD,
+        costValue: costValueTWD,
+        gainLoss,
+        gainLossPercent,
+      };
+    } else {
+      // 沒有CSV匯率資料，匯差為0
+      const valueAtCurrentRate = quantity * exchangeRate;
+      return {
+        currentValue: valueAtCurrentRate,
+        costValue: valueAtCurrentRate,
+        gainLoss: 0,
+        gainLossPercent: 0,
+      };
+    }
+  }
+  
+  // 非現金類別的正常計算
   const costValueTWD = holding.quantity * holding.costBasis * exchangeRate;
   const currentValueTWD = holding.quantity * currentPrice * exchangeRate;
   const gainLoss = currentValueTWD - costValueTWD;
@@ -161,11 +195,32 @@ export const calculatePortfolioStats = (
       effectiveExchangeRates
     );
 
+    // 獲取CSV匯率（用於現金匯差計算）
+    let csvExchangeRate: number | undefined;
+    if (holding.type === 'cash' && holding.currency !== 'TWD') {
+      try {
+        const today = new Date().toISOString().split('T')[0];
+        const saved = localStorage.getItem('portfolioHistoricalData');
+        
+        if (saved) {
+          const records = JSON.parse(saved);
+          const todayRecord = records.find((r: any) => r.date === today);
+          
+          if (todayRecord && todayRecord.exchangeRates && todayRecord.exchangeRates[holding.currency]) {
+            csvExchangeRate = todayRecord.exchangeRates[holding.currency];
+          }
+        }
+      } catch (error) {
+        console.warn('獲取CSV匯率失敗:', error);
+      }
+    }
+
     // 計算價值
     const { currentValue, costValue } = calculateHoldingValue(
       holding,
       currentPrice,
-      exchangeRate
+      exchangeRate,
+      csvExchangeRate
     );
 
     totalValue += currentValue;
@@ -340,7 +395,27 @@ export const calculateHoldingDetails = (
       effectiveExchangeRates
     );
 
-    const calculations = calculateHoldingValue(holding, currentPrice, exchangeRate);
+    // 獲取CSV匯率（用於現金匯差計算）
+    let csvExchangeRate: number | undefined;
+    if (holding.type === 'cash' && holding.currency !== 'TWD') {
+      try {
+        const today = new Date().toISOString().split('T')[0];
+        const saved = localStorage.getItem('portfolioHistoricalData');
+        
+        if (saved) {
+          const records = JSON.parse(saved);
+          const todayRecord = records.find((r: any) => r.date === today);
+          
+          if (todayRecord && todayRecord.exchangeRates && todayRecord.exchangeRates[holding.currency]) {
+            csvExchangeRate = todayRecord.exchangeRates[holding.currency];
+          }
+        }
+      } catch (error) {
+        console.warn('獲取CSV匯率失敗:', error);
+      }
+    }
+
+    const calculations = calculateHoldingValue(holding, currentPrice, exchangeRate, csvExchangeRate);
 
     return {
       ...holding,
