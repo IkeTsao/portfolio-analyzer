@@ -194,7 +194,7 @@ export default function HistoricalDataManager({ currentPortfolioData, onDataSave
 
       // 如果有匯率資料，新增匯率欄位
       if ((record as any).exchangeRates) {
-        headers.push('USD匯率', 'EUR匯率', 'JPY匯率', 'GBP匯率', 'AUD匯率', '匯率時間');
+        headers.push('USD匯率', 'EUR匯率', 'GBP匯率', 'CHF匯率', 'JPY匯率', '匯率時間'); // 日圓排最後
       }
 
       // 準備 CSV 資料
@@ -227,9 +227,9 @@ export default function HistoricalDataManager({ currentPortfolioData, onDataSave
           row.push(
             exchangeRates.USD?.toString() || '',
             exchangeRates.EUR?.toString() || '',
-            exchangeRates.JPY?.toString() || '',
             exchangeRates.GBP?.toString() || '',
-            exchangeRates.AUD?.toString() || '',
+            exchangeRates.CHF?.toString() || '',
+            exchangeRates.JPY?.toString() || '', // 日圓排最後
             exchangeRates.timestamp ? new Date(exchangeRates.timestamp).toISOString() : ''
           );
         } else if (exchangeRates) {
