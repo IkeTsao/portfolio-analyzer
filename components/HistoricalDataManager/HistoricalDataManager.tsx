@@ -72,7 +72,7 @@ export default function HistoricalDataManager({ currentPortfolioData, onDataSave
     return historicalRecords.some(record => record.date === dateStr);
   };
 
-  const calculatePortfolioSummary = (data: any) => {
+  const calculatePortfolioSummary = (data: any, exchangeRates?: any) => {
     if (!data || !Array.isArray(data)) {
       return { totalValue: 0, totalCost: 0, totalGainLoss: 0, recordCount: 0 };
     }
@@ -85,9 +85,31 @@ export default function HistoricalDataManager({ currentPortfolioData, onDataSave
       const quantity = parseFloat(item.quantity) || 0;
       const currentPrice = parseFloat(item.currentPrice) || 0;
       const cost = parseFloat(item.cost) || 0;
+      const currency = item.currency || 'TWD';
 
-      totalValue += quantity * currentPrice;
-      totalCost += quantity * cost;
+      // 獲取匯率轉換（與投資總覽邏輯一致）
+      let exchangeRate = 1;
+      if (currency !== 'TWD' && exchangeRates) {
+        // 使用儲存的匯率資料
+        if (currency === 'USD' && exchangeRates.USD) {
+          exchangeRate = exchangeRates.USD;
+        } else if (currency === 'EUR' && exchangeRates.EUR) {
+          exchangeRate = exchangeRates.EUR;
+        } else if (currency === 'GBP' && exchangeRates.GBP) {
+          exchangeRate = exchangeRates.GBP;
+        } else if (currency === 'CHF' && exchangeRates.CHF) {
+          exchangeRate = exchangeRates.CHF;
+        } else if (currency === 'JPY' && exchangeRates.JPY) {
+          exchangeRate = exchangeRates.JPY;
+        }
+      }
+
+      // 轉換為台幣計算
+      const currentValueTWD = quantity * currentPrice * exchangeRate;
+      const costValueTWD = quantity * cost * exchangeRate;
+
+      totalValue += currentValueTWD;
+      totalCost += costValueTWD;
     });
 
     const totalGainLoss = totalValue - totalCost;
@@ -202,7 +224,7 @@ export default function HistoricalDataManager({ currentPortfolioData, onDataSave
         };
       }
 
-      const summary = calculatePortfolioSummary(currentPortfolioData);
+      const summary = calculatePortfolioSummary(currentPortfolioData, exchangeRates);
       
       const newRecord: HistoricalRecord = {
         date: dateStr,

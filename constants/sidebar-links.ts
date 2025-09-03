@@ -13,7 +13,7 @@ export const SIDEBAR_LINKS = [
   {
     title: 'Management',
     links: [
-      { label: 'Data', icon: IconTable, link: PATH_DASHBOARD.rawData },
+      { label: 'History Data', icon: IconTable, link: PATH_DASHBOARD.rawData },
       { label: 'Account Settings', icon: IconSettings, link: PATH_DASHBOARD.accountSettings },
     ],
   }
