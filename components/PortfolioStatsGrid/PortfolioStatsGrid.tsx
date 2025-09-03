@@ -140,7 +140,6 @@ export default function PortfolioStatsGrid({
           <StatCard
             title="總損益"
             value={stats ? formatCurrency(stats.totalGainLoss) : 'NT$0'}
-            change={stats ? formatPercentage(stats.totalGainLossPercent) : '0%'}
             changeType={stats ? getChangeType(stats.totalGainLoss) : 'neutral'}
             icon={stats && stats.totalGainLoss >= 0 ? 
               <IconTrendingUp size={16} /> : 
