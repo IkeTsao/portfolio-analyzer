@@ -32,6 +32,14 @@ import { DataTable } from 'mantine-datatable';
 import { Holding } from '@/types/portfolio';
 import { formatCurrency, formatPercentage } from '@/utils/portfolioCalculations';
 import { formatCurrencyWithSymbol } from '@/utils/currencyUtils';
+
+// 格式化數量，包含千分位逗號和3位小數
+const formatQuantityWithCommas = (quantity: number): string => {
+  return quantity.toLocaleString('en-US', {
+    minimumFractionDigits: 3,
+    maximumFractionDigits: 3
+  });
+};
 import { deleteHolding } from '@/utils/portfolioStorage';
 import { notifications } from '@mantine/notifications';
 import { exportHoldingsToCSV, downloadCSV, importHoldingsFromFile } from '@/utils/csvUtils';
@@ -530,7 +538,7 @@ export default function HoldingsTable({
       width: 100,
       textAlign: 'right' as const,
       render: (holding: HoldingWithCalculations) => (
-        <Text size="sm">{holding.quantity.toFixed(3)}</Text>
+        <Text size="sm">{formatQuantityWithCommas(holding.quantity)}</Text>
       ),
     },
     {
@@ -780,7 +788,7 @@ export default function HoldingsTable({
           <Paper p="sm" withBorder style={{ backgroundColor: '#f8f9fa' }}>
             <div style={{ 
               display: 'grid', 
-              gridTemplateColumns: '80px 200px 120px 100px 120px 120px 120px 120px 120px 120px',
+              gridTemplateColumns: '100px 200px 120px 100px 120px 120px 120px 120px 140px 120px',
               alignItems: 'center',
               gap: '8px',
               width: '100%',
@@ -806,16 +814,16 @@ export default function HoldingsTable({
               <div></div>
               
               {/* 成本欄位 */}
-              <div style={{ textAlign: 'left' }}>
+              <div style={{ textAlign: 'right' }}>
                 <Text fw={600} size="sm" c="dimmed">
                   小計 ({filteredHoldings.length} 筆)
                 </Text>
               </div>
               
-              {/* 市值(台幣)欄位 - 向左調整對齊 */}
+              {/* 市值(台幣)欄位 */}
               <div style={{ textAlign: 'right' }}>
                 <Text fw={600} size="sm">
-                  市值(台幣)小計: {formatCurrency(
+                  {formatCurrency(
                     filteredHoldings.reduce((sum, holding) => 
                       sum + (holding.currentValue || 0), 0
                     )
@@ -823,7 +831,7 @@ export default function HoldingsTable({
                 </Text>
               </div>
               
-              {/* 損益(台幣)欄位 - 向左調整對齊 */}
+              {/* 損益(台幣)欄位 */}
               <div style={{ textAlign: 'right' }}>
                 <Text 
                   fw={600} 
@@ -832,7 +840,7 @@ export default function HoldingsTable({
                     sum + (holding.gainLoss || 0), 0
                   ) >= 0 ? 'green' : 'red'}
                 >
-                  損益(台幣)小計: {formatCurrency(
+                  {formatCurrency(
                     filteredHoldings.reduce((sum, holding) => 
                       sum + (holding.gainLoss || 0), 0
                     )
