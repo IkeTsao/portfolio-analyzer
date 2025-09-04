@@ -268,7 +268,7 @@ export const calculatePortfolioStats = (
   }
 
   const totalGainLoss = totalValue - totalCost;
-  const totalGainLossPercent = totalCost > 0 ? (totalGainLoss / totalCost) : 0;
+  const totalGainLossPercent = totalCost > 0 ? (totalGainLoss / totalCost) * 100 : 0;
 
   // 創建新的分布格式（包含損益）
   const distributionByType: { [key: string]: { totalValue: number; totalCost: number; totalGainLoss: number; percentage: number } } = {};
@@ -471,6 +471,15 @@ export const formatCurrency = (
   return `${symbol}${formattedAmount.toLocaleString('en-US', {
     minimumFractionDigits: displayDecimals,
     maximumFractionDigits: displayDecimals,
+  })}`;
+};
+
+// 格式化台幣顯示為 NTD $ XXXX 格式（用於投資組合總覽）
+export const formatCurrencyNTD = (amount: number): string => {
+  const formattedAmount = formatValue(amount);
+  return `NTD $ ${formattedAmount.toLocaleString('en-US', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
   })}`;
 };
 

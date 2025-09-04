@@ -9,7 +9,7 @@ import {
   IconRefresh 
 } from '@tabler/icons-react';
 import { PortfolioStats } from '@/types/portfolio';
-import { formatCurrency, formatPercentage } from '@/utils/portfolioCalculations';
+import { formatCurrency, formatPercentage, formatCurrencyNTD } from '@/utils/portfolioCalculations';
 
 interface PortfolioStatsGridProps {
   stats: PortfolioStats | null;
@@ -120,8 +120,8 @@ export default function PortfolioStatsGrid({
       <Grid>
         <Grid.Col span={{ base: 12, sm: 6, md: 3 }}>
           <StatCard
-            title="總投資價值"
-            value={stats ? formatCurrency(stats.totalValue) : 'NT$0'}
+            title="總投資現值(台幣)"
+            value={stats ? formatCurrencyNTD(stats.totalValue) : 'NTD $ 0'}
             icon={<IconWallet size={16} />}
             loading={loading}
           />
@@ -129,8 +129,8 @@ export default function PortfolioStatsGrid({
         
         <Grid.Col span={{ base: 12, sm: 6, md: 3 }}>
           <StatCard
-            title="總投資成本"
-            value={stats ? formatCurrency(stats.totalCost) : 'NT$0'}
+            title="總投資成本(台幣)"
+            value={stats ? formatCurrencyNTD(stats.totalCost) : 'NTD $ 0'}
             icon={<IconCoins size={16} />}
             loading={loading}
           />
@@ -138,8 +138,8 @@ export default function PortfolioStatsGrid({
         
         <Grid.Col span={{ base: 12, sm: 6, md: 3 }}>
           <StatCard
-            title="總損益"
-            value={stats ? formatCurrency(stats.totalGainLoss) : 'NT$0'}
+            title="總損益(台幣)"
+            value={stats ? formatCurrencyNTD(stats.totalGainLoss) : 'NTD $ 0'}
             changeType={stats ? getChangeType(stats.totalGainLoss) : 'neutral'}
             icon={stats && stats.totalGainLoss >= 0 ? 
               <IconTrendingUp size={16} /> : 
