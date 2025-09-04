@@ -82,13 +82,14 @@ export const usePortfolio = () => {
       if (otherCurrencies.length > 0) {
         const newExchangeRates = await fetchExchangeRates();
         
-        // 轉換為ExchangeRate格式
+        // 轉換為ExchangeRate格式 - 修正匯率方向
         const rateArray: ExchangeRate[] = [];
         for (const [currency, rate] of Object.entries(newExchangeRates)) {
+          // API返回的是外幣對台幣的匯率（如USD=30.66），直接使用
           rateArray.push({
-            from: 'TWD',
-            to: currency,
-            rate: 1 / rate, // 轉換為TWD對其他貨幣的匯率
+            from: currency,  // 外幣
+            to: 'TWD',      // 台幣
+            rate: rate,     // 外幣對台幣的匯率
             timestamp: new Date().toISOString(),
           });
         }

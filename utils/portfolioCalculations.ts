@@ -33,14 +33,26 @@ export const calculateHoldingValue = (
   
   const quantity = formatQuantity(holding.quantity);
   const formattedCurrentPrice = formatValue(currentPrice);
-  const formattedExchangeRate = formatValue(exchangeRate);
   const formattedCostBasis = formatValue(holding.costBasis);
   
+  // 確保匯率方向正確：外幣對台幣
+  let effectiveExchangeRate = formatValue(exchangeRate);
+  
+  // 對於現金類型且有CSV匯率時，優先使用CSV匯率（用於匯差計算）
+  if (holding.type === 'cash' && holding.currency !== 'TWD' && csvExchangeRate && csvExchangeRate > 0) {
+    effectiveExchangeRate = formatValue(csvExchangeRate);
+  }
+  
+  // 台幣對台幣匯率永遠為1
+  if (holding.currency === 'TWD') {
+    effectiveExchangeRate = formatValue(1);
+  }
+  
   // 現值計算（統一公式）
-  const currentValueTWD = formatValue(quantity * formattedCurrentPrice * formattedExchangeRate);
+  const currentValueTWD = formatValue(quantity * formattedCurrentPrice * effectiveExchangeRate);
   
   // 成本計算（統一公式）
-  const costValueTWD = formatValue(quantity * formattedCostBasis * formattedExchangeRate);
+  const costValueTWD = formatValue(quantity * formattedCostBasis * effectiveExchangeRate);
   
   // 損益計算
   const gainLoss = formatValue(currentValueTWD - costValueTWD);
@@ -61,40 +73,36 @@ export const getExchangeRateForCurrency = (
   exchangeRates: ExchangeRate[]
 ): number => {
   // 台幣對台幣匯率永遠為1
-  if (fromCurrency === toCurrency || fromCurrency === 'TWD' || toCurrency === 'TWD') {
+  if (fromCurrency === toCurrency || fromCurrency === 'TWD') {
     return formatValue(1);
   }
-
-  // 直接匹配
+  
+  // 目標貨幣必須是台幣，因為我們的系統以台幣為基準
+  if (toCurrency !== 'TWD') {
+    console.warn(`不支援的目標貨幣: ${toCurrency}，系統僅支援轉換為台幣`);
+    return formatValue(1);
+  }
+  
+  // 查找外幣對台幣的直接匯率
   const directRate = exchangeRates.find(
-    rate => rate.from === fromCurrency && rate.to === toCurrency
+    rate => rate.from === fromCurrency && rate.to === 'TWD'
   );
-  if (directRate) {
+  
+  if (directRate && directRate.rate > 0) {
     return formatValue(directRate.rate);
   }
-
-  // 反向匹配
+  
+  // 如果找不到直接匯率，嘗試反向查找（台幣對外幣，然後取倒數）
   const reverseRate = exchangeRates.find(
-    rate => rate.from === toCurrency && rate.to === fromCurrency
+    rate => rate.from === 'TWD' && rate.to === fromCurrency
   );
-  if (reverseRate) {
+  
+  if (reverseRate && reverseRate.rate > 0) {
     return formatValue(1 / reverseRate.rate);
   }
-
-  // 通過USD轉換
-  const fromUsdRate = exchangeRates.find(
-    rate => rate.from === 'USD' && rate.to === fromCurrency
-  );
-  const toUsdRate = exchangeRates.find(
-    rate => rate.from === 'USD' && rate.to === toCurrency
-  );
-
-  if (fromUsdRate && toUsdRate) {
-    return formatValue(toUsdRate.rate / fromUsdRate.rate);
-  }
-
-  // 默認返回1（無法轉換）
-  console.warn(`Cannot find exchange rate from ${fromCurrency} to ${toCurrency}`);
+  
+  // 默認返回1（無法轉換時的備用值）
+  console.warn(`無法找到 ${fromCurrency} 對 TWD 的匯率，使用預設值 1`);
   return formatValue(1);
 };
 
@@ -332,7 +340,7 @@ export const calculatePortfolioStats = (
   };
 };
 
-// 計算持倉詳細資訊（包含當前價格和收益）
+// 計算持倉詳細資訊
 export const calculateHoldingDetails = (
   holdings: Holding[],
   priceData: PriceData[],
@@ -340,8 +348,7 @@ export const calculateHoldingDetails = (
   baseCurrency: string = 'TWD'
 ) => {
   // 首先檢查是否有今日的歷史匯率記錄（來自CSV導入）
-  let effectiveExchangeRates = exchangeRates;
-  
+  let effectiveExchangeRates = exchangeRates;  
   try {
     const today = new Date().toISOString().split('T')[0];
     const saved = localStorage.getItem('portfolioHistoricalData');
