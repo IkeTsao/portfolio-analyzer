@@ -530,7 +530,7 @@ export default function HoldingsTable({
       width: 100,
       textAlign: 'right' as const,
       render: (holding: HoldingWithCalculations) => (
-        <Text size="sm">{holding.quantity.toLocaleString()}</Text>
+        <Text size="sm">{holding.quantity.toFixed(3)}</Text>
       ),
     },
     {

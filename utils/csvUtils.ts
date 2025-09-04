@@ -2,6 +2,20 @@ import { Holding } from '@/types/portfolio';
 import { addMultipleHoldings, clearAllHoldings } from '@/utils/portfolioStorage';
 import { notifications } from '@mantine/notifications';
 
+// 精度設定常數（與portfolioCalculations.ts保持一致）
+const QUANTITY_PRECISION = 3;  // 數量：小數點後3位
+const VALUE_PRECISION = 2;     // 其他數值：小數點後2位
+
+// 格式化數量（小數點後3位）
+const formatQuantity = (value: number): number => {
+  return parseFloat(value.toFixed(QUANTITY_PRECISION));
+};
+
+// 格式化價值（小數點後2位）
+const formatValue = (value: number): number => {
+  return parseFloat(value.toFixed(VALUE_PRECISION));
+};
+
 // CSV 欄位定義
 const CSV_HEADERS = [
   'id',
@@ -15,6 +29,7 @@ const CSV_HEADERS = [
   'currency',
   'purchaseDate',
   'currentPrice',
+  'twdValue',  // 台幣市值
   'lastUpdated'
 ];
 

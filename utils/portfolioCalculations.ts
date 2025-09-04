@@ -2,7 +2,21 @@
 
 import { Holding, PortfolioStats, PriceData, ExchangeRate } from '@/types/portfolio';
 
-// 計算單個持倉的當前價值
+// 精度設定常數
+const QUANTITY_PRECISION = 3;  // 數量：小數點後3位
+const VALUE_PRECISION = 2;     // 其他數值：小數點後2位
+
+// 格式化數量（小數點後3位）
+export const formatQuantity = (value: number): number => {
+  return parseFloat(value.toFixed(QUANTITY_PRECISION));
+};
+
+// 格式化價值（小數點後2位）
+export const formatValue = (value: number): number => {
+  return parseFloat(value.toFixed(VALUE_PRECISION));
+};
+
+// 統一市值計算公式：市值(台幣) = 數量 × 現價 × 原幣對台幣的匯率
 export const calculateHoldingValue = (
   holding: Holding,
   currentPrice: number,
@@ -14,28 +28,23 @@ export const calculateHoldingValue = (
   gainLoss: number;
   gainLossPercent: number;
 } => {
-  // 現金類別特殊處理：強制匯差為0
-  if (holding.type === 'cash') {
-    const quantity = holding.quantity;
-    
-    // 現金的基本價值（面值永遠是1）
-    const faceValue = quantity * 1;
-    
-    // 所有現金類別都強制匯差為0
-    const valueAtCurrentRate = quantity * exchangeRate;
-    return {
-      currentValue: valueAtCurrentRate,
-      costValue: valueAtCurrentRate,
-      gainLoss: 0,  // 強制匯差為0
-      gainLossPercent: 0,
-    };
-  }
+  // 統一計算邏輯：所有類別都使用相同公式
+  // 市值(台幣) = 數量 × 現價 × 原幣對台幣的匯率
   
-  // 非現金類別的正常計算
-  const costValueTWD = holding.quantity * holding.costBasis * exchangeRate;
-  const currentValueTWD = holding.quantity * currentPrice * exchangeRate;
-  const gainLoss = currentValueTWD - costValueTWD;
-  const gainLossPercent = costValueTWD > 0 ? (gainLoss / costValueTWD) : 0;
+  const quantity = formatQuantity(holding.quantity);
+  const formattedCurrentPrice = formatValue(currentPrice);
+  const formattedExchangeRate = formatValue(exchangeRate);
+  const formattedCostBasis = formatValue(holding.costBasis);
+  
+  // 現值計算（統一公式）
+  const currentValueTWD = formatValue(quantity * formattedCurrentPrice * formattedExchangeRate);
+  
+  // 成本計算（統一公式）
+  const costValueTWD = formatValue(quantity * formattedCostBasis * formattedExchangeRate);
+  
+  // 損益計算
+  const gainLoss = formatValue(currentValueTWD - costValueTWD);
+  const gainLossPercent = costValueTWD > 0 ? formatValue((gainLoss / costValueTWD) * 100) : 0;
 
   return {
     currentValue: currentValueTWD,
@@ -51,8 +60,9 @@ export const getExchangeRateForCurrency = (
   toCurrency: string,
   exchangeRates: ExchangeRate[]
 ): number => {
-  if (fromCurrency === toCurrency) {
-    return 1;
+  // 台幣對台幣匯率永遠為1
+  if (fromCurrency === toCurrency || fromCurrency === 'TWD' || toCurrency === 'TWD') {
+    return formatValue(1);
   }
 
   // 直接匹配
@@ -60,7 +70,7 @@ export const getExchangeRateForCurrency = (
     rate => rate.from === fromCurrency && rate.to === toCurrency
   );
   if (directRate) {
-    return directRate.rate;
+    return formatValue(directRate.rate);
   }
 
   // 反向匹配
@@ -68,7 +78,7 @@ export const getExchangeRateForCurrency = (
     rate => rate.from === toCurrency && rate.to === fromCurrency
   );
   if (reverseRate) {
-    return 1 / reverseRate.rate;
+    return formatValue(1 / reverseRate.rate);
   }
 
   // 通過USD轉換
@@ -80,12 +90,12 @@ export const getExchangeRateForCurrency = (
   );
 
   if (fromUsdRate && toUsdRate) {
-    return toUsdRate.rate / fromUsdRate.rate;
+    return formatValue(toUsdRate.rate / fromUsdRate.rate);
   }
 
   // 默認返回1（無法轉換）
   console.warn(`Cannot find exchange rate from ${fromCurrency} to ${toCurrency}`);
-  return 1;
+  return formatValue(1);
 };
 
 // 計算投資組合統計
@@ -421,15 +431,18 @@ export const calculateHoldingDetails = (
   });
 };
 
-// 格式化貨幣顯示
+// 格式化貨幣顯示（應用統一精度）
 export const formatCurrency = (
   amount: number,
   currency: string = 'TWD',
-  decimals: number = 0
+  decimals?: number
 ): string => {
+  // 應用統一精度：小數點後2位
+  const formattedAmount = formatValue(amount);
+  
   // 對於台幣顯示，去除NT前綴，不顯示小數點
   if (currency === 'TWD') {
-    return amount.toLocaleString('en-US', {
+    return formattedAmount.toLocaleString('en-US', {
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     });
@@ -445,18 +458,20 @@ export const formatCurrency = (
 
   const symbol = currencySymbols[currency] || currency;
   
-  // 日圓通常不顯示小數點
-  const displayDecimals = currency === 'JPY' ? 0 : decimals;
+  // 使用統一精度：小數點後2位（除非特別指定）
+  const displayDecimals = decimals !== undefined ? decimals : VALUE_PRECISION;
   
-  return `${symbol}${amount.toLocaleString('en-US', {
+  return `${symbol}${formattedAmount.toLocaleString('en-US', {
     minimumFractionDigits: displayDecimals,
     maximumFractionDigits: displayDecimals,
   })}`;
 };
 
-// 格式化百分比顯示
-export const formatPercentage = (value: number, decimals: number = 2): string => {
-  return `${(value * 100).toFixed(decimals)}%`;
+// 格式化百分比顯示（應用統一精度）
+export const formatPercentage = (value: number, decimals?: number): string => {
+  const displayDecimals = decimals !== undefined ? decimals : VALUE_PRECISION;
+  const formattedValue = formatValue(value);
+  return `${formattedValue.toFixed(displayDecimals)}%`;
 };
 
 // 計算投資組合風險指標（簡化版）
