@@ -778,19 +778,41 @@ export default function HoldingsTable({
         {/* 小計行 */}
         {filteredHoldings.length > 0 && (
           <Paper p="sm" withBorder style={{ backgroundColor: '#f8f9fa' }}>
-            <div style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
-              {/* 左側：小計標籤 - 對應前面的欄位 */}
-              <div style={{ flex: '0 0 400px', display: 'flex', alignItems: 'center' }}>
+            <div style={{ 
+              display: 'grid', 
+              gridTemplateColumns: 'minmax(80px, 1fr) minmax(200px, 2fr) minmax(120px, 1fr) minmax(100px, 1fr) minmax(120px, 1fr) minmax(120px, 1fr) minmax(140px, 1fr) minmax(120px, 1fr) minmax(120px, 1fr) minmax(120px, 1fr)',
+              alignItems: 'center',
+              gap: '8px',
+              width: '100%',
+              padding: '0 8px'
+            }}>
+              {/* 代碼欄位 */}
+              <div></div>
+              
+              {/* 名稱欄位 */}
+              <div></div>
+              
+              {/* 帳戶欄位 */}
+              <div></div>
+              
+              {/* 數量欄位 */}
+              <div></div>
+              
+              {/* 成本價欄位 */}
+              <div></div>
+              
+              {/* 現價欄位 */}
+              <div></div>
+              
+              {/* 成本欄位 */}
+              <div style={{ textAlign: 'left' }}>
                 <Text fw={600} size="sm" c="dimmed">
                   小計 ({filteredHoldings.length} 筆)
                 </Text>
               </div>
               
-              {/* 中間：成本欄位 - 留空對齊 */}
-              <div style={{ flex: '0 0 120px' }}></div>
-              
-              {/* 總台幣市值 - 對齊市值欄位 */}
-              <div style={{ flex: '0 0 140px', textAlign: 'right' }}>
+              {/* 市值(台幣)欄位 - 精確對齊並右靠 */}
+              <div style={{ textAlign: 'right' }}>
                 <Text fw={600} size="sm">
                   {formatCurrency(
                     filteredHoldings.reduce((sum, holding) => 
@@ -800,8 +822,8 @@ export default function HoldingsTable({
                 </Text>
               </div>
               
-              {/* 總台幣損益 - 對齊損益欄位 */}
-              <div style={{ flex: '0 0 140px', textAlign: 'right' }}>
+              {/* 損益(台幣)欄位 - 精確對齊並右靠 */}
+              <div style={{ textAlign: 'right' }}>
                 <Text 
                   fw={600} 
                   size="sm"
@@ -817,8 +839,8 @@ export default function HoldingsTable({
                 </Text>
               </div>
               
-              {/* 右側：操作欄位 - 留空對齊 */}
-              <div style={{ flex: '0 0 120px' }}></div>
+              {/* 操作欄位 */}
+              <div></div>
             </div>
           </Paper>
         )}
