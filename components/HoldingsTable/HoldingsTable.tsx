@@ -823,11 +823,11 @@ export default function HoldingsTable({
               {/* 市值(台幣)欄位 */}
               <div style={{ textAlign: 'right' }}>
                 <Text fw={600} size="sm">
-                  {formatCurrency(
+                  市值小計: NTD ${formatCurrency(
                     filteredHoldings.reduce((sum, holding) => 
                       sum + (holding.currentValue || 0), 0
                     )
-                  )}
+                  ).replace('NT$ ', '')}
                 </Text>
               </div>
               
@@ -840,11 +840,11 @@ export default function HoldingsTable({
                     sum + (holding.gainLoss || 0), 0
                   ) >= 0 ? 'green' : 'red'}
                 >
-                  {formatCurrency(
+                  損益小計: NTD ${formatCurrency(
                     filteredHoldings.reduce((sum, holding) => 
                       sum + (holding.gainLoss || 0), 0
                     )
-                  )}
+                  ).replace('NT$ ', '')}
                 </Text>
               </div>
               
