@@ -194,7 +194,7 @@ export default function PortfolioDistributionChart({
               金額: {formatCurrency(data.value)}
             </Text>
             <Text size="sm" c="dimmed">
-              比例: {formatPercentage(data.percentage / 100)}
+              比例: {formatPercentage(data.percentage)}
             </Text>
           </Paper>
         );
@@ -218,7 +218,7 @@ export default function PortfolioDistributionChart({
             />
             <Text size="sm">{entry.value}</Text>
             <Text size="sm" c="dimmed">
-              {formatPercentage(entry.payload.percentage / 100)}
+              {formatPercentage(entry.payload.percentage)}
             </Text>
           </Group>
         ))}
