@@ -543,7 +543,7 @@ export default function HoldingsTable({
     },
     {
       accessor: 'costBasis',
-      title: '成本價',
+      title: '成本價(原幣)',
       width: 120,
       textAlign: 'right' as const,
       render: (holding: HoldingWithCalculations) => (
@@ -552,7 +552,7 @@ export default function HoldingsTable({
     },
     {
       accessor: 'currentPrice',
-      title: '現價',
+      title: '現價(原幣)',
       width: 120,
       textAlign: 'right' as const,
       render: (holding: HoldingWithCalculations) => (
@@ -576,7 +576,7 @@ export default function HoldingsTable({
     },
     {
       accessor: 'costValue',
-      title: '成本',
+      title: '總成本(原幣)',
       width: 120,
       textAlign: 'right' as const,
       render: (holding: HoldingWithCalculations) => {
@@ -823,11 +823,13 @@ export default function HoldingsTable({
               {/* 市值(台幣)欄位 */}
               <div style={{ textAlign: 'right' }}>
                 <Text fw={600} size="sm">
-                  市值小計: NTD ${formatCurrency(
-                    filteredHoldings.reduce((sum, holding) => 
+                  市值小計: NTD ${(() => {
+                    const total = filteredHoldings.reduce((sum, holding) => 
                       sum + (holding.currentValue || 0), 0
-                    )
-                  ).replace('NT$ ', '')}
+                    );
+                    const formatted = formatCurrency(total);
+                    return formatted ? formatted.replace('NT$ ', '') : '0';
+                  })()}
                 </Text>
               </div>
               
@@ -840,11 +842,13 @@ export default function HoldingsTable({
                     sum + (holding.gainLoss || 0), 0
                   ) >= 0 ? 'green' : 'red'}
                 >
-                  損益小計: NTD ${formatCurrency(
-                    filteredHoldings.reduce((sum, holding) => 
+                  損益小計: NTD ${(() => {
+                    const total = filteredHoldings.reduce((sum, holding) => 
                       sum + (holding.gainLoss || 0), 0
-                    )
-                  ).replace('NT$ ', '')}
+                    );
+                    const formatted = formatCurrency(total);
+                    return formatted ? formatted.replace('NT$ ', '') : '0';
+                  })()}
                 </Text>
               </div>
               
