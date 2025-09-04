@@ -780,11 +780,12 @@ export default function HoldingsTable({
           <Paper p="sm" withBorder style={{ backgroundColor: '#f8f9fa' }}>
             <div style={{ 
               display: 'grid', 
-              gridTemplateColumns: 'minmax(80px, 1fr) minmax(200px, 2fr) minmax(120px, 1fr) minmax(100px, 1fr) minmax(120px, 1fr) minmax(120px, 1fr) minmax(140px, 1fr) minmax(120px, 1fr) minmax(120px, 1fr) minmax(120px, 1fr)',
+              gridTemplateColumns: '80px 200px 120px 100px 120px 120px 120px 120px 120px 120px',
               alignItems: 'center',
               gap: '8px',
               width: '100%',
-              padding: '0 8px'
+              paddingLeft: '8px',
+              paddingRight: '8px'
             }}>
               {/* 代碼欄位 */}
               <div></div>
@@ -811,7 +812,7 @@ export default function HoldingsTable({
                 </Text>
               </div>
               
-              {/* 市值(台幣)欄位 - 精確對齊並右靠 */}
+              {/* 市值(台幣)欄位 - 向左調整對齊 */}
               <div style={{ textAlign: 'right' }}>
                 <Text fw={600} size="sm">
                   {formatCurrency(
@@ -822,7 +823,7 @@ export default function HoldingsTable({
                 </Text>
               </div>
               
-              {/* 損益(台幣)欄位 - 精確對齊並右靠 */}
+              {/* 損益(台幣)欄位 - 向左調整對齊 */}
               <div style={{ textAlign: 'right' }}>
                 <Text 
                   fw={600} 
