@@ -842,11 +842,16 @@ export default function HoldingsTable({
               <div style={{ textAlign: 'right' }}>
                 <Text fw={600} size="sm">
                   市值小計: NTD ${(() => {
-                    const total = filteredHoldings.reduce((sum, holding) => 
+                    const subtotal = filteredHoldings.reduce((sum, holding) => 
                       sum + (holding.currentValue || 0), 0
                     );
-                    const formatted = formatCurrency(total);
-                    return formatted ? formatted.replace('NT$ ', '') : '0';
+                    const totalPortfolioValue = holdings.reduce((sum, holding) => 
+                      sum + (holding.currentValue || 0), 0
+                    );
+                    const percentage = totalPortfolioValue > 0 ? (subtotal / totalPortfolioValue * 100) : 0;
+                    const formatted = formatCurrency(subtotal);
+                    const formattedValue = formatted ? formatted.replace('NT$ ', '') : '0';
+                    return `${formattedValue} (${percentage.toFixed(1)}%)`;
                   })()}
                 </Text>
               </div>
