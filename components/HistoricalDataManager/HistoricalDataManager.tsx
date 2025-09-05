@@ -403,12 +403,8 @@ export default function HistoricalDataManager({ currentPortfolioData, onDataSave
   };
 
   const formatCurrency = (value: number): string => {
-    return new Intl.NumberFormat('zh-TW', {
-      style: 'currency',
-      currency: 'TWD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(value);
+    const formattedValue = Math.round(value).toLocaleString('en-US');
+    return `NTD $ ${formattedValue}`;
   };
 
   const formatPercent = (value: number): string => {

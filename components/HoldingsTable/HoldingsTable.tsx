@@ -224,7 +224,7 @@ export default function HoldingsTable({
         };
       }
       
-      // 計算投資組合摘要
+      // 計算投資組合摘要（使用正確的匯率轉換）
       let totalValue = 0;
       let totalCost = 0;
       
@@ -232,9 +232,28 @@ export default function HoldingsTable({
         const quantity = holding.quantity || 0;
         const currentPrice = holding.currentPrice || 0;
         const costBasis = holding.costBasis || 0;
+        const currency = holding.currency || 'TWD';
         
-        totalValue += quantity * currentPrice;
-        totalCost += quantity * costBasis;
+        // 獲取匯率（外幣對台幣）
+        let exchangeRate = 1; // TWD 預設為 1
+        if (currency === 'USD') {
+          exchangeRate = exchangeRates.USD || 32.0;
+        } else if (currency === 'EUR') {
+          exchangeRate = exchangeRates.EUR || 35.0;
+        } else if (currency === 'GBP') {
+          exchangeRate = exchangeRates.GBP || 40.0;
+        } else if (currency === 'CHF') {
+          exchangeRate = exchangeRates.CHF || 35.5;
+        } else if (currency === 'JPY') {
+          exchangeRate = exchangeRates.JPY || 0.22;
+        }
+        
+        // 轉換為台幣後加總
+        const twdValue = quantity * currentPrice * exchangeRate;
+        const twdCost = quantity * costBasis * exchangeRate;
+        
+        totalValue += twdValue;
+        totalCost += twdCost;
       });
       
       const totalGainLoss = totalValue - totalCost;
