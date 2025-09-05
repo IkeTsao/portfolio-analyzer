@@ -75,8 +75,8 @@ const TYPE_COLORS: { [key: string]: string } = {
 };
 
 const TYPE_LABELS: { [key: string]: string } = {
-  stock: '股票與ETF',
-  fund: '股票共同基金',
+  stock: '股票與基金',
+  fund: '基金',
   bond: '債券',
   gold: '黃金',
   crypto: '加密貨幣',
@@ -753,8 +753,7 @@ export default function HoldingsTable({
             onChange={setTypeFilter}
             data={[
               { value: '', label: '全部類型' },
-              { value: 'stock', label: '股票與ETF' },
-              { value: 'fund', label: '股票共同基金' },
+              { value: 'stock', label: '股票與基金' },
               { value: 'bond', label: '債券' },
               { value: 'gold', label: '黃金' },
               { value: 'crypto', label: '加密貨幣' },

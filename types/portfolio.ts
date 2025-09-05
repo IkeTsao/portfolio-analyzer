@@ -132,8 +132,7 @@ export const ACCOUNT_TYPES = [
 ];
 
 export const INVESTMENT_TYPES = [
-  { value: 'stock', label: '股票與ETF' },
-  { value: 'fund', label: '股票共同基金' },
+  { value: 'stock', label: '股票與基金' },
   { value: 'bond', label: '債券' },
   { value: 'gold', label: '黃金' },
   { value: 'crypto', label: '加密貨幣' },

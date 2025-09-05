@@ -22,8 +22,8 @@ const TYPE_COLORS = {
 };
 
 const TYPE_LABELS = {
-  stock: '股票與ETF',
-  fund: '股票共同基金',
+  stock: '股票與基金',
+  fund: '基金',
   bond: '債券',
   gold: '黃金',
   crypto: '加密貨幣',
