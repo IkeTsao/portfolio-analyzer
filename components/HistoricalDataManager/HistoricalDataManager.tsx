@@ -339,11 +339,11 @@ export default function HistoricalDataManager({ currentPortfolioData, onDataSave
 
         const row = [
           item.id || '',
-          item.accountId || '',
+          getAccountDisplayName(item.accountId || ''),
           item.symbol || '',
           item.name || '',
-          item.type || '',
-          item.market || '',
+          getTypeDisplayName(item.type || ''),
+          getMarketDisplayName(item.market || ''),
           item.quantity?.toString() || '',
           item.costBasis?.toString() || '',
           item.currency || '',
@@ -409,6 +409,40 @@ export default function HistoricalDataManager({ currentPortfolioData, onDataSave
 
   const formatPercent = (value: number): string => {
     return `${value >= 0 ? '+' : ''}${value.toFixed(2)}%`;
+  };
+
+  // 獲取類型顯示名稱
+  const getTypeDisplayName = (type: string): string => {
+    const displayNames: { [key: string]: string } = {
+      'stock': '股票',
+      'fund': '基金',
+      'bond': '債券',
+      'gold': '黃金',
+      'crypto': '加密貨幣',
+      'cash': '現金',
+      'commodity': '大宗物資'
+    };
+    return displayNames[type] || type;
+  };
+
+  // 獲取帳戶顯示名稱
+  const getAccountDisplayName = (accountId: string): string => {
+    const displayNames: { [key: string]: string } = {
+      'etrade': 'Etrade',
+      'fubon': '富邦銀行',
+      'esun': '玉山銀行'
+    };
+    return displayNames[accountId] || accountId;
+  };
+
+  // 獲取市場顯示名稱
+  const getMarketDisplayName = (market: string): string => {
+    const displayNames: { [key: string]: string } = {
+      'US': '美國',
+      'TW': '台灣',
+      'OTHER': '其他'
+    };
+    return displayNames[market] || market;
   };
 
   return (

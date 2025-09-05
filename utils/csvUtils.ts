@@ -60,7 +60,9 @@ const TYPE_MAP: { [key: string]: string } = {
   '數位貨幣': 'crypto',
   'crypto': 'crypto',
   '現金': 'cash',
-  'cash': 'cash'
+  'cash': 'cash',
+  '大宗物資': 'commodity',
+  'commodity': 'commodity'
 };
 
 // 市場映射
@@ -180,27 +182,27 @@ export function exportHoldingsToCSV(holdings: Holding[], exchangeRates?: any): s
       holding.name,
       getTypeDisplayName(holding.type),
       getMarketDisplayName(holding.market),
-      holding.quantity.toString(),
-      holding.costBasis.toString(),
+      formatQuantity(holding.quantity).toString(),  // 使用3位小數精度
+      formatValue(holding.costBasis).toString(),    // 使用2位小數精度
       holding.currency,
       holding.purchaseDate,
-      holding.currentPrice?.toString() || '',
-      twdValue.toFixed(2),
+      holding.currentPrice ? formatValue(holding.currentPrice).toString() : '',  // 使用2位小數精度
+      formatValue(twdValue).toString(),  // 使用2位小數精度
       holding.lastUpdated || ''
     ];
 
     // 如果有匯率資料，新增匯率數據（只在第一行添加）
     if (exchangeRates && holdings.indexOf(holding) === 0) {
       row.push(
-        exchangeRates.USD ? exchangeRates.USD.toFixed(2) : '',
-        exchangeRates.EUR ? exchangeRates.EUR.toFixed(2) : '',
-        exchangeRates.GBP ? exchangeRates.GBP.toFixed(2) : '',
-        exchangeRates.CHF ? exchangeRates.CHF.toFixed(2) : '',
-        exchangeRates.JPY ? exchangeRates.JPY.toFixed(2) : '', // 日圓排最後
+        exchangeRates.USD ? formatValue(exchangeRates.USD).toString() : '',
+        exchangeRates.EUR ? formatValue(exchangeRates.EUR).toString() : '',
+        exchangeRates.GBP ? formatValue(exchangeRates.GBP).toString() : '',
+        exchangeRates.CHF ? formatValue(exchangeRates.CHF).toString() : '',
+        exchangeRates.JPY ? formatValue(exchangeRates.JPY).toString() : '', // 日圓排最後
         exchangeRates.timestamp ? new Date(exchangeRates.timestamp).toISOString() : ''
       );
     } else if (exchangeRates) {
-      // 其他行填入空值
+      // 其他行填入空值以保持列對齊
       row.push('', '', '', '', '', '');
     }
 
@@ -375,7 +377,8 @@ function getTypeDisplayName(type: string): string {
     'bond': '債券',
     'gold': '黃金',
     'crypto': '加密貨幣',
-    'cash': '現金'
+    'cash': '現金',
+    'commodity': '大宗物資'
   };
   return displayNames[type] || type;
 }
