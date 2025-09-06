@@ -511,7 +511,7 @@ export default function HoldingsTable({
     {
       accessor: 'accountId',
       title: '帳戶',
-      width: 120,
+      width: 100,
       render: (holding: HoldingWithCalculations) => {
         const accountLabels: { [key: string]: string } = {
           etrade: 'Etrade',
@@ -536,7 +536,7 @@ export default function HoldingsTable({
     {
       accessor: 'name',
       title: '名稱',
-      width: 200,
+      width: 120,
       render: (holding: HoldingWithCalculations) => (
         <Text size="sm" fw={500}>{holding.name}</Text>
       ),
@@ -833,7 +833,7 @@ export default function HoldingsTable({
           <Paper p="sm" withBorder style={{ backgroundColor: '#f8f9fa' }}>
             <div style={{ 
               display: 'grid', 
-              gridTemplateColumns: '120px 100px 200px 80px 80px 100px 120px 120px 120px 120px 120px 140px 120px',
+              gridTemplateColumns: '100px 100px 120px 80px 80px 100px 120px 120px 120px 120px 120px 140px 120px',
               alignItems: 'center',
               gap: '8px',
               width: '100%',
