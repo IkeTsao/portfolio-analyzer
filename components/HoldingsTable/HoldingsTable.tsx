@@ -874,7 +874,7 @@ export default function HoldingsTable({
               {/* 市值(原幣)欄位 */}
               <div style={{ textAlign: 'right', marginLeft: '50px' }}>
                 <Text fw={600} size="sm">
-                  市值小計: NTD ${(() => {
+                  市值(台幣)小計: ${(() => {
                     const subtotal = filteredHoldings.reduce((sum, holding) => 
                       sum + (holding.currentValue || 0), 0
                     );
@@ -898,7 +898,7 @@ export default function HoldingsTable({
                     sum + (holding.gainLoss || 0), 0
                   ) >= 0 ? 'green' : 'red'}
                 >
-                  損益小計: NTD ${(() => {
+                  損益(台幣)小計: ${(() => {
                     const total = filteredHoldings.reduce((sum, holding) => 
                       sum + (holding.gainLoss || 0), 0
                     );
