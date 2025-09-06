@@ -456,7 +456,7 @@ export async function importHoldingsFromFile(file: File): Promise<void> {
         addMultipleHoldings(holdings);
 
         // 如果有匯率資料，保存到今日的歷史記錄中
-        if (exchangeRates) {
+        if (exchangeRates && typeof window !== 'undefined') {
           try {
             const today = new Date().toISOString().split('T')[0];
             const saved = localStorage.getItem('portfolioHistoricalData');

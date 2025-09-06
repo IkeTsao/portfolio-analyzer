@@ -11,6 +11,11 @@ export interface HistoricalExchangeRates {
 // 從歷史記錄中獲取指定日期的匯率
 export const getHistoricalExchangeRates = (date: string): HistoricalExchangeRates | null => {
   try {
+    // 檢查是否在瀏覽器環境中
+    if (typeof window === 'undefined') {
+      return null;
+    }
+    
     const saved = localStorage.getItem('portfolioHistoricalData');
     if (!saved) return null;
     
@@ -31,6 +36,11 @@ export const getHistoricalExchangeRates = (date: string): HistoricalExchangeRate
 // 獲取最新的歷史匯率（如果今天沒有記錄，則使用最近的記錄）
 export const getLatestHistoricalExchangeRates = (): HistoricalExchangeRates | null => {
   try {
+    // 檢查是否在瀏覽器環境中
+    if (typeof window === 'undefined') {
+      return null;
+    }
+    
     const saved = localStorage.getItem('portfolioHistoricalData');
     if (!saved) return null;
     
