@@ -290,7 +290,7 @@ export default function HistoricalDataManager({ currentPortfolioData, onDataSave
         return;
       }
 
-      // 準備 CSV 標頭（與持倉明細格式一致）
+      // 準備 CSV 標頭（使用新的格式）
       const headers = [
         'ID',
         '帳戶',
@@ -300,10 +300,12 @@ export default function HistoricalDataManager({ currentPortfolioData, onDataSave
         '市場',
         '數量',
         '成本價',
+        '購入成本(原幣)',
+        '現價(原幣)',
+        '市值(原幣)',
         '貨幣',
+        '市值(台幣)',
         '購買日期',
-        '現價',
-        '台幣市值',
         '更新時間'
       ];
 
@@ -312,13 +314,19 @@ export default function HistoricalDataManager({ currentPortfolioData, onDataSave
         headers.push('USD匯率', 'EUR匯率', 'GBP匯率', 'CHF匯率', 'JPY匯率', '匯率時間'); // 日圓排最後
       }
 
-      // 準備 CSV 資料（與持倉明細格式一致）
+      // 準備 CSV 資料（使用新的格式）
       const csvData = record.data.map((item: any, index: number) => {
-        // 計算台幣市值
+        // 計算相關數值
         const quantity = item.quantity || 0;
+        const costBasis = item.costBasis || 0;
         const currentPrice = item.currentPrice || 0;
         const currency = item.currency || 'TWD';
         
+        // 計算購入成本(原幣)和市值(原幣)
+        const totalCostOriginal = quantity * costBasis;
+        const totalValueOriginal = quantity * currentPrice;
+        
+        // 計算台幣市值
         let exchangeRate = 1;
         const exchangeRates = (record as any).exchangeRates;
         if (currency !== 'TWD' && exchangeRates) {
@@ -335,7 +343,7 @@ export default function HistoricalDataManager({ currentPortfolioData, onDataSave
           }
         }
         
-        const twdValue = quantity * currentPrice * exchangeRate;
+        const twdValue = totalValueOriginal * exchangeRate;
 
         const row = [
           item.id || '',
@@ -346,10 +354,12 @@ export default function HistoricalDataManager({ currentPortfolioData, onDataSave
           getMarketDisplayName(item.market || ''),
           item.quantity?.toString() || '',
           item.costBasis?.toString() || '',
-          item.currency || '',
-          item.purchaseDate || '',
+          totalCostOriginal.toFixed(2),
           item.currentPrice?.toString() || '',
+          totalValueOriginal.toFixed(2),
+          item.currency || '',
           twdValue.toFixed(2),
+          item.purchaseDate || '',
           item.lastUpdated || ''
         ];
 
@@ -371,7 +381,7 @@ export default function HistoricalDataManager({ currentPortfolioData, onDataSave
         return row;
       });
 
-      // 組合 CSV 內容（與持倉明細格式一致）
+      // 組合 CSV 內容（使用新的格式）
       const csvContent = [headers, ...csvData]
         .map(row => row.map(field => `"${field}"`).join(','))
         .join('\n');

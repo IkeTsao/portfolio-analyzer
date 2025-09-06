@@ -872,7 +872,7 @@ export default function HoldingsTable({
               </div>
               
               {/* 市值(原幣)欄位 */}
-              <div style={{ textAlign: 'right' }}>
+              <div style={{ textAlign: 'right', marginLeft: '50px' }}>
                 <Text fw={600} size="sm">
                   市值小計: NTD ${(() => {
                     const subtotal = filteredHoldings.reduce((sum, holding) => 
@@ -890,7 +890,7 @@ export default function HoldingsTable({
               </div>
               
               {/* 市值(台幣)欄位 */}
-              <div style={{ textAlign: 'right' }}>
+              <div style={{ textAlign: 'right', marginLeft: '50px' }}>
                 <Text 
                   fw={600} 
                   size="sm"
