@@ -832,21 +832,17 @@ export default function HoldingsTable({
 
         {/* 小計行 */}
         {filteredHoldings.length > 0 && (
-          <Paper p="sm" withBorder style={{ backgroundColor: '#f8f9fa', overflowX: 'auto', width: '100%' }}>
+          <Paper p="sm" withBorder style={{ backgroundColor: '#f8f9fa', width: '100%' }}>
             <div style={{ 
               display: 'flex',
               alignItems: 'center',
-              minWidth: '1400px',
+              justifyContent: 'space-between',
+              width: '100%',
               paddingLeft: '8px',
               paddingRight: '8px'
             }}>
               {/* 左側小計標籤 */}
-              <div style={{ 
-                width: '700px', // 約前9欄的寬度
-                display: 'flex',
-                justifyContent: 'flex-end',
-                paddingRight: '8px'
-              }}>
+              <div>
                 <Text fw={600} size="sm" c="dimmed">
                   小計 ({filteredHoldings.length} 筆)
                 </Text>
@@ -854,14 +850,12 @@ export default function HoldingsTable({
               
               {/* 右側數據區域 */}
               <div style={{ 
-                flex: 1,
                 display: 'flex',
-                justifyContent: 'flex-end',
-                gap: '120px', // 對應市值(台幣)和損益(台幣)欄位間距
-                paddingRight: '120px' // 對應操作欄位寬度
+                alignItems: 'center',
+                gap: '40px'
               }}>
                 {/* 市值小計 */}
-                <div style={{ textAlign: 'right', minWidth: '200px' }}>
+                <div style={{ textAlign: 'right' }}>
                   <Text fw={600} size="sm">
                     市值(台幣)小計: ${(() => {
                       const subtotal = filteredHoldings.reduce((sum, holding) => 
@@ -879,7 +873,7 @@ export default function HoldingsTable({
                 </div>
                 
                 {/* 損益小計 */}
-                <div style={{ textAlign: 'right', minWidth: '200px' }}>
+                <div style={{ textAlign: 'right' }}>
                   <Text 
                     fw={600} 
                     size="sm"

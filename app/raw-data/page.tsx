@@ -25,16 +25,16 @@ export default function RawDataPage() {
           <PageHeader title="原始數據" withActions={false} />
           
           <Grid gutter={{ base: 5, xs: 'sm', md: 'md', xl: 'lg' }}>
-            {/* 左側：歷史數據管理 */}
-            <Grid.Col span={{ base: 12, lg: 4 }}>
+            {/* 左側：歷史數據管理 - 寬度從4調整為5 (增加20%) */}
+            <Grid.Col span={{ base: 12, lg: 5 }}>
               <HistoricalDataManager 
                 currentPortfolioData={holdingDetails}
                 onDataSaved={handleDataSaved}
               />
             </Grid.Col>
             
-            {/* 右側：原始數據顯示 (未來可擴展) */}
-            <Grid.Col span={{ base: 12, lg: 8 }}>
+            {/* 右側：原始數據顯示 - 寬度從8調整為7 */}
+            <Grid.Col span={{ base: 12, lg: 7 }}>
               {/* 這裡可以添加原始數據表格或其他功能 */}
             </Grid.Col>
           </Grid>
