@@ -835,7 +835,7 @@ export default function HoldingsTable({
           <Paper p="sm" withBorder style={{ backgroundColor: '#f8f9fa', width: '100%' }}>
             <div style={{ 
               display: 'flex',
-              alignItems: 'center',
+              alignItems: 'flex-start',
               justifyContent: 'space-between',
               width: '100%',
               paddingLeft: '8px',
@@ -848,16 +848,19 @@ export default function HoldingsTable({
                 </Text>
               </div>
               
-              {/* 右側數據區域 */}
+              {/* 右側數據區域 - 兩列並排布局 */}
               <div style={{ 
                 display: 'flex',
-                alignItems: 'center',
-                gap: '40px'
+                alignItems: 'flex-start',
+                gap: '60px'
               }}>
-                {/* 市值小計 */}
-                <div style={{ textAlign: 'right' }}>
-                  <Text fw={600} size="sm">
-                    市值(台幣)小計: ${(() => {
+                {/* 左列：市值小計 */}
+                <div style={{ textAlign: 'left' }}>
+                  <Text fw={600} size="sm" c="dimmed" mb={4}>
+                    市值(台幣)小計
+                  </Text>
+                  <Text fw={600} size="lg">
+                    ${(() => {
                       const subtotal = filteredHoldings.reduce((sum, holding) => 
                         sum + (holding.currentValue || 0), 0
                       );
@@ -872,16 +875,19 @@ export default function HoldingsTable({
                   </Text>
                 </div>
                 
-                {/* 損益小計 */}
-                <div style={{ textAlign: 'right' }}>
+                {/* 右列：損益小計 */}
+                <div style={{ textAlign: 'left' }}>
+                  <Text fw={600} size="sm" c="green" mb={4}>
+                    損益(台幣)小計
+                  </Text>
                   <Text 
                     fw={600} 
-                    size="sm"
+                    size="lg"
                     c={filteredHoldings.reduce((sum, holding) => 
                       sum + (holding.gainLoss || 0), 0
                     ) >= 0 ? 'green' : 'red'}
                   >
-                    損益(台幣)小計: ${(() => {
+                    ${(() => {
                       const total = filteredHoldings.reduce((sum, holding) => 
                         sum + (holding.gainLoss || 0), 0
                       );
