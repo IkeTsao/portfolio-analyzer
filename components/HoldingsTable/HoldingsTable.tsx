@@ -815,104 +815,88 @@ export default function HoldingsTable({
           />
         </Group>
 
-        {/* 數據表格 */}
-        <DataTable
-          columns={columns}
-          records={filteredHoldings}
-          fetching={loading}
-          noRecordsText="暫無持倉數據"
-          minHeight={200}
-          striped
-          highlightOnHover
-          scrollAreaProps={{ type: 'scroll' }}
-          style={{ width: '100%', overflowX: 'auto' }}
-        />
+        {/* 數據表格 - 添加橫向滾動容器 */}
+        <div style={{ overflowX: 'auto', width: '100%' }}>
+          <DataTable
+            columns={columns}
+            records={filteredHoldings}
+            fetching={loading}
+            noRecordsText="暫無持倉數據"
+            minHeight={200}
+            striped
+            highlightOnHover
+            scrollAreaProps={{ type: 'scroll' }}
+            style={{ minWidth: '1400px' }}
+          />
+        </div>
 
         {/* 小計行 */}
         {filteredHoldings.length > 0 && (
-          <Paper p="sm" withBorder style={{ backgroundColor: '#f8f9fa' }}>
+          <Paper p="sm" withBorder style={{ backgroundColor: '#f8f9fa', overflowX: 'auto', width: '100%' }}>
             <div style={{ 
-              display: 'grid', 
-              gridTemplateColumns: '100px 100px 120px 80px 80px 100px 120px 120px 120px 120px 120px 140px 120px',
+              display: 'flex',
               alignItems: 'center',
-              gap: '8px',
-              width: '100%',
+              minWidth: '1400px',
               paddingLeft: '8px',
               paddingRight: '8px'
             }}>
-              {/* 帳戶欄位 */}
-              <div></div>
-              
-              {/* 代碼欄位 */}
-              <div></div>
-              
-              {/* 名稱欄位 */}
-              <div></div>
-              
-              {/* 類型欄位 */}
-              <div></div>
-              
-              {/* 市場欄位 */}
-              <div></div>
-              
-              {/* 數量欄位 */}
-              <div></div>
-              
-              {/* 成本價欄位 */}
-              <div></div>
-              
-              {/* 購入成本(原幣)欄位 */}
-              <div></div>
-              
-              {/* 現價(原幣)欄位 */}
-              <div style={{ textAlign: 'right' }}>
+              {/* 左側小計標籤 */}
+              <div style={{ 
+                width: '700px', // 約前9欄的寬度
+                display: 'flex',
+                justifyContent: 'flex-end',
+                paddingRight: '8px'
+              }}>
                 <Text fw={600} size="sm" c="dimmed">
                   小計 ({filteredHoldings.length} 筆)
                 </Text>
               </div>
               
-              {/* 市值(原幣)欄位 */}
-              <div style={{ textAlign: 'right', marginLeft: '50px' }}>
-                <Text fw={600} size="sm">
-                  市值(台幣)小計: ${(() => {
-                    const subtotal = filteredHoldings.reduce((sum, holding) => 
-                      sum + (holding.currentValue || 0), 0
-                    );
-                    const totalPortfolioValue = holdings.reduce((sum, holding) => 
-                      sum + (holding.currentValue || 0), 0
-                    );
-                    const percentage = totalPortfolioValue > 0 ? (subtotal / totalPortfolioValue * 100) : 0;
-                    const formatted = formatCurrency(subtotal);
-                    const formattedValue = formatted ? formatted.replace('NT$ ', '') : '0';
-                    return `${formattedValue} (${percentage.toFixed(1)}%)`;
-                  })()}
-                </Text>
-              </div>
-              
-              {/* 市值(台幣)欄位 */}
-              <div style={{ textAlign: 'right', marginLeft: '50px' }}>
-                <Text 
-                  fw={600} 
-                  size="sm"
-                  c={filteredHoldings.reduce((sum, holding) => 
-                    sum + (holding.gainLoss || 0), 0
-                  ) >= 0 ? 'green' : 'red'}
-                >
-                  損益(台幣)小計: ${(() => {
-                    const total = filteredHoldings.reduce((sum, holding) => 
+              {/* 右側數據區域 */}
+              <div style={{ 
+                flex: 1,
+                display: 'flex',
+                justifyContent: 'flex-end',
+                gap: '120px', // 對應市值(台幣)和損益(台幣)欄位間距
+                paddingRight: '120px' // 對應操作欄位寬度
+              }}>
+                {/* 市值小計 */}
+                <div style={{ textAlign: 'right', minWidth: '200px' }}>
+                  <Text fw={600} size="sm">
+                    市值(台幣)小計: ${(() => {
+                      const subtotal = filteredHoldings.reduce((sum, holding) => 
+                        sum + (holding.currentValue || 0), 0
+                      );
+                      const totalPortfolioValue = holdings.reduce((sum, holding) => 
+                        sum + (holding.currentValue || 0), 0
+                      );
+                      const percentage = totalPortfolioValue > 0 ? (subtotal / totalPortfolioValue * 100) : 0;
+                      const formatted = formatCurrency(subtotal);
+                      const formattedValue = formatted ? formatted.replace('NT$ ', '') : '0';
+                      return `${formattedValue} (${percentage.toFixed(1)}%)`;
+                    })()}
+                  </Text>
+                </div>
+                
+                {/* 損益小計 */}
+                <div style={{ textAlign: 'right', minWidth: '200px' }}>
+                  <Text 
+                    fw={600} 
+                    size="sm"
+                    c={filteredHoldings.reduce((sum, holding) => 
                       sum + (holding.gainLoss || 0), 0
-                    );
-                    const formatted = formatCurrency(total);
-                    return formatted ? formatted.replace('NT$ ', '') : '0';
-                  })()}
-                </Text>
+                    ) >= 0 ? 'green' : 'red'}
+                  >
+                    損益(台幣)小計: ${(() => {
+                      const total = filteredHoldings.reduce((sum, holding) => 
+                        sum + (holding.gainLoss || 0), 0
+                      );
+                      const formatted = formatCurrency(total);
+                      return formatted ? formatted.replace('NT$ ', '') : '0';
+                    })()}
+                  </Text>
+                </div>
               </div>
-              
-              {/* 損益(台幣)欄位 */}
-              <div></div>
-              
-              {/* 操作欄位 */}
-              <div></div>
             </div>
           </Paper>
         )}
