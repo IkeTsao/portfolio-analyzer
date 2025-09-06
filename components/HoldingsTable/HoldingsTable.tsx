@@ -872,9 +872,6 @@ export default function HoldingsTable({
               </div>
               
               {/* 市值(原幣)欄位 */}
-              <div></div>
-              
-              {/* 市值(台幣)欄位 */}
               <div style={{ textAlign: 'right' }}>
                 <Text fw={600} size="sm">
                   市值小計: NTD ${(() => {
@@ -892,7 +889,7 @@ export default function HoldingsTable({
                 </Text>
               </div>
               
-              {/* 損益(台幣)欄位 */}
+              {/* 市值(台幣)欄位 */}
               <div style={{ textAlign: 'right' }}>
                 <Text 
                   fw={600} 
@@ -910,6 +907,9 @@ export default function HoldingsTable({
                   })()}
                 </Text>
               </div>
+              
+              {/* 損益(台幣)欄位 */}
+              <div></div>
               
               {/* 操作欄位 */}
               <div></div>
