@@ -275,53 +275,209 @@ export const calculatePortfolioStats = (
   const distributionByMarket: { [key: string]: { totalValue: number; totalCost: number; totalGainLoss: number; percentage: number } } = {};
   const distributionByAccount: { [key: string]: { totalValue: number; totalCost: number; totalGainLoss: number; percentage: number } } = {};
 
-  // 填充類型分布
+  // 填充類型分布 - 使用實際持倉計算結果
   Object.keys(typeDistribution).forEach(type => {
-    const typeCost = holdings
-      .filter(h => h.type === type)
-      .reduce((sum, h) => {
-        const exchangeRate = getExchangeRateForCurrency(h.currency, baseCurrency, exchangeRates);
-        return sum + (h.quantity * h.costBasis * exchangeRate);
-      }, 0);
+    let typeCost = 0;
+    let typeGainLoss = 0;
+    
+    holdings.filter(h => h.type === type).forEach(holding => {
+      // 獲取當前價格
+      const price = priceData.find(p => p.symbol === holding.symbol);
+      let currentPrice: number;
+      if (holding.currentPrice && holding.currentPrice > 0) {
+        currentPrice = holding.currentPrice;
+      } else if (price?.price) {
+        currentPrice = price.price;
+      } else {
+        currentPrice = holding.costBasis;
+      }
+
+      // 獲取匯率
+      const exchangeRate = getExchangeRateForCurrency(
+        holding.currency,
+        baseCurrency,
+        effectiveExchangeRates
+      );
+
+      // 獲取CSV匯率（用於現金匯差計算）
+      let csvExchangeRate: number | undefined;
+      let isUsingCsvRates = false;
+      
+      if (holding.type === 'cash' && holding.currency !== 'TWD') {
+        try {
+          const today = new Date().toISOString().split('T')[0];
+          const saved = localStorage.getItem('portfolioHistoricalData');
+          
+          if (saved) {
+            const records = JSON.parse(saved);
+            const todayRecord = records.find((r: any) => r.date === today);
+            
+            if (todayRecord && todayRecord.exchangeRates && todayRecord.exchangeRates[holding.currency]) {
+              csvExchangeRate = parseFloat(todayRecord.exchangeRates[holding.currency].toFixed(2));
+              isUsingCsvRates = effectiveExchangeRates.some(rate => 
+                rate.from === holding.currency && Math.abs(rate.rate - csvExchangeRate!) < 0.01
+              );
+            }
+          }
+        } catch (error) {
+          console.warn('獲取CSV匯率失敗:', error);
+        }
+      }
+
+      const finalCsvExchangeRate = isUsingCsvRates ? undefined : csvExchangeRate;
+      const { costValue, gainLoss } = calculateHoldingValue(
+        holding,
+        currentPrice,
+        exchangeRate,
+        finalCsvExchangeRate
+      );
+      
+      typeCost += costValue;
+      typeGainLoss += gainLoss;
+    });
     
     distributionByType[type] = {
       totalValue: typeDistribution[type].value,
       totalCost: typeCost,
-      totalGainLoss: typeDistribution[type].value - typeCost,
+      totalGainLoss: typeGainLoss,
       percentage: typeDistribution[type].percentage,
     };
   });
 
-  // 填充市場分布
+  // 填充市場分布 - 使用實際持倉計算結果
   Object.keys(marketDistribution).forEach(market => {
-    const marketCost = holdings
-      .filter(h => h.market === market)
-      .reduce((sum, h) => {
-        const exchangeRate = getExchangeRateForCurrency(h.currency, baseCurrency, exchangeRates);
-        return sum + (h.quantity * h.costBasis * exchangeRate);
-      }, 0);
+    let marketCost = 0;
+    let marketGainLoss = 0;
+    
+    holdings.filter(h => h.market === market).forEach(holding => {
+      // 獲取當前價格
+      const price = priceData.find(p => p.symbol === holding.symbol);
+      let currentPrice: number;
+      if (holding.currentPrice && holding.currentPrice > 0) {
+        currentPrice = holding.currentPrice;
+      } else if (price?.price) {
+        currentPrice = price.price;
+      } else {
+        currentPrice = holding.costBasis;
+      }
+
+      // 獲取匯率
+      const exchangeRate = getExchangeRateForCurrency(
+        holding.currency,
+        baseCurrency,
+        effectiveExchangeRates
+      );
+
+      // 獲取CSV匯率（用於現金匯差計算）
+      let csvExchangeRate: number | undefined;
+      let isUsingCsvRates = false;
+      
+      if (holding.type === 'cash' && holding.currency !== 'TWD') {
+        try {
+          const today = new Date().toISOString().split('T')[0];
+          const saved = localStorage.getItem('portfolioHistoricalData');
+          
+          if (saved) {
+            const records = JSON.parse(saved);
+            const todayRecord = records.find((r: any) => r.date === today);
+            
+            if (todayRecord && todayRecord.exchangeRates && todayRecord.exchangeRates[holding.currency]) {
+              csvExchangeRate = parseFloat(todayRecord.exchangeRates[holding.currency].toFixed(2));
+              isUsingCsvRates = effectiveExchangeRates.some(rate => 
+                rate.from === holding.currency && Math.abs(rate.rate - csvExchangeRate!) < 0.01
+              );
+            }
+          }
+        } catch (error) {
+          console.warn('獲取CSV匯率失敗:', error);
+        }
+      }
+
+      const finalCsvExchangeRate = isUsingCsvRates ? undefined : csvExchangeRate;
+      const { costValue, gainLoss } = calculateHoldingValue(
+        holding,
+        currentPrice,
+        exchangeRate,
+        finalCsvExchangeRate
+      );
+      
+      marketCost += costValue;
+      marketGainLoss += gainLoss;
+    });
     
     distributionByMarket[market] = {
       totalValue: marketDistribution[market].value,
       totalCost: marketCost,
-      totalGainLoss: marketDistribution[market].value - marketCost,
+      totalGainLoss: marketGainLoss,
       percentage: marketDistribution[market].percentage,
     };
   });
 
-  // 填充帳戶分布
+  // 填充帳戶分布 - 使用實際持倉計算結果
   Object.keys(accountDistribution).forEach(accountId => {
-    const accountCost = holdings
-      .filter(h => h.accountId === accountId)
-      .reduce((sum, h) => {
-        const exchangeRate = getExchangeRateForCurrency(h.currency, baseCurrency, exchangeRates);
-        return sum + (h.quantity * h.costBasis * exchangeRate);
-      }, 0);
+    let accountCost = 0;
+    let accountGainLoss = 0;
+    
+    holdings.filter(h => h.accountId === accountId).forEach(holding => {
+      // 獲取當前價格
+      const price = priceData.find(p => p.symbol === holding.symbol);
+      let currentPrice: number;
+      if (holding.currentPrice && holding.currentPrice > 0) {
+        currentPrice = holding.currentPrice;
+      } else if (price?.price) {
+        currentPrice = price.price;
+      } else {
+        currentPrice = holding.costBasis;
+      }
+
+      // 獲取匯率
+      const exchangeRate = getExchangeRateForCurrency(
+        holding.currency,
+        baseCurrency,
+        effectiveExchangeRates
+      );
+
+      // 獲取CSV匯率（用於現金匯差計算）
+      let csvExchangeRate: number | undefined;
+      let isUsingCsvRates = false;
+      
+      if (holding.type === 'cash' && holding.currency !== 'TWD') {
+        try {
+          const today = new Date().toISOString().split('T')[0];
+          const saved = localStorage.getItem('portfolioHistoricalData');
+          
+          if (saved) {
+            const records = JSON.parse(saved);
+            const todayRecord = records.find((r: any) => r.date === today);
+            
+            if (todayRecord && todayRecord.exchangeRates && todayRecord.exchangeRates[holding.currency]) {
+              csvExchangeRate = parseFloat(todayRecord.exchangeRates[holding.currency].toFixed(2));
+              isUsingCsvRates = effectiveExchangeRates.some(rate => 
+                rate.from === holding.currency && Math.abs(rate.rate - csvExchangeRate!) < 0.01
+              );
+            }
+          }
+        } catch (error) {
+          console.warn('獲取CSV匯率失敗:', error);
+        }
+      }
+
+      const finalCsvExchangeRate = isUsingCsvRates ? undefined : csvExchangeRate;
+      const { costValue, gainLoss } = calculateHoldingValue(
+        holding,
+        currentPrice,
+        exchangeRate,
+        finalCsvExchangeRate
+      );
+      
+      accountCost += costValue;
+      accountGainLoss += gainLoss;
+    });
     
     distributionByAccount[accountId] = {
       totalValue: accountDistribution[accountId].value,
       totalCost: accountCost,
-      totalGainLoss: accountDistribution[accountId].value - accountCost,
+      totalGainLoss: accountGainLoss,
       percentage: accountDistribution[accountId].percentage,
     };
   });
