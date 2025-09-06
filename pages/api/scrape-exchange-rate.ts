@@ -94,18 +94,18 @@ async function getFixerIO(from: string, to: string): Promise<ExchangeRateData> {
   }
 }
 
-// 3. 台灣銀行即時匯率爬蟲 (作為TWD的主要來源)
+// 3. 台灣銀行即時匯率爬蟲 (DOM解析器版本)
 async function getTaiwanBankRate(from: string, to: string): Promise<ExchangeRateData> {
   try {
-    // 台灣銀行牌告匯率頁面
-    const url = 'https://rate.bot.com.tw/xrt?Lang=zh-TW';
+    console.log(`🏦 台灣銀行DOM解析: ${from}/${to}`);
+    
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 10000);
     
-    const response = await fetch(url, {
+    const response = await fetch('https://rate.bot.com.tw/xrt?Lang=zh-TW', {
       signal: controller.signal,
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        'User-Agent': 'Portfolio-Analyzer/2.0'
       }
     });
     
@@ -117,247 +117,250 @@ async function getTaiwanBankRate(from: string, to: string): Promise<ExchangeRate
     
     const html = await response.text();
     
-    // 解析台銀匯率表格
-    const currencyMap: { [key: string]: string } = {
-      'USD': 'USD',
-      'EUR': 'EUR', 
-      'GBP': 'GBP',
-      'CHF': 'CHF',
-      'JPY': 'JPY',
-      'HKD': 'HKD',
-      'AUD': 'AUD',
-      'CAD': 'CAD',
-      'SGD': 'SGD'
+    // 貨幣代碼映射和預期匯率範圍
+    const currencyConfig: { [key: string]: { code: string, range: { min: number, max: number } } } = {
+      'USD': { code: 'USD', range: { min: 25, max: 35 } },
+      'EUR': { code: 'EUR', range: { min: 30, max: 40 } },
+      'GBP': { code: 'GBP', range: { min: 35, max: 45 } },
+      'JPY': { code: 'JPY', range: { min: 0.15, max: 0.25 } },
+      'CHF': { code: 'CHF', range: { min: 35, max: 45 } },
+      'AUD': { code: 'AUD', range: { min: 18, max: 25 } },
+      'CAD': { code: 'CAD', range: { min: 20, max: 25 } },
+      'SGD': { code: 'SGD', range: { min: 22, max: 26 } },
+      'HKD': { code: 'HKD', range: { min: 3, max: 5 } },
+      'CNY': { code: 'CNY', range: { min: 4, max: 5 } }
     };
     
-    if (from === 'TWD' || to === 'TWD') {
-      const targetCurrency = from === 'TWD' ? to : from;
-      const currencyCode = currencyMap[targetCurrency];
+    const targetCurrency = from === 'TWD' ? to : from;
+    const config = currencyConfig[targetCurrency];
+    
+    if (!config) {
+      throw new Error(`不支援的貨幣: ${targetCurrency}`);
+    }
+    
+    console.log(`🔍 開始解析 ${config.code} 匯率數據`);
+    
+    // DOM解析器：結構化提取表格數據
+    const parseExchangeRates = (html: string, currencyCode: string, expectedRange: { min: number, max: number }) => {
+      console.log(`📊 解析 ${currencyCode}，預期範圍: ${expectedRange.min}-${expectedRange.max}`);
       
-      if (currencyCode) {
-        // 修正匯率匹配邏輯：確保獲取即期匯率而非現金匯率
-        // 策略：使用更精確的HTML解析方法
+      // 方法1: 尋找包含貨幣代碼的表格行
+      const findCurrencyRow = () => {
+        const lines = html.split('\n');
+        let rowStart = -1;
+        let rowEnd = -1;
         
-        // 首先找到包含該貨幣的行，使用更精確的匹配
-        // 確保匹配到完整的<tr>...</tr>標籤，並且包含該貨幣代碼
-        const currencyRowRegex = new RegExp(`<tr[^>]*>[\\s\\S]*?${currencyCode}[\\s\\S]*?</tr>`, 'i');
-        const rowMatch = html.match(currencyRowRegex);
-        
-        if (rowMatch) {
-          const rowHtml = rowMatch[0];
-          console.log(`找到 ${currencyCode} 的行HTML片段 (長度: ${rowHtml.length})`);
+        for (let i = 0; i < lines.length; i++) {
+          const line = lines[i];
           
-          // 檢查是否真的只匹配到一行，如果包含其他貨幣代碼則說明匹配過多
-          const otherCurrencies = ['USD', 'EUR', 'GBP', 'JPY', 'CHF', 'AUD', 'CAD', 'SGD', 'HKD', 'CNY'];
-          const otherCurrencyCount = otherCurrencies.filter(code => 
-            code !== currencyCode && rowHtml.includes(code)
-          ).length;
-          
-          if (otherCurrencyCount > 0) {
-            console.log(`⚠️ ${currencyCode} 行匹配包含其他 ${otherCurrencyCount} 個貨幣，使用更精確的策略`);
-            
-            // 使用更精確的策略：找到包含該貨幣的tr標籤，確保不跨行
-            const lines = html.split('\n');
-            let targetRowHtml = '';
-            let inTargetRow = false;
-            
-            console.log(`開始逐行搜索 ${currencyCode}，總共 ${lines.length} 行`);
-            
-            for (let i = 0; i < lines.length; i++) {
-              const line = lines[i];
-              if (line.includes('<tr') && line.includes(currencyCode)) {
-                console.log(`在第 ${i} 行找到包含 ${currencyCode} 的tr標籤`);
-                inTargetRow = true;
-                targetRowHtml = line;
-              } else if (inTargetRow && line.includes('</tr>')) {
-                targetRowHtml += line;
-                console.log(`在第 ${i} 行找到結束標籤，完成行匹配`);
+          // 找到包含貨幣代碼的行（可能不在<tr>標籤的同一行）
+          if (line.includes(currencyCode) && !line.includes('查詢')) {
+            // 向上尋找最近的<tr>標籤
+            for (let j = i; j >= 0; j--) {
+              if (lines[j].includes('<tr')) {
+                rowStart = j;
+                console.log(`📍 在第 ${j} 行找到 ${currencyCode} 的表格行開始 (貨幣在第 ${i} 行)`);
                 break;
-              } else if (inTargetRow) {
-                targetRowHtml += line;
               }
             }
             
-            console.log(`精確匹配結果: targetRowHtml長度=${targetRowHtml.length}`);
-            
-            if (targetRowHtml) {
-              console.log(`使用精確行匹配找到 ${currencyCode} (長度: ${targetRowHtml.length})`);
-              
-              // 提取該行中的數字
-              const numberRegex = /<td[^>]*>([\d,]+\.[\d]+)<\/td>/g;
-              const numbers = [];
-              let match;
-              
-              while ((match = numberRegex.exec(targetRowHtml)) !== null) {
-                numbers.push(parseFloat(match[1].replace(/,/g, '')));
-              }
-              
-              console.log(`${currencyCode} 精確行提取到的數字:`, numbers);
-              
-              if (numbers.length >= 4) {
-                let cashBuy, cashSell, spotBuy, spotSell;
-                
-                if (numbers.length >= 6 && numbers[0] === numbers[2] && numbers[1] === numbers[3]) {
-                  // 檢測到重複數據結構
-                  cashBuy = numbers[0];      
-                  cashSell = numbers[1];     
-                  spotBuy = numbers[4];      
-                  spotSell = numbers[5];     
-                  console.log(`${currencyCode} 精確匹配檢測到重複數據結構，使用位置[4,5]作為即期匯率`);
-                } else {
-                  // 標準結構
-                  cashBuy = numbers[0];      
-                  cashSell = numbers[1];     
-                  spotBuy = numbers[2];      
-                  spotSell = numbers[3];     
-                  console.log(`${currencyCode} 精確匹配使用標準數據結構`);
+            // 向下尋找</tr>標籤
+            if (rowStart !== -1) {
+              for (let k = i; k < lines.length; k++) {
+                if (lines[k].includes('</tr>')) {
+                  rowEnd = k;
+                  console.log(`📍 在第 ${k} 行找到表格行結束`);
+                  break;
                 }
-                
-                console.log(`${currencyCode} 精確匯率解析:`, {
+              }
+            }
+            
+            break;
+          }
+        }
+        
+        if (rowStart !== -1 && rowEnd !== -1) {
+          const rowLines = lines.slice(rowStart, rowEnd + 1);
+          return rowLines.join('\n');
+        }
+        
+        return null;
+      };
+      
+      const rowHtml = findCurrencyRow();
+      
+      if (!rowHtml) {
+        console.log(`❌ 未找到 ${currencyCode} 的表格行`);
+        return null;
+      }
+      
+      console.log(`✅ 找到 ${currencyCode} 表格行，長度: ${rowHtml.length}`);
+      
+      // 方法2: 提取表格單元格中的數字
+      const extractNumbers = (html: string) => {
+        // 匹配 <td>數字</td> 格式
+        const tdRegex = /<td[^>]*>([\d,]+\.?\d*)<\/td>/g;
+        const numbers: number[] = [];
+        let match;
+        
+        while ((match = tdRegex.exec(html)) !== null) {
+          const numStr = match[1].replace(/,/g, '');
+          const num = parseFloat(numStr);
+          
+          if (!isNaN(num) && num > 0) {
+            numbers.push(num);
+          }
+        }
+        
+        return numbers;
+      };
+      
+      const numbers = extractNumbers(rowHtml);
+      console.log(`🔢 提取到的數字:`, numbers);
+      
+      // 方法3: 智能識別匯率數據
+      const identifyRates = (numbers: number[], range: { min: number, max: number }) => {
+        if (numbers.length < 4) {
+          console.log(`❌ 數字不足，只有 ${numbers.length} 個`);
+          return null;
+        }
+        
+        // 策略1: 優先檢測重複數據結構（台灣銀行常見模式）
+        if (numbers.length >= 6) {
+          for (let i = 0; i <= numbers.length - 6; i++) {
+            const cashBuy = numbers[i];
+            const cashSell = numbers[i + 1];
+            const dupCashBuy = numbers[i + 2];
+            const dupCashSell = numbers[i + 3];
+            const spotBuy = numbers[i + 4];
+            const spotSell = numbers[i + 5];
+            
+            // 檢查是否有重複的現金匯率
+            if (cashBuy === dupCashBuy && cashSell === dupCashSell) {
+              const sellInRange = spotSell >= range.min && spotSell <= range.max;
+              const validPattern = cashBuy < cashSell && spotBuy < spotSell;
+              const differentRates = Math.abs(spotSell - cashSell) > 0.001;
+              
+              if (sellInRange && validPattern && differentRates) {
+                console.log(`✅ 找到重複數據結構 [${i}-${i+5}]:`, {
                   現金買入: cashBuy,
                   現金賣出: cashSell,
                   即期買入: spotBuy,
                   即期賣出: spotSell
                 });
                 
-                // 驗證數據合理性
-                if (spotBuy !== cashBuy || spotSell !== cashSell) {
-                  console.log(`✓ ${currencyCode} 精確匹配成功區分現金匯率和即期匯率`);
-                  
-                  let rate: number;
-                  if (from === 'TWD') {
-                    rate = 1 / spotBuy;
-                    console.log(`TWD→${currencyCode}: 使用即期買入價 ${spotBuy} 的倒數 = ${rate}`);
-                  } else {
-                    rate = spotSell;
-                    console.log(`${currencyCode}→TWD: 使用即期賣出價 ${spotSell}`);
-                  }
-                  
-                  return {
-                    success: true,
-                    rate: rate,
-                    source: 'Taiwan Bank (Live)',
-                    timestamp: new Date().toISOString()
-                  };
-                } else {
-                  console.log(`⚠ ${currencyCode} 精確匹配：即期匯率與現金匯率相同，使用現金匯率`);
-                  let rate: number;
-                  if (from === 'TWD') {
-                    rate = 1 / cashBuy;
-                  } else {
-                    rate = cashSell;
-                  }
-                  
-                  return {
-                    success: true,
-                    rate: rate,
-                    source: 'Taiwan Bank (Live)',
-                    timestamp: new Date().toISOString()
-                  };
-                }
-              } else {
-                console.log(`${currencyCode} 精確匹配提取到的數字不足，只有 ${numbers.length} 個`);
+                return { cashBuy, cashSell, spotBuy, spotSell };
               }
-            } else {
-              console.log(`${currencyCode} 精確匹配失敗，未找到目標行`);
             }
-          } else {
-            // 原始邏輯：如果行匹配正確，繼續使用原來的方法
-            console.log(`✓ ${currencyCode} 行匹配正確，只包含該貨幣數據`);
           }
+        }
+        
+        // 策略2: 尋找在預期範圍內的賣出匯率（標準模式）
+        for (let i = 0; i <= numbers.length - 4; i++) {
+          const cashBuy = numbers[i];
+          const cashSell = numbers[i + 1];
+          const spotBuy = numbers[i + 2];
+          const spotSell = numbers[i + 3];
           
-          // 提取該行中所有的數字欄位，確保只從該行提取
-          const numberRegex = /<td[^>]*>([\d,]+\.[\d]+)<\/td>/g;
-          const numbers = [];
-          let match;
+          // 檢查賣出匯率是否在預期範圍內
+          const sellInRange = (cashSell >= range.min && cashSell <= range.max) || 
+                             (spotSell >= range.min && spotSell <= range.max);
           
-          while ((match = numberRegex.exec(rowHtml)) !== null) {
-            numbers.push(parseFloat(match[1].replace(/,/g, '')));
-          }
+          // 檢查買入 < 賣出的基本邏輯
+          const validPattern = cashBuy < cashSell && spotBuy < spotSell;
           
-          console.log(`${currencyCode} 該行提取到的數字:`, numbers);
+          // 確保即期匯率與現金匯率不同
+          const differentRates = Math.abs(spotBuy - cashBuy) > 0.001 || Math.abs(spotSell - cashSell) > 0.001;
           
-          // 根據台灣銀行表格結構，該行的數字順序應該是：
-          // [0] 現金買入, [1] 現金賣出, [2] 即期買入, [3] 即期賣出, [4] 可能的遠期匯率...
-          // 但實際觀察發現可能有重複：[0]現金買入, [1]現金賣出, [2]重複現金買入, [3]重複現金賣出, [4]即期買入, [5]即期賣出
-          if (numbers.length >= 4) {
-            let cashBuy, cashSell, spotBuy, spotSell;
-            
-            if (numbers.length >= 6 && numbers[0] === numbers[2] && numbers[1] === numbers[3]) {
-              // 檢測到重複數據結構，使用後面的數字作為即期匯率
-              cashBuy = numbers[0];      // 現金買入
-              cashSell = numbers[1];     // 現金賣出  
-              spotBuy = numbers[4];      // 即期買入 (跳過重複)
-              spotSell = numbers[5];     // 即期賣出
-              console.log(`${currencyCode} 檢測到重複數據結構，使用位置[4,5]作為即期匯率`);
-            } else {
-              // 標準結構
-              cashBuy = numbers[0];      // 現金買入
-              cashSell = numbers[1];     // 現金賣出  
-              spotBuy = numbers[2];      // 即期買入
-              spotSell = numbers[3];     // 即期賣出
-              console.log(`${currencyCode} 使用標準數據結構`);
-            }
-            
-            console.log(`${currencyCode} 匯率解析:`, {
+          if (sellInRange && validPattern && differentRates) {
+            console.log(`✅ 找到標準匯率模式 [${i}-${i+3}]:`, {
               現金買入: cashBuy,
               現金賣出: cashSell,
               即期買入: spotBuy,
               即期賣出: spotSell
             });
             
-            // 驗證數據合理性：即期匯率應該與現金匯率不同
-            if (spotBuy !== cashBuy || spotSell !== cashSell) {
-              console.log(`✓ ${currencyCode} 成功區分現金匯率和即期匯率`);
-              
-              let rate: number;
-              if (from === 'TWD') {
-                // TWD 轉外幣，使用即期買入價的倒數
-                rate = 1 / spotBuy;
-                console.log(`TWD→${currencyCode}: 使用即期買入價 ${spotBuy} 的倒數 = ${rate}`);
-              } else {
-                // 外幣轉 TWD，使用即期賣出價
-                rate = spotSell;
-                console.log(`${currencyCode}→TWD: 使用即期賣出價 ${spotSell}`);
-              }
-              
-              return {
-                success: true,
-                rate: rate,
-                source: 'Taiwan Bank (Live)',
-                timestamp: new Date().toISOString()
-              };
-            } else {
-              console.log(`⚠ ${currencyCode} 即期匯率與現金匯率相同，可能該貨幣只有現金匯率`);
-              // 對於只有現金匯率的貨幣，使用現金匯率
-              let rate: number;
-              if (from === 'TWD') {
-                rate = 1 / cashBuy;
-                console.log(`TWD→${currencyCode}: 使用現金買入價 ${cashBuy} 的倒數 = ${rate}`);
-              } else {
-                rate = cashSell;
-                console.log(`${currencyCode}→TWD: 使用現金賣出價 ${cashSell}`);
-              }
-              
-              return {
-                success: true,
-                rate: rate,
-                source: 'Taiwan Bank (Live)',
-                timestamp: new Date().toISOString()
-              };
-            }
-          } else {
-            console.log(`${currencyCode} 提取到的數字不足，只有 ${numbers.length} 個`);
+            return { cashBuy, cashSell, spotBuy, spotSell };
           }
         }
+        
+        // 策略3: 如果都沒找到，使用範圍內的現金匯率作為備用
+        for (let i = 0; i <= numbers.length - 4; i++) {
+          const cashBuy = numbers[i];
+          const cashSell = numbers[i + 1];
+          const spotBuy = numbers[i + 2];
+          const spotSell = numbers[i + 3];
+          
+          const sellInRange = cashSell >= range.min && cashSell <= range.max;
+          const validPattern = cashBuy < cashSell && spotBuy < spotSell;
+          
+          if (sellInRange && validPattern) {
+            console.log(`⚠️ 使用現金匯率作為備用 [${i}-${i+3}]:`, {
+              現金買入: cashBuy,
+              現金賣出: cashSell,
+              即期買入: spotBuy,
+              即期賣出: spotSell
+            });
+            
+            return { cashBuy, cashSell, spotBuy, spotSell };
+          }
+        }
+        
+        console.log(`❌ 無法識別 ${currencyCode} 的匯率模式`);
+        return null;
+      };
+      
+      return identifyRates(numbers, expectedRange);
+    };
+    
+    const rateData = parseExchangeRates(html, config.code, config.range);
+    
+    if (rateData) {
+      const { cashBuy, cashSell, spotBuy, spotSell } = rateData;
+      
+      // 優先使用即期匯率
+      const useSpotRate = Math.abs(spotBuy - cashBuy) > 0.001 || Math.abs(spotSell - cashSell) > 0.001;
+      
+      let rate: number;
+      let rateType: string;
+      
+      if (from === 'TWD') {
+        // TWD 轉外幣，使用買入價的倒數
+        if (useSpotRate) {
+          rate = 1 / spotBuy;
+          rateType = '即期買入';
+        } else {
+          rate = 1 / cashBuy;
+          rateType = '現金買入';
+        }
+        console.log(`💱 TWD→${config.code}: 使用${rateType}價 ${useSpotRate ? spotBuy : cashBuy} 的倒數 = ${rate}`);
+      } else {
+        // 外幣轉 TWD，使用賣出價
+        if (useSpotRate) {
+          rate = spotSell;
+          rateType = '即期賣出';
+        } else {
+          rate = cashSell;
+          rateType = '現金賣出';
+        }
+        console.log(`💱 ${config.code}→TWD: 使用${rateType}價 ${rate}`);
       }
+      
+      return {
+        success: true,
+        rate: rate,
+        source: `Taiwan Bank (${useSpotRate ? 'Spot Rate' : 'Cash Rate'})`,
+        timestamp: new Date().toISOString()
+      };
     }
     
-    throw new Error('Rate not found in Taiwan Bank data');
+    throw new Error(`無法解析 ${config.code} 匯率數據`);
+    
   } catch (error) {
+    console.log(`❌ 台灣銀行解析失敗: ${error}`);
     return {
       success: false,
-      error: `Taiwan Bank failed: ${error}`,
+      error: `Taiwan Bank DOM parsing failed: ${error}`,
       source: 'Taiwan Bank (Failed)'
     };
   }
