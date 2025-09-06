@@ -140,11 +140,11 @@ export function exportHoldingsToCSV(holdings: Holding[], exchangeRates?: any): s
     '數量',
     '成本價',
     '購入成本(原幣)',
+    '現價(原幣)',
     '市值(原幣)',
     '貨幣',
-    '購買日期',
-    '現價',
     '市值(台幣)',
+    '購買日期',
     '更新時間'
   ];
 
@@ -191,11 +191,11 @@ export function exportHoldingsToCSV(holdings: Holding[], exchangeRates?: any): s
       formatQuantity(holding.quantity).toString(),  // 使用3位小數精度
       formatValue(holding.costBasis).toString(),    // 使用2位小數精度
       formatValue(totalCost).toString(),            // 購入成本(原幣)
+      holding.currentPrice ? formatValue(holding.currentPrice).toString() : '',  // 現價(原幣)
       holding.currentPrice ? formatValue(totalCurrentValue).toString() : '', // 市值(原幣)
       holding.currency,
+      formatValue(twdValue).toString(),  // 市值(台幣)
       holding.purchaseDate,
-      holding.currentPrice ? formatValue(holding.currentPrice).toString() : '',  // 使用2位小數精度
-      formatValue(twdValue).toString(),  // 使用2位小數精度
       holding.lastUpdated || ''
     ];
 
@@ -267,11 +267,11 @@ export function parseHoldingsFromCSV(csvContent: string): { holdings: Holding[],
         quantity: parseFloat(values[6]) || 0,
         costBasis: parseFloat(values[7]) || 0,
         // 跳過購入成本(原幣) values[8] - 這是計算值
-        // 跳過市值(原幣) values[9] - 這是計算值
-        currency: values[10]?.toUpperCase() || 'USD',
-        purchaseDate: values[11] || new Date().toISOString().split('T')[0],
-        currentPrice: values[12] ? parseFloat(values[12]) : undefined,
-        // 跳過市值(台幣)欄位 (values[13])，因為這是計算值
+        currentPrice: values[9] ? parseFloat(values[9]) : undefined, // 現價(原幣)
+        // 跳過市值(原幣) values[10] - 這是計算值
+        currency: values[11]?.toUpperCase() || 'USD',
+        // 跳過市值(台幣)欄位 (values[12])，因為這是計算值
+        purchaseDate: values[13] || new Date().toISOString().split('T')[0],
         lastUpdated: values[14] || undefined
       };
 
