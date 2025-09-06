@@ -54,6 +54,7 @@ export default function LiveInfoDisplay() {
       const ratePromises = currencies.map(async (currency) => {
         // 如果有CSV匯率資料，優先使用
         if (csvRates && csvRates[currency]) {
+          console.log(`使用CSV匯率: ${currency} = ${csvRates[currency]}`);
           return {
             currency,
             rate: parseFloat(csvRates[currency].toFixed(2)), // 統一為小數點後兩位
@@ -66,6 +67,7 @@ export default function LiveInfoDisplay() {
 
         // 否則嘗試獲取即時匯率
         try {
+          console.log(`獲取即時匯率: ${currency}/TWD`);
           const response = await fetch(`${baseUrl}/api/scrape-exchange-rate?from=${currency}&to=TWD`);
           if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
@@ -73,6 +75,7 @@ export default function LiveInfoDisplay() {
           const data = await response.json();
           
           if (data.success && data.rate && data.rate > 0) {
+            console.log(`即時匯率獲取成功: ${currency} = ${data.rate} (來源: ${data.source})`);
             return {
               currency,
               rate: parseFloat(data.rate.toFixed(2)), // 統一為小數點後兩位
@@ -93,6 +96,7 @@ export default function LiveInfoDisplay() {
             'CHF': 35.1,
             'JPY': 0.21,
           };
+          console.log(`使用備用匯率: ${currency} = ${fallbackRates[currency]}`);
           return {
             currency,
             rate: fallbackRates[currency] || 0,
@@ -106,6 +110,14 @@ export default function LiveInfoDisplay() {
 
       const fetchedRates = await Promise.all(ratePromises);
       setRates(fetchedRates);
+      
+      // 觸發自定義事件，通知其他組件匯率已更新
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('exchangeRatesUpdated', { 
+          detail: { rates: fetchedRates } 
+        }));
+      }
+      
     } catch (error) {
       console.error('獲取匯率失敗:', error);
       const fallbackRates = [
@@ -238,9 +250,15 @@ export default function LiveInfoDisplay() {
         } catch (error) {
           console.warn('清除CSV匯率記錄失敗:', error);
         }
+        
+        // 確保清除操作完成後再獲取新匯率
+        await fetchExchangeRates();
+        await fetchFinancialIndicators();
+      } else {
+        // 正常更新時並行執行
+        await Promise.all([fetchExchangeRates(), fetchFinancialIndicators()]);
       }
       
-      await Promise.all([fetchExchangeRates(), fetchFinancialIndicators()]);
       setLastUpdate(new Date());
     } finally {
       setLoading(false);
