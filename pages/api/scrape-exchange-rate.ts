@@ -1,4 +1,4 @@
-// 台灣銀行即期匯率API (簡化版)
+// 即時匯率API - 使用多個可靠數據源
 import { NextApiRequest, NextApiResponse } from 'next';
 
 interface ExchangeRateData {
@@ -9,53 +9,153 @@ interface ExchangeRateData {
   timestamp?: string;
 }
 
-// 基於台銀即期匯率的準確數據 (2025/08/31)
-async function getTaiwanBankSpotRate(from: string, to: string): Promise<ExchangeRateData> {
-  // 台銀即期匯率數據 (即期賣出價用於投資組合估值)
-  const spotRates: { [key: string]: number } = {
-    'USD-TWD': 30.665,  // 即期賣出 (台銀官網)
-    'EUR-TWD': 36.055,  // 即期賣出 (台銀官網)
-    'GBP-TWD': 41.655,  // 即期賣出 (台銀官網)
-    'CHF-TWD': 38.41,   // 即期賣出 (台銀官網)
-    'JPY-TWD': 0.2107,  // 即期賣出 (台銀官網)
-    'HKD-TWD': 3.959,   // 即期賣出 (台銀官網)
-    'AUD-TWD': 20.18,   // 即期賣出 (台銀官網)
-    'CAD-TWD': 22.43,   // 即期賣出 (台銀官網)
-    'SGD-TWD': 23.95,   // 即期賣出 (台銀官網)
-    'NZD-TWD': 18.16,   // 即期賣出 (台銀官網)
-    'CNY-TWD': 4.327,   // 即期賣出 (台銀官網)
+// 1. ExchangeRate-API (免費，可靠)
+async function getExchangeRateAPI(from: string, to: string): Promise<ExchangeRateData> {
+  try {
+    const url = `https://api.exchangerate-api.com/v4/latest/${from}`;
+    const response = await fetch(url, {
+      timeout: 5000,
+      headers: {
+        'User-Agent': 'Portfolio-Analyzer/1.0'
+      }
+    });
     
-    // 反向匯率 (使用即期買入價計算)
-    'TWD-USD': 1/30.515,  // 1 ÷ 即期買入
-    'TWD-EUR': 1/35.455,  // 1 ÷ 即期買入
-    'TWD-GBP': 1/41.025,  // 1 ÷ 即期買入
-    'TWD-CHF': 1/38.02,   // 1 ÷ 即期買入
-    'TWD-JPY': 1/0.2057,  // 1 ÷ 即期買入
-    'TWD-HKD': 1/3.889,   // 1 ÷ 即期買入
-    'TWD-AUD': 1/19.835,  // 1 ÷ 即期買入
-    'TWD-CAD': 1/22.1,    // 1 ÷ 即期買入
-    'TWD-SGD': 1/23.73,   // 1 ÷ 即期買入
-    'TWD-NZD': 1/17.86,   // 1 ÷ 即期買入
-    'TWD-CNY': 1/4.267,   // 1 ÷ 即期買入
-  };
-  
-  const rateKey = `${from}-${to}`;
-  const rate = spotRates[rateKey];
-  
-  if (rate) {
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+    
+    const data = await response.json();
+    const rate = data.rates[to];
+    
+    if (rate) {
+      return {
+        success: true,
+        rate: parseFloat(rate),
+        source: 'ExchangeRate-API',
+        timestamp: new Date().toISOString()
+      };
+    }
+    
+    throw new Error(`Rate not found for ${to}`);
+  } catch (error) {
     return {
-      success: true,
-      rate,
-      source: 'Taiwan Bank (Spot Rate)',
-      timestamp: new Date().toISOString()
+      success: false,
+      error: `ExchangeRate-API failed: ${error}`,
+      source: 'ExchangeRate-API (Failed)'
     };
   }
-  
-  return {
-    success: false,
-    error: `Exchange rate not available for ${from} to ${to}`,
-    source: 'Taiwan Bank (Not Available)'
-  };
+}
+
+// 2. Fixer.io 備用 (需要API key，但有免費額度)
+async function getFixerIO(from: string, to: string): Promise<ExchangeRateData> {
+  try {
+    // 使用免費的 fixer.io API (有限制但可用)
+    const url = `https://api.fixer.io/latest?base=${from}&symbols=${to}`;
+    const response = await fetch(url, {
+      timeout: 5000,
+      headers: {
+        'User-Agent': 'Portfolio-Analyzer/1.0'
+      }
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+    
+    const data = await response.json();
+    const rate = data.rates[to];
+    
+    if (rate) {
+      return {
+        success: true,
+        rate: parseFloat(rate),
+        source: 'Fixer.io',
+        timestamp: new Date().toISOString()
+      };
+    }
+    
+    throw new Error(`Rate not found for ${to}`);
+  } catch (error) {
+    return {
+      success: false,
+      error: `Fixer.io failed: ${error}`,
+      source: 'Fixer.io (Failed)'
+    };
+  }
+}
+
+// 3. 台灣銀行即時匯率爬蟲 (作為TWD的主要來源)
+async function getTaiwanBankRate(from: string, to: string): Promise<ExchangeRateData> {
+  try {
+    // 台灣銀行牌告匯率頁面
+    const url = 'https://rate.bot.com.tw/xrt?Lang=zh-TW';
+    const response = await fetch(url, {
+      timeout: 10000,
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+      }
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+    
+    const html = await response.text();
+    
+    // 解析台銀匯率表格
+    const currencyMap: { [key: string]: string } = {
+      'USD': 'USD',
+      'EUR': 'EUR', 
+      'GBP': 'GBP',
+      'CHF': 'CHF',
+      'JPY': 'JPY',
+      'HKD': 'HKD',
+      'AUD': 'AUD',
+      'CAD': 'CAD',
+      'SGD': 'SGD'
+    };
+    
+    if (from === 'TWD' || to === 'TWD') {
+      const targetCurrency = from === 'TWD' ? to : from;
+      const currencyCode = currencyMap[targetCurrency];
+      
+      if (currencyCode) {
+        // 尋找該貨幣的即期賣出匯率
+        const rateRegex = new RegExp(`${currencyCode}[\\s\\S]*?<td[^>]*>([\\d,]+\\.\\d+)</td>[\\s\\S]*?<td[^>]*>([\\d,]+\\.\\d+)</td>`, 'i');
+        const match = html.match(rateRegex);
+        
+        if (match) {
+          // match[1] 是即期買入, match[2] 是即期賣出
+          const sellRate = parseFloat(match[2].replace(/,/g, ''));
+          const buyRate = parseFloat(match[1].replace(/,/g, ''));
+          
+          let rate: number;
+          if (from === 'TWD') {
+            // TWD 轉外幣，使用買入價的倒數
+            rate = 1 / buyRate;
+          } else {
+            // 外幣轉 TWD，使用賣出價
+            rate = sellRate;
+          }
+          
+          return {
+            success: true,
+            rate,
+            source: 'Taiwan Bank (Live)',
+            timestamp: new Date().toISOString()
+          };
+        }
+      }
+    }
+    
+    throw new Error('Rate not found in Taiwan Bank data');
+  } catch (error) {
+    return {
+      success: false,
+      error: `Taiwan Bank failed: ${error}`,
+      source: 'Taiwan Bank (Failed)'
+    };
+  }
 }
 
 // 備用API - XE.com (用於非TWD貨幣對)
@@ -114,20 +214,38 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
   try {
     let result: ExchangeRateData;
     
-    // 優先使用台銀即期匯率 (如果涉及TWD)
+    // 策略：使用多個數據源，按優先級嘗試
     if (from === 'TWD' || to === 'TWD') {
-      result = await getTaiwanBankSpotRate(from, to);
+      // 涉及 TWD 的匯率，優先使用台灣銀行
+      console.log(`嘗試台灣銀行即時匯率: ${from}/${to}`);
+      result = await getTaiwanBankRate(from, to);
       
-      // 如果台銀沒有該貨幣對，嘗試XE.com
       if (!result.success) {
-        result = await scrapeXERate(from, to);
+        console.log(`台灣銀行失敗，嘗試 ExchangeRate-API: ${from}/${to}`);
+        result = await getExchangeRateAPI(from, to);
+      }
+      
+      if (!result.success) {
+        console.log(`ExchangeRate-API 失敗，嘗試 Fixer.io: ${from}/${to}`);
+        result = await getFixerIO(from, to);
       }
     } else {
-      // 其他貨幣對使用XE.com
-      result = await scrapeXERate(from, to);
+      // 其他貨幣對，優先使用 ExchangeRate-API
+      console.log(`嘗試 ExchangeRate-API: ${from}/${to}`);
+      result = await getExchangeRateAPI(from, to);
+      
+      if (!result.success) {
+        console.log(`ExchangeRate-API 失敗，嘗試 Fixer.io: ${from}/${to}`);
+        result = await getFixerIO(from, to);
+      }
     }
     
-    console.log(`Exchange rate ${from}/${to}:`, result);
+    if (result.success) {
+      console.log(`✅ 匯率獲取成功: ${from}/${to} = ${result.rate} (來源: ${result.source})`);
+    } else {
+      console.log(`❌ 所有匯率源都失敗: ${from}/${to}`);
+    }
+    
     res.status(200).json(result);
     
   } catch (error) {
