@@ -635,17 +635,6 @@ export default function HoldingsTable({
       },
     },
     {
-      accessor: 'currency',
-      title: '貨幣',
-      width: 80,
-      textAlign: 'center' as const,
-      render: (holding: HoldingWithCalculations) => (
-        <Badge size="xs" variant="outline">
-          {holding.currency}
-        </Badge>
-      ),
-    },
-    {
       accessor: 'currentValue',
       title: '市值(台幣)',
       width: 120,
@@ -844,20 +833,26 @@ export default function HoldingsTable({
           <Paper p="sm" withBorder style={{ backgroundColor: '#f8f9fa' }}>
             <div style={{ 
               display: 'grid', 
-              gridTemplateColumns: '100px 200px 120px 100px 120px 120px 120px 120px 140px 120px',
+              gridTemplateColumns: '120px 100px 200px 80px 80px 100px 120px 120px 120px 120px 120px 140px 120px',
               alignItems: 'center',
               gap: '8px',
               width: '100%',
               paddingLeft: '8px',
               paddingRight: '8px'
             }}>
+              {/* 帳戶欄位 */}
+              <div></div>
+              
               {/* 代碼欄位 */}
               <div></div>
               
               {/* 名稱欄位 */}
               <div></div>
               
-              {/* 帳戶欄位 */}
+              {/* 類型欄位 */}
+              <div></div>
+              
+              {/* 市場欄位 */}
               <div></div>
               
               {/* 數量欄位 */}
@@ -866,10 +861,13 @@ export default function HoldingsTable({
               {/* 成本價欄位 */}
               <div></div>
               
-              {/* 現價欄位 */}
+              {/* 購入成本(原幣)欄位 */}
               <div></div>
               
-              {/* 成本欄位 */}
+              {/* 現價(原幣)欄位 */}
+              <div></div>
+              
+              {/* 市值(原幣)欄位 */}
               <div style={{ textAlign: 'right' }}>
                 <Text fw={600} size="sm" c="dimmed">
                   小計 ({filteredHoldings.length} 筆)
