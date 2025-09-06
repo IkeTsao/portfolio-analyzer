@@ -13,12 +13,17 @@ interface ExchangeRateData {
 async function getExchangeRateAPI(from: string, to: string): Promise<ExchangeRateData> {
   try {
     const url = `https://api.exchangerate-api.com/v4/latest/${from}`;
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
+    
     const response = await fetch(url, {
-      timeout: 5000,
+      signal: controller.signal,
       headers: {
         'User-Agent': 'Portfolio-Analyzer/1.0'
       }
     });
+    
+    clearTimeout(timeoutId);
     
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}`);
@@ -51,12 +56,17 @@ async function getFixerIO(from: string, to: string): Promise<ExchangeRateData> {
   try {
     // 使用免費的 fixer.io API (有限制但可用)
     const url = `https://api.fixer.io/latest?base=${from}&symbols=${to}`;
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
+    
     const response = await fetch(url, {
-      timeout: 5000,
+      signal: controller.signal,
       headers: {
         'User-Agent': 'Portfolio-Analyzer/1.0'
       }
     });
+    
+    clearTimeout(timeoutId);
     
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}`);
@@ -89,12 +99,17 @@ async function getTaiwanBankRate(from: string, to: string): Promise<ExchangeRate
   try {
     // 台灣銀行牌告匯率頁面
     const url = 'https://rate.bot.com.tw/xrt?Lang=zh-TW';
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
+    
     const response = await fetch(url, {
-      timeout: 10000,
+      signal: controller.signal,
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
       }
     });
+    
+    clearTimeout(timeoutId);
     
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}`);
