@@ -865,14 +865,14 @@ export default function HoldingsTable({
               <div></div>
               
               {/* 現價(原幣)欄位 */}
-              <div></div>
-              
-              {/* 市值(原幣)欄位 */}
               <div style={{ textAlign: 'right' }}>
                 <Text fw={600} size="sm" c="dimmed">
                   小計 ({filteredHoldings.length} 筆)
                 </Text>
               </div>
+              
+              {/* 市值(原幣)欄位 */}
+              <div></div>
               
               {/* 市值(台幣)欄位 */}
               <div style={{ textAlign: 'right' }}>
