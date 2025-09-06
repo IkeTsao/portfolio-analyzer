@@ -509,32 +509,6 @@ export default function HoldingsTable({
 
   const columns = [
     {
-      accessor: 'symbol',
-      title: '代碼',
-      width: 100,
-      render: (holding: HoldingWithCalculations) => (
-        <Text fw={500}>{holding.symbol}</Text>
-      ),
-    },
-    {
-      accessor: 'name',
-      title: '名稱',
-      width: 200,
-      render: (holding: HoldingWithCalculations) => (
-        <Stack gap={2}>
-          <Text size="sm" fw={500}>{holding.name}</Text>
-          <Group gap="xs">
-            <Badge size="xs" color={TYPE_COLORS[holding.type]}>
-              {TYPE_LABELS[holding.type]}
-            </Badge>
-            <Badge size="xs" variant="light">
-              {MARKET_LABELS[holding.market]}
-            </Badge>
-          </Group>
-        </Stack>
-      ),
-    },
-    {
       accessor: 'accountId',
       title: '帳戶',
       width: 120,
@@ -552,6 +526,42 @@ export default function HoldingsTable({
       },
     },
     {
+      accessor: 'symbol',
+      title: '代碼',
+      width: 100,
+      render: (holding: HoldingWithCalculations) => (
+        <Text fw={500}>{holding.symbol}</Text>
+      ),
+    },
+    {
+      accessor: 'name',
+      title: '名稱',
+      width: 200,
+      render: (holding: HoldingWithCalculations) => (
+        <Text size="sm" fw={500}>{holding.name}</Text>
+      ),
+    },
+    {
+      accessor: 'type',
+      title: '類型',
+      width: 80,
+      render: (holding: HoldingWithCalculations) => (
+        <Badge size="xs" color={TYPE_COLORS[holding.type]}>
+          {TYPE_LABELS[holding.type]}
+        </Badge>
+      ),
+    },
+    {
+      accessor: 'market',
+      title: '市場',
+      width: 80,
+      render: (holding: HoldingWithCalculations) => (
+        <Badge size="xs" variant="light">
+          {MARKET_LABELS[holding.market]}
+        </Badge>
+      ),
+    },
+    {
       accessor: 'quantity',
       title: '數量',
       width: 100,
@@ -562,12 +572,26 @@ export default function HoldingsTable({
     },
     {
       accessor: 'costBasis',
-      title: '成本價(原幣)',
+      title: '成本價',
       width: 120,
       textAlign: 'right' as const,
       render: (holding: HoldingWithCalculations) => (
         <Text size="sm">{formatCurrencyWithSymbol(holding.costBasis, holding.currency)}</Text>
       ),
+    },
+    {
+      accessor: 'costValue',
+      title: '購入成本(原幣)',
+      width: 120,
+      textAlign: 'right' as const,
+      render: (holding: HoldingWithCalculations) => {
+        const totalCost = holding.quantity * holding.costBasis;
+        return (
+          <Text size="sm">
+            {formatCurrencyWithSymbol(totalCost, holding.currency)}
+          </Text>
+        );
+      },
     },
     {
       accessor: 'currentPrice',
@@ -594,20 +618,6 @@ export default function HoldingsTable({
       ),
     },
     {
-      accessor: 'costValue',
-      title: '購入成本(原幣)',
-      width: 120,
-      textAlign: 'right' as const,
-      render: (holding: HoldingWithCalculations) => {
-        const totalCost = holding.quantity * holding.costBasis;
-        return (
-          <Text size="sm">
-            {formatCurrencyWithSymbol(totalCost, holding.currency)}
-          </Text>
-        );
-      },
-    },
-    {
       accessor: 'totalCurrentValue',
       title: '市值(原幣)',
       width: 120,
@@ -623,6 +633,17 @@ export default function HoldingsTable({
           </Text>
         );
       },
+    },
+    {
+      accessor: 'currency',
+      title: '貨幣',
+      width: 80,
+      textAlign: 'center' as const,
+      render: (holding: HoldingWithCalculations) => (
+        <Badge size="xs" variant="outline">
+          {holding.currency}
+        </Badge>
+      ),
     },
     {
       accessor: 'currentValue',
