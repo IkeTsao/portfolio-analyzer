@@ -135,62 +135,86 @@ async function getTaiwanBankRate(from: string, to: string): Promise<ExchangeRate
       const currencyCode = currencyMap[targetCurrency];
       
       if (currencyCode) {
-        // 尋找該貨幣的即期匯率（需要跳過現金匯率，匹配即期匯率）
-        // HTML結構：貨幣名稱 | 現金買入 | 現金賣出 | 即期買入 | 即期賣出 | 其他欄位...
-        const rateRegex = new RegExp(`${currencyCode}[\\s\\S]*?<td[^>]*>([\\d,]+\\.\\d+)</td>[\\s\\S]*?<td[^>]*>([\\d,]+\\.\\d+)</td>[\\s\\S]*?<td[^>]*>([\\d,]+\\.\\d+)</td>[\\s\\S]*?<td[^>]*>([\\d,]+\\.\\d+)</td>`, 'i');
-        const match = html.match(rateRegex);
+        // 修正匯率匹配邏輯：確保獲取即期匯率而非現金匯率
+        // 策略：使用更精確的HTML解析方法
         
-        if (match) {
-          // 重新檢查匹配結果，確保正確識別即期匯率
-          console.log(`調試 ${currencyCode} 匹配結果:`, {
-            match1: match[1],
-            match2: match[2], 
-            match3: match[3],
-            match4: match[4]
-          });
+        // 首先找到包含該貨幣的行，確保只匹配該貨幣的數據
+        const currencyRowRegex = new RegExp(`<tr[^>]*>[\\s\\S]*?${currencyCode}[\\s\\S]*?</tr>`, 'i');
+        const rowMatch = html.match(currencyRowRegex);
+        
+        if (rowMatch) {
+          const rowHtml = rowMatch[0];
+          console.log(`找到 ${currencyCode} 的行HTML片段`);
           
-          // 根據實際HTML結構，即期匯率應該在第3和第4個匹配中
-          // 但從調試結果看，需要重新分析HTML結構
-          let spotBuyRate: number;
-          let spotSellRate: number;
+          // 提取該行中所有的數字欄位，確保只從該行提取
+          const numberRegex = /<td[^>]*>([\d,]+\.[\d]+)<\/td>/g;
+          const numbers = [];
+          let match;
           
-          // 臨時解決方案：如果match[3]和match[4]與match[1]和match[2]相同，
-          // 說明正則表達式沒有正確跳過現金匯率，需要使用不同的策略
-          if (match[3] === match[1] && match[4] === match[2]) {
-            console.log('檢測到正則表達式匹配問題，使用備用策略');
-            // 使用更精確的正則表達式來匹配即期匯率
-            const preciseRegex = new RegExp(`${currencyCode}[\\s\\S]*?<td[^>]*>[\\d,]+\\.\\d+</td>[\\s\\S]*?<td[^>]*>[\\d,]+\\.\\d+</td>[\\s\\S]*?<td[^>]*>([\\d,]+\\.\\d+)</td>[\\s\\S]*?<td[^>]*>([\\d,]+\\.\\d+)</td>`, 'i');
-            const preciseMatch = html.match(preciseRegex);
+          while ((match = numberRegex.exec(rowHtml)) !== null) {
+            numbers.push(parseFloat(match[1].replace(/,/g, '')));
+          }
+          
+          console.log(`${currencyCode} 該行提取到的數字:`, numbers);
+          
+          // 根據台灣銀行表格結構，該行的數字順序應該是：
+          // [0] 現金買入, [1] 現金賣出, [2] 即期買入, [3] 即期賣出, [4] 可能的遠期匯率...
+          if (numbers.length >= 4) {
+            const cashBuy = numbers[0];      // 現金買入
+            const cashSell = numbers[1];     // 現金賣出  
+            const spotBuy = numbers[2];      // 即期買入
+            const spotSell = numbers[3];     // 即期賣出
             
-            if (preciseMatch) {
-              spotBuyRate = parseFloat(preciseMatch[1].replace(/,/g, ''));
-              spotSellRate = parseFloat(preciseMatch[2].replace(/,/g, ''));
-              console.log(`使用精確匹配: 即期買入=${spotBuyRate}, 即期賣出=${spotSellRate}`);
+            console.log(`${currencyCode} 匯率解析:`, {
+              現金買入: cashBuy,
+              現金賣出: cashSell,
+              即期買入: spotBuy,
+              即期賣出: spotSell
+            });
+            
+            // 驗證數據合理性：即期匯率應該與現金匯率不同
+            if (spotBuy !== cashBuy || spotSell !== cashSell) {
+              console.log(`✓ ${currencyCode} 成功區分現金匯率和即期匯率`);
+              
+              let rate: number;
+              if (from === 'TWD') {
+                // TWD 轉外幣，使用即期買入價的倒數
+                rate = 1 / spotBuy;
+                console.log(`TWD→${currencyCode}: 使用即期買入價 ${spotBuy} 的倒數 = ${rate}`);
+              } else {
+                // 外幣轉 TWD，使用即期賣出價
+                rate = spotSell;
+                console.log(`${currencyCode}→TWD: 使用即期賣出價 ${spotSell}`);
+              }
+              
+              return {
+                success: true,
+                rate: rate,
+                source: 'Taiwan Bank (Live)',
+                timestamp: new Date().toISOString()
+              };
             } else {
-              // 如果還是不行，暫時使用ExchangeRate-API作為備用
-              throw new Error('無法正確解析台灣銀行即期匯率');
+              console.log(`⚠ ${currencyCode} 即期匯率與現金匯率相同，可能該貨幣只有現金匯率`);
+              // 對於只有現金匯率的貨幣，使用現金匯率
+              let rate: number;
+              if (from === 'TWD') {
+                rate = 1 / cashBuy;
+                console.log(`TWD→${currencyCode}: 使用現金買入價 ${cashBuy} 的倒數 = ${rate}`);
+              } else {
+                rate = cashSell;
+                console.log(`${currencyCode}→TWD: 使用現金賣出價 ${cashSell}`);
+              }
+              
+              return {
+                success: true,
+                rate: rate,
+                source: 'Taiwan Bank (Live)',
+                timestamp: new Date().toISOString()
+              };
             }
           } else {
-            spotBuyRate = parseFloat(match[3].replace(/,/g, ''));
-            spotSellRate = parseFloat(match[4].replace(/,/g, ''));
-            console.log(`使用標準匹配: 即期買入=${spotBuyRate}, 即期賣出=${spotSellRate}`);
+            console.log(`${currencyCode} 提取到的數字不足，只有 ${numbers.length} 個`);
           }
-          
-          let rate: number;
-          if (from === 'TWD') {
-            // TWD 轉外幣，使用即期買入價的倒數
-            rate = 1 / spotBuyRate;
-          } else {
-            // 外幣轉 TWD，使用即期賣出價
-            rate = spotSellRate;
-          }
-          
-          return {
-            success: true,
-            rate,
-            source: 'Taiwan Bank (Live)',
-            timestamp: new Date().toISOString()
-          };
         }
       }
     }
