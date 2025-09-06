@@ -139,10 +139,12 @@ export function exportHoldingsToCSV(holdings: Holding[], exchangeRates?: any): s
     '市場',
     '數量',
     '成本價',
+    '購入成本(原幣)',
+    '市值(原幣)',
     '貨幣',
     '購買日期',
     '現價',
-    '台幣市值',
+    '市值(台幣)',
     '更新時間'
   ];
 
@@ -174,6 +176,10 @@ export function exportHoldingsToCSV(holdings: Holding[], exchangeRates?: any): s
     }
     
     const twdValue = quantity * currentPrice * exchangeRate;
+    
+    // 計算總成本和總現值（原幣）
+    const totalCost = quantity * holding.costBasis;
+    const totalCurrentValue = quantity * currentPrice;
 
     const row = [
       holding.id,
@@ -184,6 +190,8 @@ export function exportHoldingsToCSV(holdings: Holding[], exchangeRates?: any): s
       getMarketDisplayName(holding.market),
       formatQuantity(holding.quantity).toString(),  // 使用3位小數精度
       formatValue(holding.costBasis).toString(),    // 使用2位小數精度
+      formatValue(totalCost).toString(),            // 購入成本(原幣)
+      holding.currentPrice ? formatValue(totalCurrentValue).toString() : '', // 市值(原幣)
       holding.currency,
       holding.purchaseDate,
       holding.currentPrice ? formatValue(holding.currentPrice).toString() : '',  // 使用2位小數精度
@@ -244,7 +252,7 @@ export function parseHoldingsFromCSV(csvContent: string): { holdings: Holding[],
     try {
       const values = parseCSVLine(line);
       
-      if (values.length < 9) {
+      if (values.length < 11) {
         console.warn(`第 ${i + 1} 行數據不完整，跳過`);
         continue;
       }
@@ -258,11 +266,13 @@ export function parseHoldingsFromCSV(csvContent: string): { holdings: Holding[],
         market: normalizeMarket(values[5]) as any,
         quantity: parseFloat(values[6]) || 0,
         costBasis: parseFloat(values[7]) || 0,
-        currency: values[8]?.toUpperCase() || 'USD',
-        purchaseDate: values[9] || new Date().toISOString().split('T')[0],
-        currentPrice: values[10] ? parseFloat(values[10]) : undefined,
-        // 跳過台幣市值欄位 (values[11])，因為這是計算值
-        lastUpdated: values[12] || undefined
+        // 跳過購入成本(原幣) values[8] - 這是計算值
+        // 跳過市值(原幣) values[9] - 這是計算值
+        currency: values[10]?.toUpperCase() || 'USD',
+        purchaseDate: values[11] || new Date().toISOString().split('T')[0],
+        currentPrice: values[12] ? parseFloat(values[12]) : undefined,
+        // 跳過市值(台幣)欄位 (values[13])，因為這是計算值
+        lastUpdated: values[14] || undefined
       };
 
       // 驗證必要欄位
@@ -274,13 +284,13 @@ export function parseHoldingsFromCSV(csvContent: string): { holdings: Holding[],
       holdings.push(holding);
 
       // 如果是第一行且包含匯率資料，解析匯率
-      if (i === 1 && hasExchangeRates && values.length >= 18) {
-        const usdRate = parseFloat(values[13]);
-        const eurRate = parseFloat(values[14]);
-        const gbpRate = parseFloat(values[15]);
-        const chfRate = parseFloat(values[16]);
-        const jpyRate = parseFloat(values[17]); // 日圓排最後
-        const rateTimestamp = values[18];
+      if (i === 1 && hasExchangeRates && values.length >= 20) {
+        const usdRate = parseFloat(values[15]);
+        const eurRate = parseFloat(values[16]);
+        const gbpRate = parseFloat(values[17]);
+        const chfRate = parseFloat(values[18]);
+        const jpyRate = parseFloat(values[19]); // 日圓排最後
+        const rateTimestamp = values[20];
 
         if (!isNaN(usdRate) || !isNaN(eurRate) || !isNaN(gbpRate) || !isNaN(chfRate) || !isNaN(jpyRate)) {
           exchangeRates = {

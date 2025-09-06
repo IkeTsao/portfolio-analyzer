@@ -595,7 +595,7 @@ export default function HoldingsTable({
     },
     {
       accessor: 'costValue',
-      title: '總成本(原幣)',
+      title: '購入成本(原幣)',
       width: 120,
       textAlign: 'right' as const,
       render: (holding: HoldingWithCalculations) => {
@@ -603,6 +603,23 @@ export default function HoldingsTable({
         return (
           <Text size="sm">
             {formatCurrencyWithSymbol(totalCost, holding.currency)}
+          </Text>
+        );
+      },
+    },
+    {
+      accessor: 'totalCurrentValue',
+      title: '市值(原幣)',
+      width: 120,
+      textAlign: 'right' as const,
+      render: (holding: HoldingWithCalculations) => {
+        const totalCurrentValue = holding.quantity * (holding.currentPrice || 0);
+        return (
+          <Text size="sm" fw={500}>
+            {holding.currentPrice ? 
+              formatCurrencyWithSymbol(totalCurrentValue, holding.currency) : 
+              '-'
+            }
           </Text>
         );
       },
