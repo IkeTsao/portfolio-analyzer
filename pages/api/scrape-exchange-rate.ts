@@ -135,23 +135,46 @@ async function getTaiwanBankRate(from: string, to: string): Promise<ExchangeRate
       const currencyCode = currencyMap[targetCurrency];
       
       if (currencyCode) {
-        // 尋找該貨幣的即期匯率（跳過現金匯率，匹配即期匯率）
+        // 尋找該貨幣的即期匯率（需要跳過現金匯率，匹配即期匯率）
+        // HTML結構：貨幣名稱 | 現金買入 | 現金賣出 | 即期買入 | 即期賣出 | 其他欄位...
         const rateRegex = new RegExp(`${currencyCode}[\\s\\S]*?<td[^>]*>([\\d,]+\\.\\d+)</td>[\\s\\S]*?<td[^>]*>([\\d,]+\\.\\d+)</td>[\\s\\S]*?<td[^>]*>([\\d,]+\\.\\d+)</td>[\\s\\S]*?<td[^>]*>([\\d,]+\\.\\d+)</td>`, 'i');
         const match = html.match(rateRegex);
         
         if (match) {
-          // match[1] 是現金買入, match[2] 是現金賣出, match[3] 是即期買入, match[4] 是即期賣出
+          // 重新檢查匹配結果，確保正確識別即期匯率
           console.log(`調試 ${currencyCode} 匹配結果:`, {
-            match1_現金買入: match[1],
-            match2_現金賣出: match[2], 
-            match3_即期買入: match[3],
-            match4_即期賣出: match[4]
+            match1: match[1],
+            match2: match[2], 
+            match3: match[3],
+            match4: match[4]
           });
           
-          const spotSellRate = parseFloat(match[4].replace(/,/g, ''));
-          const spotBuyRate = parseFloat(match[3].replace(/,/g, ''));
+          // 根據實際HTML結構，即期匯率應該在第3和第4個匹配中
+          // 但從調試結果看，需要重新分析HTML結構
+          let spotBuyRate: number;
+          let spotSellRate: number;
           
-          console.log(`使用即期匯率: 買入=${spotBuyRate}, 賣出=${spotSellRate}`);
+          // 臨時解決方案：如果match[3]和match[4]與match[1]和match[2]相同，
+          // 說明正則表達式沒有正確跳過現金匯率，需要使用不同的策略
+          if (match[3] === match[1] && match[4] === match[2]) {
+            console.log('檢測到正則表達式匹配問題，使用備用策略');
+            // 使用更精確的正則表達式來匹配即期匯率
+            const preciseRegex = new RegExp(`${currencyCode}[\\s\\S]*?<td[^>]*>[\\d,]+\\.\\d+</td>[\\s\\S]*?<td[^>]*>[\\d,]+\\.\\d+</td>[\\s\\S]*?<td[^>]*>([\\d,]+\\.\\d+)</td>[\\s\\S]*?<td[^>]*>([\\d,]+\\.\\d+)</td>`, 'i');
+            const preciseMatch = html.match(preciseRegex);
+            
+            if (preciseMatch) {
+              spotBuyRate = parseFloat(preciseMatch[1].replace(/,/g, ''));
+              spotSellRate = parseFloat(preciseMatch[2].replace(/,/g, ''));
+              console.log(`使用精確匹配: 即期買入=${spotBuyRate}, 即期賣出=${spotSellRate}`);
+            } else {
+              // 如果還是不行，暫時使用ExchangeRate-API作為備用
+              throw new Error('無法正確解析台灣銀行即期匯率');
+            }
+          } else {
+            spotBuyRate = parseFloat(match[3].replace(/,/g, ''));
+            spotSellRate = parseFloat(match[4].replace(/,/g, ''));
+            console.log(`使用標準匹配: 即期買入=${spotBuyRate}, 即期賣出=${spotSellRate}`);
+          }
           
           let rate: number;
           if (from === 'TWD') {
