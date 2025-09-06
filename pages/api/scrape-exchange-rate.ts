@@ -138,13 +138,133 @@ async function getTaiwanBankRate(from: string, to: string): Promise<ExchangeRate
         // 修正匯率匹配邏輯：確保獲取即期匯率而非現金匯率
         // 策略：使用更精確的HTML解析方法
         
-        // 首先找到包含該貨幣的行，確保只匹配該貨幣的數據
+        // 首先找到包含該貨幣的行，使用更精確的匹配
+        // 確保匹配到完整的<tr>...</tr>標籤，並且包含該貨幣代碼
         const currencyRowRegex = new RegExp(`<tr[^>]*>[\\s\\S]*?${currencyCode}[\\s\\S]*?</tr>`, 'i');
         const rowMatch = html.match(currencyRowRegex);
         
         if (rowMatch) {
           const rowHtml = rowMatch[0];
-          console.log(`找到 ${currencyCode} 的行HTML片段`);
+          console.log(`找到 ${currencyCode} 的行HTML片段 (長度: ${rowHtml.length})`);
+          
+          // 檢查是否真的只匹配到一行，如果包含其他貨幣代碼則說明匹配過多
+          const otherCurrencies = ['USD', 'EUR', 'GBP', 'JPY', 'CHF', 'AUD', 'CAD', 'SGD', 'HKD', 'CNY'];
+          const otherCurrencyCount = otherCurrencies.filter(code => 
+            code !== currencyCode && rowHtml.includes(code)
+          ).length;
+          
+          if (otherCurrencyCount > 0) {
+            console.log(`⚠️ ${currencyCode} 行匹配包含其他 ${otherCurrencyCount} 個貨幣，使用更精確的策略`);
+            
+            // 使用更精確的策略：找到包含該貨幣的tr標籤，確保不跨行
+            const lines = html.split('\n');
+            let targetRowHtml = '';
+            let inTargetRow = false;
+            
+            console.log(`開始逐行搜索 ${currencyCode}，總共 ${lines.length} 行`);
+            
+            for (let i = 0; i < lines.length; i++) {
+              const line = lines[i];
+              if (line.includes('<tr') && line.includes(currencyCode)) {
+                console.log(`在第 ${i} 行找到包含 ${currencyCode} 的tr標籤`);
+                inTargetRow = true;
+                targetRowHtml = line;
+              } else if (inTargetRow && line.includes('</tr>')) {
+                targetRowHtml += line;
+                console.log(`在第 ${i} 行找到結束標籤，完成行匹配`);
+                break;
+              } else if (inTargetRow) {
+                targetRowHtml += line;
+              }
+            }
+            
+            console.log(`精確匹配結果: targetRowHtml長度=${targetRowHtml.length}`);
+            
+            if (targetRowHtml) {
+              console.log(`使用精確行匹配找到 ${currencyCode} (長度: ${targetRowHtml.length})`);
+              
+              // 提取該行中的數字
+              const numberRegex = /<td[^>]*>([\d,]+\.[\d]+)<\/td>/g;
+              const numbers = [];
+              let match;
+              
+              while ((match = numberRegex.exec(targetRowHtml)) !== null) {
+                numbers.push(parseFloat(match[1].replace(/,/g, '')));
+              }
+              
+              console.log(`${currencyCode} 精確行提取到的數字:`, numbers);
+              
+              if (numbers.length >= 4) {
+                let cashBuy, cashSell, spotBuy, spotSell;
+                
+                if (numbers.length >= 6 && numbers[0] === numbers[2] && numbers[1] === numbers[3]) {
+                  // 檢測到重複數據結構
+                  cashBuy = numbers[0];      
+                  cashSell = numbers[1];     
+                  spotBuy = numbers[4];      
+                  spotSell = numbers[5];     
+                  console.log(`${currencyCode} 精確匹配檢測到重複數據結構，使用位置[4,5]作為即期匯率`);
+                } else {
+                  // 標準結構
+                  cashBuy = numbers[0];      
+                  cashSell = numbers[1];     
+                  spotBuy = numbers[2];      
+                  spotSell = numbers[3];     
+                  console.log(`${currencyCode} 精確匹配使用標準數據結構`);
+                }
+                
+                console.log(`${currencyCode} 精確匯率解析:`, {
+                  現金買入: cashBuy,
+                  現金賣出: cashSell,
+                  即期買入: spotBuy,
+                  即期賣出: spotSell
+                });
+                
+                // 驗證數據合理性
+                if (spotBuy !== cashBuy || spotSell !== cashSell) {
+                  console.log(`✓ ${currencyCode} 精確匹配成功區分現金匯率和即期匯率`);
+                  
+                  let rate: number;
+                  if (from === 'TWD') {
+                    rate = 1 / spotBuy;
+                    console.log(`TWD→${currencyCode}: 使用即期買入價 ${spotBuy} 的倒數 = ${rate}`);
+                  } else {
+                    rate = spotSell;
+                    console.log(`${currencyCode}→TWD: 使用即期賣出價 ${spotSell}`);
+                  }
+                  
+                  return {
+                    success: true,
+                    rate: rate,
+                    source: 'Taiwan Bank (Live)',
+                    timestamp: new Date().toISOString()
+                  };
+                } else {
+                  console.log(`⚠ ${currencyCode} 精確匹配：即期匯率與現金匯率相同，使用現金匯率`);
+                  let rate: number;
+                  if (from === 'TWD') {
+                    rate = 1 / cashBuy;
+                  } else {
+                    rate = cashSell;
+                  }
+                  
+                  return {
+                    success: true,
+                    rate: rate,
+                    source: 'Taiwan Bank (Live)',
+                    timestamp: new Date().toISOString()
+                  };
+                }
+              } else {
+                console.log(`${currencyCode} 精確匹配提取到的數字不足，只有 ${numbers.length} 個`);
+              }
+            } else {
+              console.log(`${currencyCode} 精確匹配失敗，未找到目標行`);
+            }
+          } else {
+            // 原始邏輯：如果行匹配正確，繼續使用原來的方法
+            console.log(`✓ ${currencyCode} 行匹配正確，只包含該貨幣數據`);
+          }
           
           // 提取該行中所有的數字欄位，確保只從該行提取
           const numberRegex = /<td[^>]*>([\d,]+\.[\d]+)<\/td>/g;
@@ -159,11 +279,25 @@ async function getTaiwanBankRate(from: string, to: string): Promise<ExchangeRate
           
           // 根據台灣銀行表格結構，該行的數字順序應該是：
           // [0] 現金買入, [1] 現金賣出, [2] 即期買入, [3] 即期賣出, [4] 可能的遠期匯率...
+          // 但實際觀察發現可能有重複：[0]現金買入, [1]現金賣出, [2]重複現金買入, [3]重複現金賣出, [4]即期買入, [5]即期賣出
           if (numbers.length >= 4) {
-            const cashBuy = numbers[0];      // 現金買入
-            const cashSell = numbers[1];     // 現金賣出  
-            const spotBuy = numbers[2];      // 即期買入
-            const spotSell = numbers[3];     // 即期賣出
+            let cashBuy, cashSell, spotBuy, spotSell;
+            
+            if (numbers.length >= 6 && numbers[0] === numbers[2] && numbers[1] === numbers[3]) {
+              // 檢測到重複數據結構，使用後面的數字作為即期匯率
+              cashBuy = numbers[0];      // 現金買入
+              cashSell = numbers[1];     // 現金賣出  
+              spotBuy = numbers[4];      // 即期買入 (跳過重複)
+              spotSell = numbers[5];     // 即期賣出
+              console.log(`${currencyCode} 檢測到重複數據結構，使用位置[4,5]作為即期匯率`);
+            } else {
+              // 標準結構
+              cashBuy = numbers[0];      // 現金買入
+              cashSell = numbers[1];     // 現金賣出  
+              spotBuy = numbers[2];      // 即期買入
+              spotSell = numbers[3];     // 即期賣出
+              console.log(`${currencyCode} 使用標準數據結構`);
+            }
             
             console.log(`${currencyCode} 匯率解析:`, {
               現金買入: cashBuy,
