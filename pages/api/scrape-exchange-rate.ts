@@ -135,22 +135,31 @@ async function getTaiwanBankRate(from: string, to: string): Promise<ExchangeRate
       const currencyCode = currencyMap[targetCurrency];
       
       if (currencyCode) {
-        // 尋找該貨幣的即期賣出匯率
-        const rateRegex = new RegExp(`${currencyCode}[\\s\\S]*?<td[^>]*>([\\d,]+\\.\\d+)</td>[\\s\\S]*?<td[^>]*>([\\d,]+\\.\\d+)</td>`, 'i');
+        // 尋找該貨幣的即期匯率（跳過現金匯率，匹配即期匯率）
+        const rateRegex = new RegExp(`${currencyCode}[\\s\\S]*?<td[^>]*>([\\d,]+\\.\\d+)</td>[\\s\\S]*?<td[^>]*>([\\d,]+\\.\\d+)</td>[\\s\\S]*?<td[^>]*>([\\d,]+\\.\\d+)</td>[\\s\\S]*?<td[^>]*>([\\d,]+\\.\\d+)</td>`, 'i');
         const match = html.match(rateRegex);
         
         if (match) {
-          // match[1] 是即期買入, match[2] 是即期賣出
-          const sellRate = parseFloat(match[2].replace(/,/g, ''));
-          const buyRate = parseFloat(match[1].replace(/,/g, ''));
+          // match[1] 是現金買入, match[2] 是現金賣出, match[3] 是即期買入, match[4] 是即期賣出
+          console.log(`調試 ${currencyCode} 匹配結果:`, {
+            match1_現金買入: match[1],
+            match2_現金賣出: match[2], 
+            match3_即期買入: match[3],
+            match4_即期賣出: match[4]
+          });
+          
+          const spotSellRate = parseFloat(match[4].replace(/,/g, ''));
+          const spotBuyRate = parseFloat(match[3].replace(/,/g, ''));
+          
+          console.log(`使用即期匯率: 買入=${spotBuyRate}, 賣出=${spotSellRate}`);
           
           let rate: number;
           if (from === 'TWD') {
-            // TWD 轉外幣，使用買入價的倒數
-            rate = 1 / buyRate;
+            // TWD 轉外幣，使用即期買入價的倒數
+            rate = 1 / spotBuyRate;
           } else {
-            // 外幣轉 TWD，使用賣出價
-            rate = sellRate;
+            // 外幣轉 TWD，使用即期賣出價
+            rate = spotSellRate;
           }
           
           return {
