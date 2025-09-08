@@ -84,37 +84,30 @@ export default function HistoricalDataManager({ currentPortfolioData, onDataSave
     data.forEach((item: any) => {
       const quantity = parseFloat(item.quantity) || 0;
       const currentPrice = parseFloat(item.currentPrice) || 0;
-      const cost = parseFloat(item.cost) || 0;
+      // 使用 costBasis 而非 cost，與持倉明細的邏輯一致
+      const costBasis = parseFloat(item.costBasis) || 0;
       const currency = item.currency || 'TWD';
 
-      // 獲取匯率轉換（與投資總覽邏輯一致）
+      // 獲取匯率轉換（與持倉明細邏輯一致）
       let exchangeRate = 1;
-      if (currency !== 'TWD' && exchangeRates) {
-        // 使用儲存的匯率資料
-        if (currency === 'USD' && exchangeRates.USD) {
-          exchangeRate = exchangeRates.USD;
-        } else if (currency === 'EUR' && exchangeRates.EUR) {
-          exchangeRate = exchangeRates.EUR;
-        } else if (currency === 'GBP' && exchangeRates.GBP) {
-          exchangeRate = exchangeRates.GBP;
-        } else if (currency === 'CHF' && exchangeRates.CHF) {
-          exchangeRate = exchangeRates.CHF;
-        } else if (currency === 'JPY' && exchangeRates.JPY) {
-          exchangeRate = exchangeRates.JPY;
-        }
+      if (currency === 'USD') {
+        exchangeRate = exchangeRates?.USD || 32.0;
+      } else if (currency === 'EUR') {
+        exchangeRate = exchangeRates?.EUR || 35.0;
+      } else if (currency === 'GBP') {
+        exchangeRate = exchangeRates?.GBP || 40.0;
+      } else if (currency === 'CHF') {
+        exchangeRate = exchangeRates?.CHF || 35.5;
+      } else if (currency === 'JPY') {
+        exchangeRate = exchangeRates?.JPY || 0.22;
       }
 
-      // 計算市值（原幣）
-      const currentValueOriginal = quantity * currentPrice;
-      // 計算購入成本（原幣）
-      const costValueOriginal = quantity * cost;
-      
-      // 轉換為台幣
-      const currentValueTWD = currentValueOriginal * exchangeRate;
-      const costValueTWD = costValueOriginal * exchangeRate;
+      // 轉換為台幣後加總（與持倉明細邏輯完全一致）
+      const twdValue = quantity * currentPrice * exchangeRate;
+      const twdCost = quantity * costBasis * exchangeRate;
 
-      totalValue += currentValueTWD;
-      totalCost += costValueTWD;
+      totalValue += twdValue;
+      totalCost += twdCost;
     });
 
     const totalGainLoss = totalValue - totalCost;
