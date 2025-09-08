@@ -104,9 +104,14 @@ export default function HistoricalDataManager({ currentPortfolioData, onDataSave
         }
       }
 
-      // 轉換為台幣計算
-      const currentValueTWD = quantity * currentPrice * exchangeRate;
-      const costValueTWD = quantity * cost * exchangeRate;
+      // 計算市值（原幣）
+      const currentValueOriginal = quantity * currentPrice;
+      // 計算購入成本（原幣）
+      const costValueOriginal = quantity * cost;
+      
+      // 轉換為台幣
+      const currentValueTWD = currentValueOriginal * exchangeRate;
+      const costValueTWD = costValueOriginal * exchangeRate;
 
       totalValue += currentValueTWD;
       totalCost += costValueTWD;
