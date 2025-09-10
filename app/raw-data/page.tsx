@@ -6,11 +6,15 @@ import { PageHeader, HistoricalDataManager } from '@/components';
 import { usePortfolio } from '@/hooks/usePortfolio';
 
 export default function RawDataPage() {
-  const { getHoldingDetails } = usePortfolio();
+  const { getHoldingDetails, updatePrices } = usePortfolio();
   const holdingDetails = getHoldingDetails();
 
   const handleDataSaved = (date: string) => {
     console.log(`資料已儲存到 ${date}`);
+  };
+
+  const handleUpdatePrices = async () => {
+    await updatePrices();
   };
 
   return (
@@ -30,6 +34,7 @@ export default function RawDataPage() {
               <HistoricalDataManager 
                 currentPortfolioData={holdingDetails}
                 onDataSaved={handleDataSaved}
+                onUpdatePrices={handleUpdatePrices}
               />
             </Grid.Col>
             

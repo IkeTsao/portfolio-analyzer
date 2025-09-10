@@ -20,9 +20,10 @@ interface HistoricalRecord {
 interface HistoricalDataManagerProps {
   currentPortfolioData?: any;
   onDataSaved?: (date: string) => void;
+  onUpdatePrices?: () => Promise<void>; // 新增更新價格函數
 }
 
-export default function HistoricalDataManager({ currentPortfolioData, onDataSaved }: HistoricalDataManagerProps) {
+export default function HistoricalDataManager({ currentPortfolioData, onDataSaved, onUpdatePrices }: HistoricalDataManagerProps) {
   const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
   const [historicalRecords, setHistoricalRecords] = useState<HistoricalRecord[]>([]);
   const [confirmModalOpened, setConfirmModalOpened] = useState(false);
@@ -132,6 +133,43 @@ export default function HistoricalDataManager({ currentPortfolioData, onDataSave
         color: 'orange',
       });
       return;
+    }
+
+    // 先觸發更新價格計算
+    if (onUpdatePrices) {
+      try {
+        notifications.show({
+          id: 'updating-before-save',
+          title: '正在更新價格',
+          message: '儲存前先更新最新價格和匯率...',
+          loading: true,
+          autoClose: false,
+        });
+
+        await onUpdatePrices();
+
+        notifications.update({
+          id: 'updating-before-save',
+          title: '價格更新完成',
+          message: '開始儲存最新數據...',
+          color: 'green',
+          loading: false,
+          autoClose: 1000,
+        });
+
+        // 等待一秒讓價格更新完成
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      } catch (error) {
+        notifications.update({
+          id: 'updating-before-save',
+          title: '價格更新失敗',
+          message: '將使用當前價格進行儲存',
+          color: 'orange',
+          loading: false,
+          autoClose: 3000,
+        });
+        console.error('更新價格失敗:', error);
+      }
     }
 
     const dateStr = formatDate(selectedDate);
