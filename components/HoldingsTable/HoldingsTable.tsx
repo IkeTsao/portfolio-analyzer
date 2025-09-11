@@ -126,7 +126,7 @@ export default function HoldingsTable({
   };
 
   // 儲存當日 CSV 資料
-  const handleSaveTodayCSV = () => {
+  const handleSaveTodayCSV = async () => {
     if (!holdings || holdings.length === 0) {
       notifications.show({
         title: '無資料可儲存',
@@ -134,6 +134,43 @@ export default function HoldingsTable({
         color: 'orange',
       });
       return;
+    }
+
+    // 先觸發更新價格計算
+    if (onUpdatePrices) {
+      try {
+        notifications.show({
+          id: 'updating-before-save-today',
+          title: '正在更新價格',
+          message: '儲存前先更新最新價格和匯率...',
+          loading: true,
+          autoClose: false,
+        });
+
+        await onUpdatePrices();
+
+        notifications.update({
+          id: 'updating-before-save-today',
+          title: '價格更新完成',
+          message: '開始儲存今日數據...',
+          color: 'green',
+          loading: false,
+          autoClose: 1000,
+        });
+
+        // 等待一秒讓價格更新完成
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      } catch (error) {
+        notifications.update({
+          id: 'updating-before-save-today',
+          title: '價格更新失敗',
+          message: '將使用當前價格進行儲存',
+          color: 'orange',
+          loading: false,
+          autoClose: 3000,
+        });
+        console.error('更新價格失敗:', error);
+      }
     }
 
     if (checkTodayExists()) {
@@ -323,6 +360,43 @@ export default function HoldingsTable({
   // 導出 CSV
   const handleExportCSV = async () => {
     try {
+      // 先觸發更新價格計算
+      if (onUpdatePrices) {
+        try {
+          notifications.show({
+            id: 'updating-before-export',
+            title: '正在更新價格',
+            message: '導出前先更新最新價格和匯率...',
+            loading: true,
+            autoClose: false,
+          });
+
+          await onUpdatePrices();
+
+          notifications.update({
+            id: 'updating-before-export',
+            title: '價格更新完成',
+            message: '開始導出最新數據...',
+            color: 'green',
+            loading: false,
+            autoClose: 1000,
+          });
+
+          // 等待一秒讓價格更新完成
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        } catch (error) {
+          notifications.update({
+            id: 'updating-before-export',
+            title: '價格更新失敗',
+            message: '將使用當前價格進行導出',
+            color: 'orange',
+            loading: false,
+            autoClose: 3000,
+          });
+          console.error('更新價格失敗:', error);
+        }
+      }
+
       // 獲取當前匯率資料（使用匯率頁的5種匯率）
       let exchangeRates: any = {};
       try {
@@ -403,7 +477,7 @@ export default function HoldingsTable({
       
       notifications.show({
         title: '導出成功',
-        message: `已導出 ${holdings.length} 筆持倉數據（包含匯率資料）`,
+        message: `已導出 ${holdings.length} 筆持倉數據（包含最新價格和匯率）`,
         color: 'green',
       });
     } catch (error) {
