@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Container,
   Grid,
@@ -32,6 +32,50 @@ export default function HomePage() {
   } = usePortfolio();
 
   const holdingDetails = getHoldingDetails();
+
+  // 頁面載入時自動更新價格
+  useEffect(() => {
+    const autoUpdatePrices = async () => {
+      try {
+        // 顯示自動更新通知
+        notifications.show({
+          id: 'auto-updating-prices',
+          title: '正在載入最新數據',
+          message: '自動更新價格和匯率中...',
+          loading: true,
+          autoClose: false,
+        });
+
+        await updatePrices();
+
+        // 顯示成功通知
+        notifications.update({
+          id: 'auto-updating-prices',
+          title: '數據載入完成',
+          message: '已載入最新的價格和匯率數據',
+          color: 'green',
+          loading: false,
+          autoClose: 2000,
+        });
+      } catch (error) {
+        // 顯示錯誤通知
+        notifications.update({
+          id: 'auto-updating-prices',
+          title: '數據載入失敗',
+          message: '無法獲取最新數據，顯示快取數據',
+          color: 'orange',
+          loading: false,
+          autoClose: 3000,
+        });
+        console.error('自動更新價格失敗:', error);
+      }
+    };
+
+    // 延遲500ms執行，確保頁面完全載入
+    const timer = setTimeout(autoUpdatePrices, 500);
+    
+    return () => clearTimeout(timer);
+  }, []); // 空依賴陣列，只在組件首次載入時執行
 
   const handleAddHolding = () => {
     setEditingHolding(null);
