@@ -48,6 +48,9 @@ export default function HomePage() {
 
         await updatePrices();
 
+        // 更新價格後刷新持倉明細，確保記憶體內容同步
+        refreshHoldings();
+
         // 顯示成功通知
         notifications.update({
           id: 'auto-updating-prices',
@@ -110,6 +113,9 @@ export default function HomePage() {
 
       // 直接更新價格，不再詢問共同基金手動輸入
       await updatePrices();
+
+      // 更新價格後刷新持倉明細，確保記憶體內容同步
+      refreshHoldings();
 
       // 顯示成功通知
       notifications.update({
