@@ -962,11 +962,16 @@ export default function HoldingsTable({
                     ) >= 0 ? 'green' : 'red'}
                   >
                     ${(() => {
-                      const total = filteredHoldings.reduce((sum, holding) => 
+                      const totalGainLoss = filteredHoldings.reduce((sum, holding) => 
                         sum + (holding.gainLoss || 0), 0
                       );
-                      const formatted = formatCurrency(total);
-                      return formatted ? formatted.replace('NT$ ', '') : '0';
+                      const totalCost = filteredHoldings.reduce((sum, holding) => 
+                        sum + (holding.costValue || 0), 0
+                      );
+                      const gainLossPercent = totalCost > 0 ? (totalGainLoss / totalCost * 100) : 0;
+                      const formatted = formatCurrency(totalGainLoss);
+                      const formattedValue = formatted ? formatted.replace('NT$ ', '') : '0';
+                      return `${formattedValue} (${gainLossPercent >= 0 ? '+' : ''}${gainLossPercent.toFixed(1)}%)`;
                     })()}
                   </Text>
                 </div>
