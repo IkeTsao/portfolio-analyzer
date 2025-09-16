@@ -107,6 +107,7 @@ export const getExchangeRate = async (from: string, to: string) => {
 // 批量更新價格
 export async function updateAllPrices(holdings: any[], forceUpdate: boolean = false): Promise<PriceData[]> {
   const pricePromises: Promise<PriceData | null>[] = [];
+  let holdingsModified = false;
   
   for (const holding of holdings) {
     // 現金類型不需要價格更新
@@ -129,6 +130,8 @@ export async function updateAllPrices(holdings: any[], forceUpdate: boolean = fa
     // 如果需要清除現價，將 currentPrice 設為 undefined
     if (shouldClearPrice) {
       holding.currentPrice = undefined;
+      holding.lastUpdated = undefined;
+      holdingsModified = true;
       console.log(`清除 ${holding.symbol} 的現價，準備重新獲取`);
     }
 
@@ -149,6 +152,16 @@ export async function updateAllPrices(holdings: any[], forceUpdate: boolean = fa
     // 強制更新、清除現價後，或沒有現價時，使用API獲取價格
     console.log(`正在獲取 ${holding.symbol} 的最新價格 (類型: ${holding.type})`);
     pricePromises.push(fetchStockPrice(holding.symbol));
+  }
+  
+  // 如果有修改持倉數據（清除現價），保存到localStorage
+  if (holdingsModified) {
+    try {
+      localStorage.setItem('portfolioHoldings', JSON.stringify(holdings));
+      console.log('已保存清除現價後的持倉數據到localStorage');
+    } catch (error) {
+      console.error('保存持倉數據失敗:', error);
+    }
   }
   
   const results = await Promise.all(pricePromises);
