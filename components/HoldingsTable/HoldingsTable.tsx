@@ -968,7 +968,9 @@ export default function HoldingsTable({
                       const totalMarketValue = filteredHoldings.reduce((sum, holding) => 
                         sum + (holding.currentValue || 0), 0
                       );
-                      const gainLossPercent = totalMarketValue > 0 ? (totalGainLoss / totalMarketValue * 100) : 0;
+                      // 分母為市值小計扣除損益之前的成本 = 市值小計 - 損益小計
+                      const totalCost = totalMarketValue - totalGainLoss;
+                      const gainLossPercent = totalCost > 0 ? (totalGainLoss / totalCost * 100) : 0;
                       const formatted = formatCurrency(totalGainLoss);
                       const formattedValue = formatted ? formatted.replace('NT$ ', '') : '0';
                       return `${formattedValue} (${gainLossPercent >= 0 ? '+' : ''}${gainLossPercent.toFixed(1)}%)`;
