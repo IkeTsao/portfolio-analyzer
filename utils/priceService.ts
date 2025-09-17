@@ -154,16 +154,32 @@ export async function updateAllPrices(holdings: any[], forceUpdate: boolean = fa
     pricePromises.push(fetchStockPrice(holding.symbol));
   }
   
-  // 如果有修改持倉數據（清除現價），保存到localStorage
+  const results = await Promise.all(pricePromises);
+  const validResults = results.filter((price): price is PriceData => price !== null);
+  
+  // 將API獲取的新價格更新到持倉數據中
+  for (const priceData of validResults) {
+    const holding = holdings.find(h => h.symbol === priceData.symbol);
+    if (holding && holding.type !== 'cash') {
+      // 只有在強制更新或沒有手動輸入價格時才更新
+      if (forceUpdate || !holding.currentPrice || holding.currentPrice <= 0) {
+        holding.currentPrice = priceData.price;
+        holding.lastUpdated = priceData.timestamp;
+        holdingsModified = true;
+        console.log(`更新 ${holding.symbol} 的現價為 ${priceData.price}`);
+      }
+    }
+  }
+  
+  // 如果有修改持倉數據，保存到localStorage
   if (holdingsModified) {
     try {
       localStorage.setItem('portfolioHoldings', JSON.stringify(holdings));
-      console.log('已保存清除現價後的持倉數據到localStorage');
+      console.log('已保存更新後的持倉數據到localStorage');
     } catch (error) {
       console.error('保存持倉數據失敗:', error);
     }
   }
   
-  const results = await Promise.all(pricePromises);
-  return results.filter((price): price is PriceData => price !== null);
+  return validResults;
 }
