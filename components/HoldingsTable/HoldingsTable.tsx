@@ -944,7 +944,7 @@ export default function HoldingsTable({
                       const percentage = totalPortfolioValue > 0 ? (subtotal / totalPortfolioValue * 100) : 0;
                       const formatted = formatCurrency(subtotal);
                       const formattedValue = formatted ? formatted.replace('NT$ ', '') : '0';
-                      return `${formattedValue} (${percentage.toFixed(1)}%)`;
+                      return `${formattedValue} (${percentage.toFixed(2)}%)`;
                     })()}
                   </Text>
                 </div>
@@ -973,7 +973,7 @@ export default function HoldingsTable({
                       const gainLossPercent = totalCost > 0 ? (totalGainLoss / totalCost * 100) : 0;
                       const formatted = formatCurrency(totalGainLoss);
                       const formattedValue = formatted ? formatted.replace('NT$ ', '') : '0';
-                      return `${formattedValue} (${gainLossPercent >= 0 ? '+' : ''}${gainLossPercent.toFixed(1)}%)`;
+                      return `${formattedValue} (${gainLossPercent >= 0 ? '+' : ''}${gainLossPercent.toFixed(2)}%)`;
                     })()}
                   </Text>
                 </div>
