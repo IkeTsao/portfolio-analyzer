@@ -21,6 +21,7 @@ export interface Holding {
   purchaseDate: string;
   currentPrice?: number; // 當前價格（從API獲取）
   lastUpdated?: string; // 價格更新時間
+  priceSource?: 'csv' | 'api' | 'manual'; // 價格來源：CSV匯入、API獲取、手動輸入
 }
 
 export interface PriceData {

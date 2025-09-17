@@ -272,7 +272,8 @@ export function parseHoldingsFromCSV(csvContent: string): { holdings: Holding[],
         currency: values[11]?.toUpperCase() || 'USD',
         // 跳過市值(台幣)欄位 (values[12])，因為這是計算值
         purchaseDate: values[13] || new Date().toISOString().split('T')[0],
-        lastUpdated: values[14] || undefined
+        lastUpdated: values[14] || undefined,
+        priceSource: values[9] ? 'csv' : undefined // 如果有現價，標記為CSV來源
       };
 
       // 驗證必要欄位

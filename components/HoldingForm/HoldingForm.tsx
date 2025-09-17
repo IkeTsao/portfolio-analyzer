@@ -71,6 +71,7 @@ export default function HoldingForm({ opened, onClose, holding, onSave }: Holdin
         purchaseDate: values.purchaseDate,
         currentPrice: values.currentPrice > 0 ? values.currentPrice : undefined,
         lastUpdated: values.currentPrice > 0 ? new Date().toISOString() : undefined,
+        priceSource: values.currentPrice > 0 ? 'manual' : undefined, // 手動輸入的價格標記為 manual
       };
 
       if (holding?.id) {
