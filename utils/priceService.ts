@@ -130,9 +130,9 @@ export async function updateAllPrices(holdings: any[], forceUpdate: boolean = fa
     
     // 強制更新時的邏輯
     if (forceUpdate) {
-      // 保留 CSV 和手動輸入的價格，只更新 API 價格或沒有價格的項目
-      if (priceSource === 'csv' || priceSource === 'manual') {
-        console.log(`[保留${priceSource === 'csv' ? 'CSV' : '手動'}價格] ${holding.symbol}: ${holding.currentPrice} (來源: ${priceSource})`);
+      // 只保留手動輸入的價格，CSV 價格和 API 價格都要更新為最新價格
+      if (priceSource === 'manual') {
+        console.log(`[保留手動價格] ${holding.symbol}: ${holding.currentPrice} (來源: manual)`);
         pricePromises.push(Promise.resolve({
           symbol: holding.symbol,
           price: holding.currentPrice,
@@ -145,7 +145,7 @@ export async function updateAllPrices(holdings: any[], forceUpdate: boolean = fa
         continue;
       }
       
-      // 對於 API 價格或沒有價格來源的項目，進行更新
+      // 對於 CSV 價格、API 價格或沒有價格來源的項目，都進行更新
       console.log(`[強制更新] ${holding.symbol}: 準備獲取最新價格 (當前來源: ${priceSource || '無'})`);
       pricePromises.push(fetchStockPrice(holding.symbol));
     } else {
@@ -180,9 +180,9 @@ export async function updateAllPrices(holdings: any[], forceUpdate: boolean = fa
       const priceSource = holding.priceSource;
       
       // 只有在以下情況才更新價格：
-      // 1. 強制更新且不是 CSV 或手動價格
+      // 1. 強制更新且不是手動價格 (CSV 價格會被更新)
       // 2. 非強制更新且沒有現價
-      const shouldUpdate = (forceUpdate && priceSource !== 'csv' && priceSource !== 'manual') ||
+      const shouldUpdate = (forceUpdate && priceSource !== 'manual') ||
                           (!forceUpdate && (!holding.currentPrice || holding.currentPrice <= 0));
       
       if (shouldUpdate) {
