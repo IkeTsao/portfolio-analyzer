@@ -129,10 +129,11 @@ export async function updateAllPrices(holdings: any[], forceUpdate: boolean = fa
     
     // 如果需要清除現價，將 currentPrice 設為 undefined
     if (shouldClearPrice) {
+      console.log(`[清除現價] ${holding.symbol}: ${holding.currentPrice} → undefined (forceUpdate=${forceUpdate})`);
       holding.currentPrice = undefined;
       holding.lastUpdated = undefined;
       holdingsModified = true;
-      console.log(`清除 ${holding.symbol} 的現價，準備重新獲取`);
+      console.log(`✅ 已清除 ${holding.symbol} 的現價，準備重新獲取`);
     }
 
     // 如果不是強制更新且有手動輸入的現價，使用現有價格
@@ -163,10 +164,13 @@ export async function updateAllPrices(holdings: any[], forceUpdate: boolean = fa
     if (holding && holding.type !== 'cash') {
       // 只有在強制更新或沒有手動輸入價格時才更新
       if (forceUpdate || !holding.currentPrice || holding.currentPrice <= 0) {
+        console.log(`[價格更新] ${holding.symbol}: ${holding.currentPrice} → ${priceData.price}`);
         holding.currentPrice = priceData.price;
         holding.lastUpdated = priceData.timestamp;
         holdingsModified = true;
-        console.log(`更新 ${holding.symbol} 的現價為 ${priceData.price}`);
+        console.log(`✅ 已更新 ${holding.symbol} 的現價為 ${priceData.price}`);
+      } else {
+        console.log(`⚠️ 跳過 ${holding.symbol} 的價格更新，因為已有手動輸入價格: ${holding.currentPrice}`);
       }
     }
   }
