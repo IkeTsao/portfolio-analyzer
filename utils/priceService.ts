@@ -124,16 +124,20 @@ export async function updateAllPrices(holdings: any[], forceUpdate: boolean = fa
       continue;
     }
 
-    // 針對所有非現金的項目，在強制更新時先清除現價
-    const shouldClearPrice = forceUpdate && holding.type !== 'cash';
+    // 檢查是否應該清除現價
+    // 只有在強制更新且沒有從CSV導入現價時才清除
+    const hasCSVPrice = holding.currentPrice && holding.currentPrice > 0 && holding.lastUpdated;
+    const shouldClearPrice = forceUpdate && holding.type !== 'cash' && !hasCSVPrice;
     
     // 如果需要清除現價，將 currentPrice 設為 undefined
     if (shouldClearPrice) {
-      console.log(`[清除現價] ${holding.symbol}: ${holding.currentPrice} → undefined (forceUpdate=${forceUpdate})`);
+      console.log(`[清除現價] ${holding.symbol}: ${holding.currentPrice} → undefined (forceUpdate=${forceUpdate}, 非CSV導入)`);
       holding.currentPrice = undefined;
       holding.lastUpdated = undefined;
       holdingsModified = true;
       console.log(`✅ 已清除 ${holding.symbol} 的現價，準備重新獲取`);
+    } else if (hasCSVPrice) {
+      console.log(`[保留CSV現價] ${holding.symbol}: ${holding.currentPrice} (從CSV導入，不清除)`);
     }
 
     // 如果不是強制更新且有手動輸入的現價，使用現有價格
@@ -145,6 +149,20 @@ export async function updateAllPrices(holdings: any[], forceUpdate: boolean = fa
         changePercent: 0,
         currency: holding.currency,
         timestamp: holding.lastUpdated || new Date().toISOString(),
+        source: 'yahoo' as const,
+      }));
+      continue;
+    }
+
+    // 如果有CSV導入的現價且是強制更新，仍使用CSV現價
+    if (hasCSVPrice && forceUpdate) {
+      pricePromises.push(Promise.resolve({
+        symbol: holding.symbol,
+        price: holding.currentPrice,
+        change: 0,
+        changePercent: 0,
+        currency: holding.currency,
+        timestamp: holding.lastUpdated,
         source: 'yahoo' as const,
       }));
       continue;
@@ -162,13 +180,16 @@ export async function updateAllPrices(holdings: any[], forceUpdate: boolean = fa
   for (const priceData of validResults) {
     const holding = holdings.find(h => h.symbol === priceData.symbol);
     if (holding && holding.type !== 'cash') {
-      // 只有在強制更新或沒有手動輸入價格時才更新
-      if (forceUpdate || !holding.currentPrice || holding.currentPrice <= 0) {
+      // 只有在沒有CSV現價且需要更新時才更新
+      const hasCSVPrice = holding.currentPrice && holding.currentPrice > 0 && holding.lastUpdated;
+      if (!hasCSVPrice && (forceUpdate || !holding.currentPrice || holding.currentPrice <= 0)) {
         console.log(`[價格更新] ${holding.symbol}: ${holding.currentPrice} → ${priceData.price}`);
         holding.currentPrice = priceData.price;
         holding.lastUpdated = priceData.timestamp;
         holdingsModified = true;
         console.log(`✅ 已更新 ${holding.symbol} 的現價為 ${priceData.price}`);
+      } else if (hasCSVPrice) {
+        console.log(`[保留CSV現價] ${holding.symbol}: 保持 ${holding.currentPrice} (從CSV導入)`);
       } else {
         console.log(`⚠️ 跳過 ${holding.symbol} 的價格更新，因為已有手動輸入價格: ${holding.currentPrice}`);
       }
