@@ -219,11 +219,11 @@ export default function HistoricalDataManager({ currentPortfolioData, onDataSave
         };
       }
       
-      // 計算投資組合摘要（直接使用已計算的結果）- 與 HoldingsTable 完全一致
+      // 計算投資組合摘要（直接使用已計算的結果）
       let totalValue = 0;
       let totalCost = 0;
       
-      currentPortfolioData.forEach((holding: any) => {
+      currentPortfolioData.forEach((holding) => {
         // 直接使用已計算的市值和成本值
         if (holding.currentValue) {
           totalValue += holding.currentValue;
@@ -231,8 +231,7 @@ export default function HistoricalDataManager({ currentPortfolioData, onDataSave
         if (holding.costValue) {
           totalCost += holding.costValue;
         }
-      });
-      
+      });      
       const totalGainLoss = totalValue - totalCost;
       
       // 準備新記錄（包含匯率資料）- 完全套用 HoldingsTable 邏輯

@@ -22,6 +22,13 @@ export interface Holding {
   currentPrice?: number; // 當前價格（從API獲取）
   lastUpdated?: string; // 價格更新時間
   priceSource?: 'csv' | 'api' | 'manual'; // 價格來源：CSV匯入、API獲取、手動輸入
+  
+  // 計算欄位 - 現在直接儲存在 localStorage 中
+  currentValue?: number; // 市值(台幣)
+  costValue?: number; // 成本(台幣)
+  gainLoss?: number; // 損益(台幣)
+  gainLossPercent?: number; // 損益百分比
+  exchangeRate?: number; // 使用的匯率
 }
 
 export interface PriceData {

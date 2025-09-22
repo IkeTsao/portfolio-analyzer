@@ -155,27 +155,10 @@ export function exportHoldingsToCSV(holdings: Holding[], exchangeRates?: any): s
 
   // 數據行（使用排序後的數據）
   const rows = sortedHoldings.map(holding => {
-    // 計算台幣市值
+    // 直接使用已計算的台幣市值
     const quantity = holding.quantity || 0;
     const currentPrice = holding.currentPrice || 0;
-    const currency = holding.currency || 'TWD';
-    
-    let exchangeRate = 1;
-    if (currency !== 'TWD' && exchangeRates) {
-      if (currency === 'USD' && exchangeRates.USD) {
-        exchangeRate = exchangeRates.USD;
-      } else if (currency === 'EUR' && exchangeRates.EUR) {
-        exchangeRate = exchangeRates.EUR;
-      } else if (currency === 'GBP' && exchangeRates.GBP) {
-        exchangeRate = exchangeRates.GBP;
-      } else if (currency === 'CHF' && exchangeRates.CHF) {
-        exchangeRate = exchangeRates.CHF;
-      } else if (currency === 'JPY' && exchangeRates.JPY) {
-        exchangeRate = exchangeRates.JPY;
-      }
-    }
-    
-    const twdValue = quantity * currentPrice * exchangeRate;
+    const twdValue = holding.currentValue || 0; // 直接使用已計算的市值
     
     // 計算總成本和總現值（原幣）
     const totalCost = quantity * holding.costBasis;

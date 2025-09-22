@@ -119,7 +119,32 @@ export const usePortfolio = () => {
 
   // 獲取持倉詳細資訊
   const getHoldingDetails = useCallback(() => {
-    return calculateHoldingDetails(holdings, priceData, exchangeRates);
+    // 計算完整的持倉詳細資料
+    const calculatedHoldings = calculateHoldingDetails(holdings, priceData, exchangeRates);
+    
+    // 更新 localStorage 中的計算欄位
+    const updatedHoldings = holdings.map(holding => {
+      const calculated = calculatedHoldings.find(c => c.id === holding.id);
+      if (calculated) {
+        return {
+          ...holding,
+          currentValue: calculated.currentValue,
+          costValue: calculated.costValue,
+          gainLoss: calculated.gainLoss,
+          gainLossPercent: calculated.gainLossPercent,
+          exchangeRate: calculated.exchangeRate,
+        };
+      }
+      return holding;
+    });
+    
+    // 儲存更新後的資料到 localStorage
+    localStorage.setItem('portfolio_holdings', JSON.stringify(updatedHoldings));
+    
+    // 更新 React 狀態
+    setHoldings(updatedHoldings);
+    
+    return calculatedHoldings;
   }, [holdings, priceData, exchangeRates]);
 
   // 按帳戶獲取持倉

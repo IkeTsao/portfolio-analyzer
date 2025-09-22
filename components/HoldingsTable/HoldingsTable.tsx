@@ -44,7 +44,7 @@ import { deleteHolding } from '@/utils/portfolioStorage';
 import { notifications } from '@mantine/notifications';
 import { exportHoldingsToCSV, downloadCSV, importHoldingsFromFile } from '@/utils/csvUtils';
 
-interface HoldingWithCalculations extends Holding {
+interface Holding extends Holding {
   currentPrice?: number;
   currentValue?: number;
   costValue?: number;
@@ -56,11 +56,11 @@ interface HoldingWithCalculations extends Holding {
 }
 
 interface HoldingsTableProps {
-  holdings: HoldingWithCalculations[];
+  holdings: Holding[];
   loading?: boolean;
   onAdd?: () => void;
   onEdit?: (holding: Holding) => void;
-  onRefresh?: () => void;
+  onDelete?: (holding: Holding) => void;
   onUpdatePrices?: () => void;
 }
 
@@ -568,7 +568,7 @@ export default function HoldingsTable({
       accessor: 'accountId',
       title: '帳戶',
       width: 100,
-      render: (holding: HoldingWithCalculations) => {
+      render: (holding: Holding) => {
         const accountLabels: { [key: string]: string } = {
           etrade: 'Etrade',
           fubon: '富邦銀行',
@@ -585,7 +585,7 @@ export default function HoldingsTable({
       accessor: 'symbol',
       title: '代碼',
       width: 100,
-      render: (holding: HoldingWithCalculations) => (
+      render: (holding: Holding) => (
         <Text fw={500}>{holding.symbol}</Text>
       ),
     },
@@ -593,7 +593,7 @@ export default function HoldingsTable({
       accessor: 'name',
       title: '名稱',
       width: 120,
-      render: (holding: HoldingWithCalculations) => (
+      render: (holding: Holding) => (
         <Text size="sm" fw={500}>{holding.name}</Text>
       ),
     },
@@ -601,7 +601,7 @@ export default function HoldingsTable({
       accessor: 'type',
       title: '類型',
       width: 80,
-      render: (holding: HoldingWithCalculations) => (
+      render: (holding: Holding) => (
         <Badge size="xs" color={TYPE_COLORS[holding.type]}>
           {TYPE_LABELS[holding.type]}
         </Badge>
@@ -611,7 +611,7 @@ export default function HoldingsTable({
       accessor: 'market',
       title: '市場',
       width: 80,
-      render: (holding: HoldingWithCalculations) => (
+      render: (holding: Holding) => (
         <Badge size="xs" variant="light">
           {MARKET_LABELS[holding.market]}
         </Badge>
@@ -622,7 +622,7 @@ export default function HoldingsTable({
       title: '數量',
       width: 100,
       textAlign: 'right' as const,
-      render: (holding: HoldingWithCalculations) => (
+      render: (holding: Holding) => (
         <Text size="sm">{formatQuantityWithCommas(holding.quantity)}</Text>
       ),
     },
@@ -631,7 +631,7 @@ export default function HoldingsTable({
       title: '成本價',
       width: 120,
       textAlign: 'right' as const,
-      render: (holding: HoldingWithCalculations) => (
+      render: (holding: Holding) => (
         <Text size="sm">{formatCurrencyWithSymbol(holding.costBasis, holding.currency)}</Text>
       ),
     },
@@ -640,7 +640,7 @@ export default function HoldingsTable({
       title: '購入成本(原幣)',
       width: 120,
       textAlign: 'right' as const,
-      render: (holding: HoldingWithCalculations) => {
+      render: (holding: Holding) => {
         const totalCost = holding.quantity * holding.costBasis;
         return (
           <Text size="sm">
@@ -654,7 +654,7 @@ export default function HoldingsTable({
       title: '現價(原幣)',
       width: 120,
       textAlign: 'right' as const,
-      render: (holding: HoldingWithCalculations) => (
+      render: (holding: Holding) => (
         <Stack gap={2} align="flex-end">
           <Text size="sm" fw={500}>
             {holding.currentPrice ? 
@@ -678,7 +678,7 @@ export default function HoldingsTable({
       title: '市值(原幣)',
       width: 120,
       textAlign: 'right' as const,
-      render: (holding: HoldingWithCalculations) => {
+      render: (holding: Holding) => {
         const totalCurrentValue = holding.quantity * (holding.currentPrice || 0);
         return (
           <Text size="sm" fw={500}>
@@ -695,7 +695,7 @@ export default function HoldingsTable({
       title: '市值(台幣)',
       width: 120,
       textAlign: 'right' as const,
-      render: (holding: HoldingWithCalculations) => (
+      render: (holding: Holding) => (
         <Text size="sm" fw={500}>
           {holding.currentValue !== undefined && holding.currentValue !== null ? formatCurrency(holding.currentValue) : '-'}
         </Text>
@@ -706,7 +706,7 @@ export default function HoldingsTable({
       title: '損益(台幣)',
       width: 140,
       textAlign: 'right' as const,
-      render: (holding: HoldingWithCalculations) => (
+      render: (holding: Holding) => (
         <Stack gap={2} align="flex-end">
           <Text 
             size="sm" 
