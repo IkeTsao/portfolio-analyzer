@@ -503,41 +503,6 @@ export const calculateHoldingDetails = (
   exchangeRates: ExchangeRate[],
   baseCurrency: string = 'TWD'
 ) => {
-  // 首先檢查是否有今日的歷史匯率記錄（來自CSV導入）
-  let effectiveExchangeRates = exchangeRates;  
-  try {
-    const today = new Date().toISOString().split('T')[0];
-    const saved = localStorage.getItem('portfolioHistoricalData');
-    
-    if (saved) {
-      const records = JSON.parse(saved);
-      const todayRecord = records.find((r: any) => r.date === today);
-      
-      if (todayRecord && todayRecord.exchangeRates) {
-        // 將CSV匯率轉換為ExchangeRate格式
-        const csvRates = todayRecord.exchangeRates;
-        const csvExchangeRates: ExchangeRate[] = [];
-        
-        Object.entries(csvRates).forEach(([currency, rate]) => {
-          if (currency !== 'timestamp' && typeof rate === 'number') {
-            csvExchangeRates.push({
-              from: currency,
-              to: 'TWD',
-              rate: rate as number,
-              timestamp: new Date().toISOString(),
-            });
-          }
-        });
-        
-        if (csvExchangeRates.length > 0) {
-          effectiveExchangeRates = csvExchangeRates;
-        }
-      }
-    }
-  } catch (error) {
-    console.warn('獲取CSV匯率資料失敗，使用預設匯率:', error);
-  }
-
   return holdings.map(holding => {
     const price = priceData.find(p => p.symbol === holding.symbol);
     
@@ -554,33 +519,15 @@ export const calculateHoldingDetails = (
       currentPrice = holding.costBasis;
     }
     
+    // 獲取匯率
     const exchangeRate = getExchangeRateForCurrency(
       holding.currency,
       baseCurrency,
-      effectiveExchangeRates
+      exchangeRates
     );
 
-    // 獲取CSV匯率（用於現金匯差計算）
-    let csvExchangeRate: number | undefined;
-    if (holding.type === 'cash' && holding.currency !== 'TWD') {
-      try {
-        const today = new Date().toISOString().split('T')[0];
-        const saved = localStorage.getItem('portfolioHistoricalData');
-        
-        if (saved) {
-          const records = JSON.parse(saved);
-          const todayRecord = records.find((r: any) => r.date === today);
-          
-          if (todayRecord && todayRecord.exchangeRates && todayRecord.exchangeRates[holding.currency]) {
-            csvExchangeRate = parseFloat(todayRecord.exchangeRates[holding.currency].toFixed(2));
-          }
-        }
-      } catch (error) {
-        console.warn('獲取CSV匯率失敗:', error);
-      }
-    }
-
-    const calculations = calculateHoldingValue(holding, currentPrice, exchangeRate, csvExchangeRate);
+    // 計算市值和損益
+    const calculations = calculateHoldingValue(holding, currentPrice, exchangeRate);
 
     return {
       ...holding,
