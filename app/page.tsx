@@ -38,7 +38,7 @@ export default function HomePage() {
     if (holdings.length > 0) {
       updateHoldingCalculations();
     }
-  }, [holdings.length, updateHoldingCalculations]);
+  }, [holdings.length]); // 移除 updateHoldingCalculations 依賴避免無限循環
 
   // 頁面載入時自動更新價格
   useEffect(() => {

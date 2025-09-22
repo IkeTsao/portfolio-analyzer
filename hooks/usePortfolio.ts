@@ -120,33 +120,39 @@ export const usePortfolio = () => {
   // 獲取持倉詳細資訊
   // 更新持倉計算欄位
   const updateHoldingCalculations = useCallback(() => {
-    if (holdings.length === 0) return;
-    
-    // 計算完整的持倉詳細資料
-    const calculatedHoldings = calculateHoldingDetails(holdings, priceData, exchangeRates);
-    
-    // 更新 localStorage 中的計算欄位
-    const updatedHoldings = holdings.map(holding => {
-      const calculated = calculatedHoldings.find(c => c.id === holding.id);
-      if (calculated) {
-        return {
-          ...holding,
-          currentValue: calculated.currentValue,
-          costValue: calculated.costValue,
-          gainLoss: calculated.gainLoss,
-          gainLossPercent: calculated.gainLossPercent,
-          exchangeRate: calculated.exchangeRate,
-        };
-      }
-      return holding;
+    // 使用函數式更新來避免依賴問題
+    setHoldings(currentHoldings => {
+      if (currentHoldings.length === 0) return currentHoldings;
+      
+      // 獲取當前的價格和匯率數據
+      const currentPriceData = loadPriceData();
+      const currentExchangeRates = loadExchangeRates();
+      
+      // 計算完整的持倉詳細資料
+      const calculatedHoldings = calculateHoldingDetails(currentHoldings, currentPriceData, currentExchangeRates);
+      
+      // 更新 localStorage 中的計算欄位
+      const updatedHoldings = currentHoldings.map(holding => {
+        const calculated = calculatedHoldings.find(c => c.id === holding.id);
+        if (calculated) {
+          return {
+            ...holding,
+            currentValue: calculated.currentValue,
+            costValue: calculated.costValue,
+            gainLoss: calculated.gainLoss,
+            gainLossPercent: calculated.gainLossPercent,
+            exchangeRate: calculated.exchangeRate,
+          };
+        }
+        return holding;
+      });
+      
+      // 儲存更新後的資料到 localStorage
+      localStorage.setItem('portfolio_holdings', JSON.stringify(updatedHoldings));
+      
+      return updatedHoldings;
     });
-    
-    // 儲存更新後的資料到 localStorage
-    localStorage.setItem('portfolio_holdings', JSON.stringify(updatedHoldings));
-    
-    // 更新 React 狀態
-    setHoldings(updatedHoldings);
-  }, [holdings, priceData, exchangeRates]);
+  }, []); // 空依賴陣列，避免無限循環
 
   const getHoldingDetails = useCallback(() => {
     return calculateHoldingDetails(holdings, priceData, exchangeRates);
@@ -178,7 +184,7 @@ export const usePortfolio = () => {
     if (holdings.length > 0 && (priceData.length > 0 || exchangeRates.length > 0)) {
       updateHoldingCalculations();
     }
-  }, [priceData, exchangeRates, updateHoldingCalculations]);
+  }, [priceData, exchangeRates]); // 移除 updateHoldingCalculations 依賴避免無限循環
 
   // 計算投資組合統計
   useEffect(() => {
