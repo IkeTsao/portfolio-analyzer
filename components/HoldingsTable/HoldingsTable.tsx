@@ -57,6 +57,7 @@ interface HoldingWithCalculations extends Holding {
 
 interface HoldingsTableProps {
   holdings: HoldingWithCalculations[];
+  rawHoldings?: Holding[]; // 原始持倉資料，用於儲存功能
   loading?: boolean;
   onAdd?: () => void;
   onEdit?: (holding: Holding) => void;
@@ -92,11 +93,12 @@ const MARKET_LABELS: { [key: string]: string } = {
 
 export default function HoldingsTable({ 
   holdings, 
-  loading, 
+  rawHoldings,
+  loading = false, 
   onAdd, 
   onEdit, 
   onRefresh,
-  onUpdatePrices
+  onUpdatePrices,
 }: HoldingsTableProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState<string | null>(null);
@@ -265,7 +267,10 @@ export default function HoldingsTable({
       let totalValue = 0;
       let totalCost = 0;
       
-      holdings.forEach((holding) => {
+      // 使用原始 holdings 資料進行計算，確保與 HistoricalDataManager 一致
+      const holdingsToSave = rawHoldings || holdings;
+      
+      holdingsToSave.forEach((holding) => {
         const quantity = holding.quantity || 0;
         const currentPrice = holding.currentPrice || 0;
         const costBasis = holding.costBasis || 0;
@@ -299,12 +304,12 @@ export default function HoldingsTable({
       const newRecord = {
         date: todayString,
         timestamp: Date.now(),
-        data: holdings,
+        data: holdingsToSave, // 使用原始資料
         exchangeRates, // 新增匯率資料
         totalValue,
         totalCost,
         totalGainLoss,
-        recordCount: holdings.length,
+        recordCount: holdingsToSave.length,
       };
 
       // 獲取現有記錄

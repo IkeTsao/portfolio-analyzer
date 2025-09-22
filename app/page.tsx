@@ -29,9 +29,13 @@ export default function HomePage() {
     lastUpdate,
     updatePrices,
     refreshHoldings,
+    getHoldingDetails,
   } = usePortfolio();
 
-  // 使用原始 holdings 資料，確保與 HistoricalDataManager 一致
+  // 獲取處理後的持倉詳細資料用於顯示
+  const holdingDetails = getHoldingDetails();
+  
+  // 但儲存功能會使用原始 holdings 資料，確保與 HistoricalDataManager 一致
 
   // 頁面載入時自動更新價格
   useEffect(() => {
@@ -185,7 +189,8 @@ export default function HomePage() {
 
           {/* 持倉明細表格 */}
           <HoldingsTable
-            holdings={holdings}
+            holdings={holdingDetails}
+            rawHoldings={holdings}
             loading={loading}
             onAdd={handleAddHolding}
             onEdit={handleEditHolding}
