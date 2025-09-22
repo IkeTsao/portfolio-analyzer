@@ -118,7 +118,10 @@ export const usePortfolio = () => {
   }, []);
 
   // 獲取持倉詳細資訊
-  const getHoldingDetails = useCallback(() => {
+  // 更新持倉計算欄位
+  const updateHoldingCalculations = useCallback(() => {
+    if (holdings.length === 0) return;
+    
     // 計算完整的持倉詳細資料
     const calculatedHoldings = calculateHoldingDetails(holdings, priceData, exchangeRates);
     
@@ -143,8 +146,10 @@ export const usePortfolio = () => {
     
     // 更新 React 狀態
     setHoldings(updatedHoldings);
-    
-    return calculatedHoldings;
+  }, [holdings, priceData, exchangeRates]);
+
+  const getHoldingDetails = useCallback(() => {
+    return calculateHoldingDetails(holdings, priceData, exchangeRates);
   }, [holdings, priceData, exchangeRates]);
 
   // 按帳戶獲取持倉
@@ -167,6 +172,13 @@ export const usePortfolio = () => {
     
     return diffMinutes > 5; // 5分鐘更新一次
   }, [lastUpdate]);
+
+  // 當價格或匯率更新時，自動更新計算欄位
+  useEffect(() => {
+    if (holdings.length > 0 && (priceData.length > 0 || exchangeRates.length > 0)) {
+      updateHoldingCalculations();
+    }
+  }, [priceData, exchangeRates, updateHoldingCalculations]);
 
   // 計算投資組合統計
   useEffect(() => {
@@ -200,6 +212,7 @@ export const usePortfolio = () => {
     updatePrices,
     refreshHoldings,
     getHoldingDetails,
+    updateHoldingCalculations,
     getHoldingsByAccount,
     getHoldingsByType,
     getMutualFundsForManualInput,

@@ -30,14 +30,15 @@ export default function HomePage() {
     updatePrices,
     refreshHoldings,
     getHoldingDetails,
+    updateHoldingCalculations,
   } = usePortfolio();
 
   // 確保計算欄位是最新的
   useEffect(() => {
     if (holdings.length > 0) {
-      getHoldingDetails();
+      updateHoldingCalculations();
     }
-  }, [holdings.length]);
+  }, [holdings.length, updateHoldingCalculations]);
 
   // 頁面載入時自動更新價格
   useEffect(() => {
