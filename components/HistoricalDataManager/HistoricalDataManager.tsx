@@ -82,15 +82,14 @@ export default function HistoricalDataManager({ currentPortfolioData, onDataSave
     let totalCost = 0;
     let recordCount = data.length;
 
-    data.forEach((item: any) => {
-      const quantity = parseFloat(item.quantity) || 0;
-      const currentPrice = parseFloat(item.currentPrice) || 0;
-      // 使用 costBasis 而非 cost，與持倉明細的邏輯一致
-      const costBasis = parseFloat(item.costBasis) || 0;
-      const currency = item.currency || 'TWD';
+    data.forEach((holding: any) => {
+      const quantity = holding.quantity || 0;
+      const currentPrice = holding.currentPrice || 0;
+      const costBasis = holding.costBasis || 0;
+      const currency = holding.currency || 'TWD';
 
-      // 獲取匯率轉換（與持倉明細邏輯一致）
-      let exchangeRate = 1;
+      // 獲取匯率（外幣對台幣）- 與 HoldingsTable 邏輯完全一致
+      let exchangeRate = 1; // TWD 預設為 1
       if (currency === 'USD') {
         exchangeRate = exchangeRates?.USD || 32.0;
       } else if (currency === 'EUR') {
@@ -103,7 +102,7 @@ export default function HistoricalDataManager({ currentPortfolioData, onDataSave
         exchangeRate = exchangeRates?.JPY || 0.22;
       }
 
-      // 轉換為台幣後加總（與持倉明細邏輯完全一致）
+      // 轉換為台幣後加總（與 HoldingsTable 邏輯完全一致）
       const twdValue = quantity * currentPrice * exchangeRate;
       const twdCost = quantity * costBasis * exchangeRate;
 

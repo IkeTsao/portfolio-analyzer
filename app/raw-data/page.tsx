@@ -6,8 +6,8 @@ import { PageHeader, HistoricalDataManager } from '@/components';
 import { usePortfolio } from '@/hooks/usePortfolio';
 
 export default function RawDataPage() {
-  const { getHoldingDetails, updatePrices } = usePortfolio();
-  const holdingDetails = getHoldingDetails();
+  const { holdings, updatePrices } = usePortfolio();
+  // 使用原始 holdings 資料，而不是經過複雜處理的 holdingDetails
 
   const handleDataSaved = (date: string) => {
     console.log(`資料已儲存到 ${date}`);
@@ -32,7 +32,7 @@ export default function RawDataPage() {
             {/* 左側：歷史數據管理 - 寬度從4調整為5 (增加20%) */}
             <Grid.Col span={{ base: 12, lg: 5 }}>
               <HistoricalDataManager 
-                currentPortfolioData={holdingDetails}
+                currentPortfolioData={holdings}
                 onDataSaved={handleDataSaved}
                 onUpdatePrices={handleUpdatePrices}
               />
