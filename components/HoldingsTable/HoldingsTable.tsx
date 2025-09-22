@@ -655,14 +655,7 @@ export function HoldingsTable({
               '-'
             }
           </Text>
-          {holding.priceChangePercent !== undefined && holding.priceChangePercent !== 0 && (
-            <Text 
-              size="xs" 
-              c={holding.priceChangePercent >= 0 ? 'green' : 'red'}
-            >
-              {formatPercentage(holding.priceChangePercent)}
-            </Text>
-          )}
+
         </Stack>
       ),
     },

@@ -1,2 +1,3 @@
-export { default as HoldingsTable } from './HoldingsTable';
+export { default } from './HoldingsTable';
+export { HoldingsTable } from './HoldingsTable';
 
