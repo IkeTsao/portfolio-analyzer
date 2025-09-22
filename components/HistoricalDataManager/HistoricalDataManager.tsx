@@ -73,47 +73,7 @@ export default function HistoricalDataManager({ currentPortfolioData, onDataSave
     return historicalRecords.some(record => record.date === dateStr);
   };
 
-  const calculatePortfolioSummary = (data: any, exchangeRates?: any) => {
-    if (!data || !Array.isArray(data)) {
-      return { totalValue: 0, totalCost: 0, totalGainLoss: 0, recordCount: 0 };
-    }
 
-    let totalValue = 0;
-    let totalCost = 0;
-    let recordCount = data.length;
-
-    data.forEach((holding: any) => {
-      const quantity = holding.quantity || 0;
-      const currentPrice = holding.currentPrice || 0;
-      const costBasis = holding.costBasis || 0;
-      const currency = holding.currency || 'TWD';
-
-      // 獲取匯率（外幣對台幣）- 與 HoldingsTable 邏輯完全一致
-      let exchangeRate = 1; // TWD 預設為 1
-      if (currency === 'USD') {
-        exchangeRate = exchangeRates?.USD || 32.0;
-      } else if (currency === 'EUR') {
-        exchangeRate = exchangeRates?.EUR || 35.0;
-      } else if (currency === 'GBP') {
-        exchangeRate = exchangeRates?.GBP || 40.0;
-      } else if (currency === 'CHF') {
-        exchangeRate = exchangeRates?.CHF || 35.5;
-      } else if (currency === 'JPY') {
-        exchangeRate = exchangeRates?.JPY || 0.22;
-      }
-
-      // 轉換為台幣後加總（與 HoldingsTable 邏輯完全一致）
-      const twdValue = quantity * currentPrice * exchangeRate;
-      const twdCost = quantity * costBasis * exchangeRate;
-
-      totalValue += twdValue;
-      totalCost += twdCost;
-    });
-
-    const totalGainLoss = totalValue - totalCost;
-
-    return { totalValue, totalCost, totalGainLoss, recordCount };
-  };
 
   const handleSaveData = async () => {
     if (!selectedDate) {
@@ -185,7 +145,7 @@ export default function HistoricalDataManager({ currentPortfolioData, onDataSave
     setSaving(true);
     
     try {
-      // 獲取匯率資料（與 saveTodayData 相同邏輯）
+      // 獲取匯率資料（使用匯率頁顯示的5種匯率）- 完全套用 HoldingsTable 邏輯
       let exchangeRates: any = {};
       try {
         const currencies = ['USD', 'EUR', 'GBP', 'CHF', 'JPY']; // 日圓排最後
@@ -252,31 +212,78 @@ export default function HistoricalDataManager({ currentPortfolioData, onDataSave
         exchangeRates = {
           USD: 32.0,
           EUR: 35.0,
+          JPY: 0.22,
           GBP: 40.0,
           CHF: 35.5,
-          JPY: 0.22,
           timestamp: Date.now(),
         };
       }
-
-      const summary = calculatePortfolioSummary(currentPortfolioData, exchangeRates);
       
+      // 計算投資組合摘要（使用正確的匯率轉換）- 完全套用 HoldingsTable 邏輯
+      let totalValue = 0;
+      let totalCost = 0;
+      
+      currentPortfolioData.forEach((holding: any) => {
+        const quantity = holding.quantity || 0;
+        const currentPrice = holding.currentPrice || 0;
+        const costBasis = holding.costBasis || 0;
+        const currency = holding.currency || 'TWD';
+        
+        // 獲取匯率（外幣對台幣）
+        let exchangeRate = 1; // TWD 預設為 1
+        if (currency === 'USD') {
+          exchangeRate = exchangeRates.USD || 32.0;
+        } else if (currency === 'EUR') {
+          exchangeRate = exchangeRates.EUR || 35.0;
+        } else if (currency === 'GBP') {
+          exchangeRate = exchangeRates.GBP || 40.0;
+        } else if (currency === 'CHF') {
+          exchangeRate = exchangeRates.CHF || 35.5;
+        } else if (currency === 'JPY') {
+          exchangeRate = exchangeRates.JPY || 0.22;
+        }
+        
+        // 轉換為台幣後加總
+        const twdValue = quantity * currentPrice * exchangeRate;
+        const twdCost = quantity * costBasis * exchangeRate;
+        
+        totalValue += twdValue;
+        totalCost += twdCost;
+      });
+      
+      const totalGainLoss = totalValue - totalCost;
+      
+      // 準備新記錄（包含匯率資料）- 完全套用 HoldingsTable 邏輯
       const newRecord: HistoricalRecord = {
         date: dateStr,
         timestamp: Date.now(),
         data: currentPortfolioData,
         exchangeRates, // 新增匯率資料
-        ...summary,
+        totalValue,
+        totalCost,
+        totalGainLoss,
+        recordCount: currentPortfolioData.length,
       };
 
-      const updatedRecords = historicalRecords.filter(record => record.date !== dateStr);
-      updatedRecords.push(newRecord);
+      // 獲取現有記錄
+      const saved = localStorage.getItem('portfolioHistoricalData');
+      let records = saved ? JSON.parse(saved) : [];
       
-      saveHistoricalRecords(updatedRecords);
+      // 移除該日期的舊記錄（如果存在）
+      records = records.filter((record: any) => record.date !== dateStr);
+      
+      // 添加新記錄
+      records.push(newRecord);
+      
+      // 儲存到 localStorage
+      localStorage.setItem('portfolioHistoricalData', JSON.stringify(records));
+      
+      // 重新載入歷史記錄
+      loadHistoricalRecords();
       
       notifications.show({
         title: '儲存成功',
-        message: `${dateStr} 的投資組合資料已儲存（包含匯率資料）`,
+        message: `${dateStr} 的投資組合資料和匯率已儲存`,
         color: 'green',
       });
 
@@ -292,6 +299,8 @@ export default function HistoricalDataManager({ currentPortfolioData, onDataSave
       });
     } finally {
       setSaving(false);
+      setConfirmModalOpened(false);
+      setRecordToOverwrite(null);
     }
   };
 
