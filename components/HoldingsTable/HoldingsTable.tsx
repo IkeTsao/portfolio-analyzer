@@ -1001,3 +1001,5 @@ export function HoldingsTable({
   </>
   );
 }
+
+export default HoldingsTable;
