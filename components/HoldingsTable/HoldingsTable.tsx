@@ -44,16 +44,7 @@ import { deleteHolding } from '@/utils/portfolioStorage';
 import { notifications } from '@mantine/notifications';
 import { exportHoldingsToCSV, downloadCSV, importHoldingsFromFile } from '@/utils/csvUtils';
 
-interface Holding extends Holding {
-  currentPrice?: number;
-  currentValue?: number;
-  costValue?: number;
-  gainLoss?: number;
-  gainLossPercent?: number;
-  priceChange?: number;
-  priceChangePercent?: number;
-  lastUpdated?: string;
-}
+
 
 interface HoldingsTableProps {
   holdings: Holding[];
