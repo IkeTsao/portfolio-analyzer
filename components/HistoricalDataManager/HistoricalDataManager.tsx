@@ -219,36 +219,18 @@ export default function HistoricalDataManager({ currentPortfolioData, onDataSave
         };
       }
       
-      // 計算投資組合摘要（使用正確的匯率轉換）- 完全套用 HoldingsTable 邏輯
+      // 計算投資組合摘要（直接使用已計算的結果）- 與 HoldingsTable 完全一致
       let totalValue = 0;
       let totalCost = 0;
       
       currentPortfolioData.forEach((holding: any) => {
-        const quantity = holding.quantity || 0;
-        const currentPrice = holding.currentPrice || 0;
-        const costBasis = holding.costBasis || 0;
-        const currency = holding.currency || 'TWD';
-        
-        // 獲取匯率（外幣對台幣）
-        let exchangeRate = 1; // TWD 預設為 1
-        if (currency === 'USD') {
-          exchangeRate = exchangeRates.USD || 32.0;
-        } else if (currency === 'EUR') {
-          exchangeRate = exchangeRates.EUR || 35.0;
-        } else if (currency === 'GBP') {
-          exchangeRate = exchangeRates.GBP || 40.0;
-        } else if (currency === 'CHF') {
-          exchangeRate = exchangeRates.CHF || 35.5;
-        } else if (currency === 'JPY') {
-          exchangeRate = exchangeRates.JPY || 0.22;
+        // 直接使用已計算的市值和成本值
+        if (holding.currentValue) {
+          totalValue += holding.currentValue;
         }
-        
-        // 轉換為台幣後加總
-        const twdValue = quantity * currentPrice * exchangeRate;
-        const twdCost = quantity * costBasis * exchangeRate;
-        
-        totalValue += twdValue;
-        totalCost += twdCost;
+        if (holding.costValue) {
+          totalCost += holding.costValue;
+        }
       });
       
       const totalGainLoss = totalValue - totalCost;

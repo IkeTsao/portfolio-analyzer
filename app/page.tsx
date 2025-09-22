@@ -190,7 +190,6 @@ export default function HomePage() {
           {/* 持倉明細表格 */}
           <HoldingsTable
             holdings={holdingDetails}
-            rawHoldings={holdings}
             loading={loading}
             onAdd={handleAddHolding}
             onEdit={handleEditHolding}

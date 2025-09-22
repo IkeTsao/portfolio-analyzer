@@ -57,7 +57,6 @@ interface HoldingWithCalculations extends Holding {
 
 interface HoldingsTableProps {
   holdings: HoldingWithCalculations[];
-  rawHoldings?: Holding[]; // 原始持倉資料，用於儲存功能
   loading?: boolean;
   onAdd?: () => void;
   onEdit?: (holding: Holding) => void;
@@ -93,7 +92,6 @@ const MARKET_LABELS: { [key: string]: string } = {
 
 export default function HoldingsTable({ 
   holdings, 
-  rawHoldings,
   loading = false, 
   onAdd, 
   onEdit, 
@@ -263,39 +261,18 @@ export default function HoldingsTable({
         };
       }
       
-      // 計算投資組合摘要（使用正確的匯率轉換）
+      // 計算投資組合摘要（直接使用已計算的結果）
       let totalValue = 0;
       let totalCost = 0;
       
-      // 使用原始 holdings 資料進行計算，確保與 HistoricalDataManager 一致
-      const holdingsToSave = rawHoldings || holdings;
-      
-      holdingsToSave.forEach((holding) => {
-        const quantity = holding.quantity || 0;
-        const currentPrice = holding.currentPrice || 0;
-        const costBasis = holding.costBasis || 0;
-        const currency = holding.currency || 'TWD';
-        
-        // 獲取匯率（外幣對台幣）
-        let exchangeRate = 1; // TWD 預設為 1
-        if (currency === 'USD') {
-          exchangeRate = exchangeRates.USD || 32.0;
-        } else if (currency === 'EUR') {
-          exchangeRate = exchangeRates.EUR || 35.0;
-        } else if (currency === 'GBP') {
-          exchangeRate = exchangeRates.GBP || 40.0;
-        } else if (currency === 'CHF') {
-          exchangeRate = exchangeRates.CHF || 35.5;
-        } else if (currency === 'JPY') {
-          exchangeRate = exchangeRates.JPY || 0.22;
+      holdings.forEach((holding) => {
+        // 直接使用已計算的市值和成本值
+        if (holding.currentValue) {
+          totalValue += holding.currentValue;
         }
-        
-        // 轉換為台幣後加總
-        const twdValue = quantity * currentPrice * exchangeRate;
-        const twdCost = quantity * costBasis * exchangeRate;
-        
-        totalValue += twdValue;
-        totalCost += twdCost;
+        if (holding.costValue) {
+          totalCost += holding.costValue;
+        }
       });
       
       const totalGainLoss = totalValue - totalCost;
@@ -304,12 +281,12 @@ export default function HoldingsTable({
       const newRecord = {
         date: todayString,
         timestamp: Date.now(),
-        data: holdingsToSave, // 使用原始資料
+        data: holdings, // 使用完整的計算結果
         exchangeRates, // 新增匯率資料
         totalValue,
         totalCost,
         totalGainLoss,
-        recordCount: holdingsToSave.length,
+        recordCount: holdings.length,
       };
 
       // 獲取現有記錄
