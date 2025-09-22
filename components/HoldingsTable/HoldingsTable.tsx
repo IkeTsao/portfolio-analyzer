@@ -62,6 +62,7 @@ interface HoldingsTableProps {
   onEdit?: (holding: Holding) => void;
   onDelete?: (holding: Holding) => void;
   onUpdatePrices?: () => void;
+  onRefresh?: () => void;
 }
 
 const TYPE_COLORS: { [key: string]: string } = {
@@ -90,13 +91,14 @@ const MARKET_LABELS: { [key: string]: string } = {
   OTHER: '其他',
 };
 
-export default function HoldingsTable({ 
-  holdings, 
-  loading = false, 
-  onAdd, 
-  onEdit, 
-  onRefresh,
+export function HoldingsTable({
+  holdings,
+  loading = false,
+  onAdd,
+  onEdit,
+  onDelete,
   onUpdatePrices,
+  onRefresh,
 }: HoldingsTableProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState<string | null>(null);
