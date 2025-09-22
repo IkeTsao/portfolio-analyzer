@@ -697,7 +697,7 @@ export default function HoldingsTable({
       textAlign: 'right' as const,
       render: (holding: HoldingWithCalculations) => (
         <Text size="sm" fw={500}>
-          {holding.currentValue ? formatCurrency(holding.currentValue) : '-'}
+          {holding.currentValue !== undefined && holding.currentValue !== null ? formatCurrency(holding.currentValue) : '-'}
         </Text>
       ),
     },
@@ -711,9 +711,9 @@ export default function HoldingsTable({
           <Text 
             size="sm" 
             fw={500}
-            c={holding.gainLoss && holding.gainLoss >= 0 ? 'green' : 'red'}
+            c={holding.gainLoss !== undefined && holding.gainLoss !== null && holding.gainLoss >= 0 ? 'green' : 'red'}
           >
-            {holding.gainLoss ? formatCurrency(holding.gainLoss) : '-'}
+            {holding.gainLoss !== undefined && holding.gainLoss !== null ? formatCurrency(holding.gainLoss) : '-'}
           </Text>
           {holding.gainLossPercent !== undefined && (
             <Text 
