@@ -186,10 +186,12 @@ export const usePortfolio = () => {
     }
   }, [priceData, exchangeRates]); // 移除 updateHoldingCalculations 依賴避免無限循環
 
-  // 計算投資組合統計
+  // 計算投資組合統計 - 確保使用最新的持倉數據
   useEffect(() => {
     if (holdings.length > 0) {
-      const stats = calculatePortfolioStats(holdings, priceData, exchangeRates);
+      // 獲取最新的持倉數據（包含計算欄位）
+      const latestHoldings = loadHoldings();
+      const stats = calculatePortfolioStats(latestHoldings, priceData, exchangeRates);
       setPortfolioStats(stats);
     } else {
       setPortfolioStats(null);

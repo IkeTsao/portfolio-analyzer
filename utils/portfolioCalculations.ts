@@ -174,64 +174,70 @@ export const calculatePortfolioStats = (
   // 帳戶分布
   const accountDistribution: { [accountId: string]: { value: number; percentage: number } } = {};
 
-  // 計算每個持倉的價值
+  // 計算每個持倉的價值 - 優先使用已計算的欄位
   holdings.forEach(holding => {
-    // 獲取當前價格 - 優先使用手動輸入的現價
-    const price = priceData.find(p => p.symbol === holding.symbol);
-    let currentPrice: number;
-    if (holding.currentPrice && holding.currentPrice > 0) {
-      // 使用手動輸入的現價
-      currentPrice = holding.currentPrice;
-    } else if (price?.price) {
-      // 使用API獲取的價格
-      currentPrice = price.price;
+    let currentValue: number;
+    let costValue: number;
+    
+    // 優先使用持倉中已計算的欄位，確保數據一致性
+    if (holding.currentValue !== undefined && holding.currentValue !== null && 
+        holding.costValue !== undefined && holding.costValue !== null) {
+      // 使用已計算的值
+      currentValue = holding.currentValue;
+      costValue = holding.costValue;
     } else {
-      // 使用成本價作為預設
-      currentPrice = holding.costBasis;
-    }
-
-    // 獲取匯率
-    const exchangeRate = getExchangeRateForCurrency(
-      holding.currency,
-      baseCurrency,
-      effectiveExchangeRates
-    );
-
-    // 獲取CSV匯率（用於現金匯差計算）
-    let csvExchangeRate: number | undefined;
-    let isUsingCsvRates = false;
-    
-    if (holding.type === 'cash' && holding.currency !== 'TWD') {
-      try {
-        const today = new Date().toISOString().split('T')[0];
-        const saved = localStorage.getItem('portfolioHistoricalData');
-        
-        if (saved) {
-          const records = JSON.parse(saved);
-          const todayRecord = records.find((r: any) => r.date === today);
-          
-          if (todayRecord && todayRecord.exchangeRates && todayRecord.exchangeRates[holding.currency]) {
-            csvExchangeRate = parseFloat(todayRecord.exchangeRates[holding.currency].toFixed(2));
-            // 檢查是否正在使用CSV匯率作為effectiveExchangeRates
-            isUsingCsvRates = effectiveExchangeRates.some(rate => 
-              rate.from === holding.currency && Math.abs(rate.rate - csvExchangeRate!) < 0.01
-            );
-          }
-        }
-      } catch (error) {
-        console.warn('獲取CSV匯率失敗:', error);
+      // 如果沒有已計算的值，則重新計算
+      const price = priceData.find(p => p.symbol === holding.symbol);
+      let currentPrice: number;
+      if (holding.currentPrice && holding.currentPrice > 0) {
+        currentPrice = holding.currentPrice;
+      } else if (price?.price) {
+        currentPrice = price.price;
+      } else {
+        currentPrice = holding.costBasis;
       }
-    }
 
-    // 計算價值 - 如果正在使用CSV匯率，則不傳入csvExchangeRate避免重複計算
-    const finalCsvExchangeRate = isUsingCsvRates ? undefined : csvExchangeRate;
-    
-    const { currentValue, costValue, gainLoss } = calculateHoldingValue(
-      holding,
-      currentPrice,
-      exchangeRate,
-      finalCsvExchangeRate
-    );
+      const exchangeRate = getExchangeRateForCurrency(
+        holding.currency,
+        baseCurrency,
+        effectiveExchangeRates
+      );
+
+      let csvExchangeRate: number | undefined;
+      let isUsingCsvRates = false;
+      
+      if (holding.type === 'cash' && holding.currency !== 'TWD') {
+        try {
+          const today = new Date().toISOString().split('T')[0];
+          const saved = localStorage.getItem('portfolioHistoricalData');
+          
+          if (saved) {
+            const records = JSON.parse(saved);
+            const todayRecord = records.find((r: any) => r.date === today);
+            
+            if (todayRecord && todayRecord.exchangeRates && todayRecord.exchangeRates[holding.currency]) {
+              csvExchangeRate = parseFloat(todayRecord.exchangeRates[holding.currency].toFixed(2));
+              isUsingCsvRates = effectiveExchangeRates.some(rate => 
+                rate.from === holding.currency && Math.abs(rate.rate - csvExchangeRate!) < 0.01
+              );
+            }
+          }
+        } catch (error) {
+          console.warn('獲取CSV匯率失敗:', error);
+        }
+      }
+
+      const finalCsvExchangeRate = isUsingCsvRates ? undefined : csvExchangeRate;
+      const calculations = calculateHoldingValue(
+        holding,
+        currentPrice,
+        exchangeRate,
+        finalCsvExchangeRate
+      );
+      
+      currentValue = calculations.currentValue;
+      costValue = calculations.costValue;
+    }
 
     totalValue += currentValue;
     totalCost += costValue;
@@ -275,65 +281,70 @@ export const calculatePortfolioStats = (
   const distributionByMarket: { [key: string]: { totalValue: number; totalCost: number; totalGainLoss: number; percentage: number } } = {};
   const distributionByAccount: { [key: string]: { totalValue: number; totalCost: number; totalGainLoss: number; percentage: number } } = {};
 
-  // 填充類型分布 - 使用實際持倉計算結果
+  // 填充類型分布 - 優先使用已計算的欄位
   Object.keys(typeDistribution).forEach(type => {
     let typeCost = 0;
     let typeGainLoss = 0;
     
     holdings.filter(h => h.type === type).forEach(holding => {
-      // 獲取當前價格
-      const price = priceData.find(p => p.symbol === holding.symbol);
-      let currentPrice: number;
-      if (holding.currentPrice && holding.currentPrice > 0) {
-        currentPrice = holding.currentPrice;
-      } else if (price?.price) {
-        currentPrice = price.price;
+      // 優先使用已計算的欄位
+      if (holding.costValue !== undefined && holding.costValue !== null &&
+          holding.gainLoss !== undefined && holding.gainLoss !== null) {
+        typeCost += holding.costValue;
+        typeGainLoss += holding.gainLoss;
       } else {
-        currentPrice = holding.costBasis;
-      }
-
-      // 獲取匯率
-      const exchangeRate = getExchangeRateForCurrency(
-        holding.currency,
-        baseCurrency,
-        effectiveExchangeRates
-      );
-
-      // 獲取CSV匯率（用於現金匯差計算）
-      let csvExchangeRate: number | undefined;
-      let isUsingCsvRates = false;
-      
-      if (holding.type === 'cash' && holding.currency !== 'TWD') {
-        try {
-          const today = new Date().toISOString().split('T')[0];
-          const saved = localStorage.getItem('portfolioHistoricalData');
-          
-          if (saved) {
-            const records = JSON.parse(saved);
-            const todayRecord = records.find((r: any) => r.date === today);
-            
-            if (todayRecord && todayRecord.exchangeRates && todayRecord.exchangeRates[holding.currency]) {
-              csvExchangeRate = parseFloat(todayRecord.exchangeRates[holding.currency].toFixed(2));
-              isUsingCsvRates = effectiveExchangeRates.some(rate => 
-                rate.from === holding.currency && Math.abs(rate.rate - csvExchangeRate!) < 0.01
-              );
-            }
-          }
-        } catch (error) {
-          console.warn('獲取CSV匯率失敗:', error);
+        // 如果沒有已計算的值，則重新計算
+        const price = priceData.find(p => p.symbol === holding.symbol);
+        let currentPrice: number;
+        if (holding.currentPrice && holding.currentPrice > 0) {
+          currentPrice = holding.currentPrice;
+        } else if (price?.price) {
+          currentPrice = price.price;
+        } else {
+          currentPrice = holding.costBasis;
         }
-      }
 
-      const finalCsvExchangeRate = isUsingCsvRates ? undefined : csvExchangeRate;
-      const { costValue, gainLoss } = calculateHoldingValue(
-        holding,
-        currentPrice,
-        exchangeRate,
-        finalCsvExchangeRate
-      );
-      
-      typeCost += costValue;
-      typeGainLoss += gainLoss;
+        const exchangeRate = getExchangeRateForCurrency(
+          holding.currency,
+          baseCurrency,
+          effectiveExchangeRates
+        );
+
+        let csvExchangeRate: number | undefined;
+        let isUsingCsvRates = false;
+        
+        if (holding.type === 'cash' && holding.currency !== 'TWD') {
+          try {
+            const today = new Date().toISOString().split('T')[0];
+            const saved = localStorage.getItem('portfolioHistoricalData');
+            
+            if (saved) {
+              const records = JSON.parse(saved);
+              const todayRecord = records.find((r: any) => r.date === today);
+              
+              if (todayRecord && todayRecord.exchangeRates && todayRecord.exchangeRates[holding.currency]) {
+                csvExchangeRate = parseFloat(todayRecord.exchangeRates[holding.currency].toFixed(2));
+                isUsingCsvRates = effectiveExchangeRates.some(rate => 
+                  rate.from === holding.currency && Math.abs(rate.rate - csvExchangeRate!) < 0.01
+                );
+              }
+            }
+          } catch (error) {
+            console.warn('獲取CSV匯率失敗:', error);
+          }
+        }
+
+        const finalCsvExchangeRate = isUsingCsvRates ? undefined : csvExchangeRate;
+        const { costValue, gainLoss } = calculateHoldingValue(
+          holding,
+          currentPrice,
+          exchangeRate,
+          finalCsvExchangeRate
+        );
+        
+        typeCost += costValue;
+        typeGainLoss += gainLoss;
+      }
     });
     
     distributionByType[type] = {
