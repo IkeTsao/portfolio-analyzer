@@ -52,7 +52,7 @@ interface HoldingsTableProps {
   onAdd?: () => void;
   onEdit?: (holding: Holding) => void;
   onDelete?: (holding: Holding) => void;
-  onUpdatePrices?: () => void;
+  onUpdatePrices?: (forceUpdate?: boolean) => void;
   onRefresh?: () => void;
 }
 
@@ -140,7 +140,7 @@ export function HoldingsTable({
           autoClose: false,
         });
 
-        await onUpdatePrices();
+        await onUpdatePrices(true); // 強制更新所有價格
 
         notifications.update({
           id: 'updating-before-save-today',
@@ -346,7 +346,7 @@ export function HoldingsTable({
             autoClose: false,
           });
 
-          await onUpdatePrices();
+          await onUpdatePrices(true); // 強制更新所有價格
 
           notifications.update({
             id: 'updating-before-export',
@@ -782,7 +782,7 @@ export function HoldingsTable({
               <Button 
                 variant="light" 
                 leftSection={<IconRefresh size={16} />}
-                onClick={onUpdatePrices}
+                onClick={() => onUpdatePrices?.(true)}
                 size="sm"
                 color="orange"
                 loading={loading}

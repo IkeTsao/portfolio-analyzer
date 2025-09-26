@@ -118,8 +118,8 @@ export default function HomePage() {
         autoClose: false,
       });
 
-      // 直接更新價格，不再詢問共同基金手動輸入
-      await updatePrices();
+      // 強制更新所有價格（除了手動輸入的價格）
+      await updatePrices(undefined, true);
 
       // 更新價格後刷新持倉明細，確保記憶體內容同步
       refreshHoldings();
@@ -191,14 +191,14 @@ export default function HomePage() {
           <LiveInfoDisplay />
 
           {/* 持倉明細表格 */}
-          <HoldingsTable
-            holdings={holdings}
-            loading={loading}
-            onAdd={handleAddHolding}
-            onEdit={handleEditHolding}
-            onRefresh={refreshHoldings}
-            onUpdatePrices={handleUpdatePrices}
-          />
+        <HoldingsTable
+          holdings={holdings}
+          loading={loading}
+          onAdd={handleAddHolding}
+          onEdit={handleEditHolding}
+          onUpdatePrices={(forceUpdate = false) => updatePrices(undefined, forceUpdate)}
+          onRefresh={refreshHoldings}
+        />
         </Stack>
       </Container>
 
