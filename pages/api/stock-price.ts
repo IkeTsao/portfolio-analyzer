@@ -40,14 +40,19 @@ const SPECIAL_SYMBOLS: Record<string, string> = {
   'GOOGL': 'GOOGL',
   'AMZN': 'AMZN',
   'NVDA': 'NVDA',
-  'B': 'BRK-B',  // Berkshire Hathaway Class B
   'LEU': 'LEU',
   'MAGS': 'MAGS',
   'TEM': 'TEM',
   
   // 礦業股票
-  'BARRICK': 'GOLD',  // Barrick Gold Corporation
-  'GOLD': 'GOLD',
+  'B': 'B',  // Barrick Mining Corporation (NYSE:B)
+  'ABX': 'ABX.TO',  // Barrick Mining Corporation (TSX:ABX)
+  'BARRICK': 'B',  // Barrick Mining Corporation 別名
+  'GOLD': 'GOLD',  // 其他黃金相關股票
+  
+  // 其他知名股票
+  'BRK-B': 'BRK-B',  // Berkshire Hathaway Class B
+  'BERKSHIRE': 'BRK-B',
   
   // 特殊代碼處理
   '0P0001D3K': 'VTI',  // 假設這是某種基金代碼，映射到相似的ETF
