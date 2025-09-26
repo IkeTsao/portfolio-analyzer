@@ -20,24 +20,41 @@ const YAHOO_ENDPOINTS = [
   'https://query2.finance.yahoo.com/v8/finance/chart/',
 ];
 
-// 特殊ETF映射
-const SPECIAL_ETFS: Record<string, string> = {
+// 特殊股票代碼映射
+const SPECIAL_SYMBOLS: Record<string, string> = {
+  // ETFs
   'GLD': 'GLD',
   'IBIT': 'IBIT',
   'ARKK': 'ARKK',
   'QQQ': 'QQQ',
   'SPY': 'SPY',
   'VTI': 'VTI',
+  'IEF': 'IEF',
+  'TLT': 'TLT',
+  'AVAV': 'AVAV',
+  
+  // 個股
   'TSLA': 'TSLA',
   'AAPL': 'AAPL',
   'MSFT': 'MSFT',
   'GOOGL': 'GOOGL',
   'AMZN': 'AMZN',
   'NVDA': 'NVDA',
+  'B': 'BRK-B',  // Berkshire Hathaway Class B
+  'LEU': 'LEU',
+  'MAGS': 'MAGS',
+  'TEM': 'TEM',
+  
+  // 礦業股票
+  'BARRICK': 'GOLD',  // Barrick Gold Corporation
+  'GOLD': 'GOLD',
+  
+  // 特殊代碼處理
+  '0P0001D3K': 'VTI',  // 假設這是某種基金代碼，映射到相似的ETF
 };
 
 async function fetchFromYahoo(symbol: string): Promise<StockPrice | null> {
-  const mappedSymbol = SPECIAL_ETFS[symbol.toUpperCase()] || symbol.toUpperCase();
+  const mappedSymbol = SPECIAL_SYMBOLS[symbol.toUpperCase()] || symbol.toUpperCase();
   
   for (const endpoint of YAHOO_ENDPOINTS) {
     try {
