@@ -55,6 +55,8 @@ export default function HoldingForm({ opened, onClose, holding, onSave }: Holdin
   });
 
   const handleSubmit = async (values: typeof form.values) => {
+    if (loading) return; // 防止重複提交
+    
     setLoading(true);
     
     try {
@@ -75,29 +77,49 @@ export default function HoldingForm({ opened, onClose, holding, onSave }: Holdin
       };
 
       if (holding?.id) {
-        updateHolding(holding.id, holdingData);
+        await updateHolding(holding.id, holdingData);
         notifications.show({
           title: '更新成功',
           message: '持倉資訊已更新',
           color: 'green',
+          autoClose: 2000,
         });
       } else {
-        addHolding(holdingData);
+        await addHolding(holdingData);
         notifications.show({
           title: '新增成功',
           message: '持倉已新增到投資組合',
           color: 'green',
+          autoClose: 2000,
         });
       }
 
-      onSave?.();
-      onClose();
-      form.reset();
+      // 延遲執行回調，確保資料保存完成
+      setTimeout(() => {
+        try {
+          onSave?.();
+        } catch (error) {
+          console.error('onSave 回調執行失敗:', error);
+        }
+      }, 100);
+      
+      // 延遲關閉表單
+      setTimeout(() => {
+        try {
+          onClose();
+          form.reset();
+        } catch (error) {
+          console.error('關閉表單失敗:', error);
+        }
+      }, 150);
+      
     } catch (error) {
+      console.error('保存持倉失敗:', error);
       notifications.show({
         title: '操作失敗',
-        message: '請稍後再試',
+        message: error instanceof Error ? error.message : '請稍後再試',
         color: 'red',
+        autoClose: 3000,
       });
     } finally {
       setLoading(false);

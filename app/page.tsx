@@ -102,9 +102,27 @@ export default function HomePage() {
     setEditingHolding(null);
   };
 
-  const handleFormSave = () => {
-    refreshHoldings();
-    handleFormClose();
+  const handleFormSave = async () => {
+    try {
+      // 防止重複執行
+      if (loading) return;
+      
+      // 延遲一點時間確保資料已經保存
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      // 刷新持倉數據
+      refreshHoldings();
+      
+      // 延遲關閉表單，確保狀態更新完成
+      setTimeout(() => {
+        handleFormClose();
+      }, 50);
+      
+    } catch (error) {
+      console.error('保存後刷新失敗:', error);
+      // 即使刷新失敗也要關閉表單
+      handleFormClose();
+    }
   };
 
   const handleUpdatePrices = async () => {

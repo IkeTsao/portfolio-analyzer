@@ -113,8 +113,14 @@ export const usePortfolio = () => {
 
   // 刷新持倉數據
   const refreshHoldings = useCallback(() => {
-    const loadedHoldings = loadHoldings();
-    setHoldings(loadedHoldings);
+    try {
+      const loadedHoldings = loadHoldings();
+      setHoldings(loadedHoldings);
+      console.log('持倉數據刷新成功，共', loadedHoldings.length, '筆');
+    } catch (error) {
+      console.error('刷新持倉數據失敗:', error);
+      // 發生錯誤時不更新狀態，保持現有數據
+    }
   }, []);
 
   // 獲取持倉詳細資訊
