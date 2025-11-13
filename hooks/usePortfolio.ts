@@ -201,7 +201,7 @@ export const usePortfolio = () => {
       // 獲取最新的持倉數據（包含計算欄位）
       const latestHoldings = loadHoldings();
       const stats = calculatePortfolioStats(latestHoldings, priceData, exchangeRates);
-      const topHoldingsData = calculateTopHoldings(latestHoldings);
+      const topHoldingsData = calculateTopHoldings(latestHoldings, stats.totalValue);
       setPortfolioStats(stats);
       setTopHoldings(topHoldingsData);
     } else {

@@ -638,10 +638,11 @@ export interface TopHolding {
   currentValue: number; // 台幣市值
   gainLoss: number;     // 台幣損益
   gainLossPercent: number; // 損益百分比
+  assetRatio: number; // 佔總資產比例
 }
 
-// 計算前12大持股（合併相同代碼，包含現金）
-export const calculateTopHoldings = (holdings: Holding[]): TopHolding[] => {
+// 計算持股排序與現金
+export const calculateTopHoldings = (holdings: Holding[], totalAssets: number): TopHolding[] => {
   if (!holdings || holdings.length === 0) {
     return [];
   }
@@ -666,6 +667,7 @@ export const calculateTopHoldings = (holdings: Holding[]): TopHolding[] => {
         currentValue: holding.currentValue || 0,
         gainLoss: holding.gainLoss || 0,
         gainLossPercent: 0, // 稍後重新計算
+        assetRatio: 0, // 稍後重新計算
       });
     }
   });
@@ -678,10 +680,9 @@ export const calculateTopHoldings = (holdings: Holding[]): TopHolding[] => {
     }
   });
 
-  // 2. 排序並選取前10大非現金持股
+  // 2. 排序所有非現金持股
   const sortedNonCash = Array.from(mergedHoldings.values())
-    .sort((a, b) => b.currentValue - a.currentValue)
-    .slice(0, 10);
+    .sort((a, b) => b.currentValue - a.currentValue);
 
   // 3. 提取台幣和美金現金
   const twdCash = holdings.find(h => h.type === 'cash' && h.currency === 'TWD');
@@ -696,6 +697,7 @@ export const calculateTopHoldings = (holdings: Holding[]): TopHolding[] => {
       currentValue: twdCash.currentValue || 0,
       gainLoss: twdCash.gainLoss || 0,
       gainLossPercent: twdCash.gainLossPercent || 0,
+      assetRatio: 0, // 稍後重新計算
     });
   }
   if (usdCash) {
@@ -706,11 +708,15 @@ export const calculateTopHoldings = (holdings: Holding[]): TopHolding[] => {
       currentValue: usdCash.currentValue || 0,
       gainLoss: usdCash.gainLoss || 0,
       gainLossPercent: usdCash.gainLossPercent || 0,
+      assetRatio: 0, // 稍後重新計算
     });
   }
 
-  // 4. 組合最終列表
-  const finalTopHoldings = [...sortedNonCash, ...cashHoldings];
+  // 4. 組合最終列表並計算資產比例
+  const finalTopHoldings = [...sortedNonCash, ...cashHoldings].map(holding => ({
+    ...holding,
+    assetRatio: totalAssets > 0 ? (holding.currentValue / totalAssets) * 100 : 0,
+  }));
 
   // 格式化數值
   return finalTopHoldings.map(holding => ({
@@ -718,5 +724,6 @@ export const calculateTopHoldings = (holdings: Holding[]): TopHolding[] => {
     currentValue: formatValue(holding.currentValue),
     gainLoss: formatValue(holding.gainLoss),
     gainLossPercent: formatValue(holding.gainLossPercent),
+    assetRatio: formatValue(holding.assetRatio),
   }));
 };
