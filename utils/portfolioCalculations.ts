@@ -640,28 +640,83 @@ export interface TopHolding {
   gainLossPercent: number; // 損益百分比
 }
 
-// 計算前5大持股（排除現金）
+// 計算前12大持股（合併相同代碼，包含現金）
 export const calculateTopHoldings = (holdings: Holding[]): TopHolding[] => {
   if (!holdings || holdings.length === 0) {
     return [];
   }
 
-  // 過濾掉現金類別的持倉
-  const nonCashHoldings = holdings.filter(holding => holding.type !== 'cash');
+  // 1. 合併相同代碼的持股
+  const mergedHoldings = new Map<string, TopHolding>();
 
-  // 按市值（currentValue）降序排序，並取前5名
-  const topHoldings = nonCashHoldings
-    .filter(holding => holding.currentValue && holding.currentValue > 0) // 確保有市值數據
-    .sort((a, b) => (b.currentValue || 0) - (a.currentValue || 0))
-    .slice(0, 5)
-    .map(holding => ({
-      id: holding.id,
-      name: holding.name,
-      symbol: holding.symbol,
-      currentValue: formatValue(holding.currentValue || 0),
-      gainLoss: formatValue(holding.gainLoss || 0),
-      gainLossPercent: formatValue(holding.gainLossPercent || 0),
-    }));
+  holdings.forEach(holding => {
+    if (holding.type === 'cash') return; // 暫時排除現金，稍後單獨處理
 
-  return topHoldings;
+    const symbol = holding.symbol;
+    const existing = mergedHoldings.get(symbol);
+
+    if (existing) {
+      existing.currentValue += holding.currentValue || 0;
+      existing.gainLoss += holding.gainLoss || 0;
+    } else {
+      mergedHoldings.set(symbol, {
+        id: symbol, // 使用 symbol 作為合併後的 id
+        name: holding.name,
+        symbol: holding.symbol,
+        currentValue: holding.currentValue || 0,
+        gainLoss: holding.gainLoss || 0,
+        gainLossPercent: 0, // 稍後重新計算
+      });
+    }
+  });
+
+  // 重新計算合併後的損益百分比
+  mergedHoldings.forEach(holding => {
+    const costValue = holding.currentValue - holding.gainLoss;
+    if (costValue > 0) {
+      holding.gainLossPercent = (holding.gainLoss / costValue) * 100;
+    }
+  });
+
+  // 2. 排序並選取前10大非現金持股
+  const sortedNonCash = Array.from(mergedHoldings.values())
+    .sort((a, b) => b.currentValue - a.currentValue)
+    .slice(0, 10);
+
+  // 3. 提取台幣和美金現金
+  const twdCash = holdings.find(h => h.type === 'cash' && h.currency === 'TWD');
+  const usdCash = holdings.find(h => h.type === 'cash' && h.currency === 'USD');
+
+  const cashHoldings: TopHolding[] = [];
+  if (twdCash) {
+    cashHoldings.push({
+      id: 'TWD_CASH',
+      name: '台幣現金',
+      symbol: 'TWD',
+      currentValue: twdCash.currentValue || 0,
+      gainLoss: twdCash.gainLoss || 0,
+      gainLossPercent: twdCash.gainLossPercent || 0,
+    });
+  }
+  if (usdCash) {
+    cashHoldings.push({
+      id: 'USD_CASH',
+      name: '美金現金',
+      symbol: 'USD',
+      currentValue: usdCash.currentValue || 0,
+      gainLoss: usdCash.gainLoss || 0,
+      gainLossPercent: usdCash.gainLossPercent || 0,
+    });
+  }
+
+  // 4. 組合最終列表
+  const finalTopHoldings = [...sortedNonCash, ...cashHoldings];
+
+  // 格式化數值
+  return finalTopHoldings.map(holding => ({
+    ...holding,
+    currentValue: formatValue(holding.currentValue),
+    gainLoss: formatValue(holding.gainLoss),
+    gainLossPercent: formatValue(holding.gainLossPercent),
+  }));
 };

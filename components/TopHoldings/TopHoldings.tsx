@@ -11,7 +11,7 @@ export default function TopHoldings({ data, loading }: TopHoldingsProps) {
   if (loading) {
     return (
       <Paper p="md" withBorder>
-        <Title order={3} mb="md">前5大持股（非現金）</Title>
+        <Title order={3} mb="md">前10大持股與現金</Title>
         <div style={{ height: 200, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <Text c="dimmed">載入中...</Text>
         </div>
@@ -22,7 +22,7 @@ export default function TopHoldings({ data, loading }: TopHoldingsProps) {
   if (!data || data.length === 0) {
     return (
       <Paper p="md" withBorder>
-        <Title order={3} mb="md">前5大持股（非現金）</Title>
+        <Title order={3} mb="md">前10大持股與現金</Title>
         <div style={{ height: 200, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <Text c="dimmed">暫無持股數據</Text>
         </div>
@@ -34,12 +34,17 @@ export default function TopHoldings({ data, loading }: TopHoldingsProps) {
     const isProfit = holding.gainLoss >= 0;
     const profitColor = isProfit ? 'green' : 'red';
     const profitIcon = isProfit ? <IconTrendingUp size={14} /> : <IconTrendingDown size={14} />;
+    
+    // 判斷是否為現金項目
+    const isCash = holding.id === 'TWD_CASH' || holding.id === 'USD_CASH';
+    const badgeColor = isCash ? 'orange' : (index < 10 ? 'blue' : 'gray');
+    const displayRank = isCash ? '現金' : (index + 1).toString();
 
     return (
       <Table.Tr key={holding.id}>
         <Table.Td>
-          <Badge variant="light" color="blue" size="sm">
-            {index + 1}
+          <Badge variant="light" color={badgeColor} size="sm">
+            {displayRank}
           </Badge>
         </Table.Td>
         <Table.Td>
@@ -59,13 +64,13 @@ export default function TopHoldings({ data, loading }: TopHoldingsProps) {
         </Table.Td>
         <Table.Td>
           <Group gap="xs">
-            {profitIcon}
+            {!isCash && profitIcon}
             <div>
-              <Text size="sm" c={profitColor} fw={500}>
-                {isProfit ? '+' : ''}{formatCurrency(holding.gainLoss, 'TWD')}
+              <Text size="sm" c={isCash ? 'dimmed' : profitColor} fw={500}>
+                {isCash ? '—' : (isProfit ? '+' : '') + formatCurrency(holding.gainLoss, 'TWD')}
               </Text>
-              <Text size="xs" c={profitColor}>
-                {isProfit ? '+' : ''}{formatPercentage(holding.gainLossPercent)}
+              <Text size="xs" c={isCash ? 'dimmed' : profitColor}>
+                {isCash ? '—' : (isProfit ? '+' : '') + formatPercentage(holding.gainLossPercent)}
               </Text>
             </div>
           </Group>
@@ -76,7 +81,7 @@ export default function TopHoldings({ data, loading }: TopHoldingsProps) {
 
   return (
     <Paper p="md" withBorder>
-      <Title order={3} mb="md">前5大持股（非現金）</Title>
+      <Title order={3} mb="md">前10大持股與現金</Title>
       <Table striped highlightOnHover>
         <Table.Thead>
           <Table.Tr>
