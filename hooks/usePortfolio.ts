@@ -25,6 +25,8 @@ import {
 import {
   calculatePortfolioStats,
   calculateHoldingDetails,
+  calculateTopHoldings,
+  TopHolding,
 } from '@/utils/portfolioCalculations';
 
 export const usePortfolio = () => {
@@ -33,6 +35,7 @@ export const usePortfolio = () => {
   const [priceData, setPriceData] = useState<PriceData[]>([]);
   const [exchangeRates, setExchangeRates] = useState<ExchangeRate[]>([]);
   const [portfolioStats, setPortfolioStats] = useState<PortfolioStats | null>(null);
+  const [topHoldings, setTopHoldings] = useState<TopHolding[]>([]);
   const [loading, setLoading] = useState(false);
   const [lastUpdate, setLastUpdate] = useState<string | null>(null);
 
@@ -198,9 +201,12 @@ export const usePortfolio = () => {
       // 獲取最新的持倉數據（包含計算欄位）
       const latestHoldings = loadHoldings();
       const stats = calculatePortfolioStats(latestHoldings, priceData, exchangeRates);
+      const topHoldingsData = calculateTopHoldings(latestHoldings);
       setPortfolioStats(stats);
+      setTopHoldings(topHoldingsData);
     } else {
       setPortfolioStats(null);
+      setTopHoldings([]);
     }
   }, [holdings, priceData, exchangeRates]);
 
@@ -219,6 +225,7 @@ export const usePortfolio = () => {
     priceData,
     exchangeRates,
     portfolioStats,
+    topHoldings,
     lastUpdate,
     loading,
 

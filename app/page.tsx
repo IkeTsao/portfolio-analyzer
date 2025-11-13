@@ -15,6 +15,7 @@ import {
   HoldingsTable,
   HoldingForm,
   LiveInfoDisplay,
+  TopHoldings,
 } from '@/components';
 import { usePortfolio } from '@/hooks/usePortfolio';
 
@@ -25,6 +26,7 @@ export default function HomePage() {
   const {
     holdings,
     portfolioStats,
+    topHoldings,
     loading,
     lastUpdate,
     updatePrices,
@@ -201,6 +203,12 @@ export default function HomePage() {
                 loading={loading}
                 type="gainloss"
                 title="投資組合損益分布"
+              />
+            </Grid.Col>
+            <Grid.Col span={{ base: 12 }}>
+              <TopHoldings
+                data={topHoldings}
+                loading={loading}
               />
             </Grid.Col>
           </Grid>

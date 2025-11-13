@@ -630,3 +630,38 @@ export const calculateRiskMetrics = (
   };
 };
 
+// 前5大持股介面定義
+export interface TopHolding {
+  id: string;
+  name: string;
+  symbol: string;
+  currentValue: number; // 台幣市值
+  gainLoss: number;     // 台幣損益
+  gainLossPercent: number; // 損益百分比
+}
+
+// 計算前5大持股（排除現金）
+export const calculateTopHoldings = (holdings: Holding[]): TopHolding[] => {
+  if (!holdings || holdings.length === 0) {
+    return [];
+  }
+
+  // 過濾掉現金類別的持倉
+  const nonCashHoldings = holdings.filter(holding => holding.type !== 'cash');
+
+  // 按市值（currentValue）降序排序，並取前5名
+  const topHoldings = nonCashHoldings
+    .filter(holding => holding.currentValue && holding.currentValue > 0) // 確保有市值數據
+    .sort((a, b) => (b.currentValue || 0) - (a.currentValue || 0))
+    .slice(0, 5)
+    .map(holding => ({
+      id: holding.id,
+      name: holding.name,
+      symbol: holding.symbol,
+      currentValue: formatValue(holding.currentValue || 0),
+      gainLoss: formatValue(holding.gainLoss || 0),
+      gainLossPercent: formatValue(holding.gainLossPercent || 0),
+    }));
+
+  return topHoldings;
+};

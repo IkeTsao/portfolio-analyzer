@@ -13,6 +13,7 @@ import LiveInfoDisplay from '@/components/LiveInfoDisplay/LiveInfoDisplay';
 import CustomStocksPanel from '@/components/CustomStocksPanel/CustomStocksPanel';
 import HistoricalDataManager from '@/components/HistoricalDataManager/HistoricalDataManager';
 import AccountManager from '@/components/AccountManager/AccountManager';
+import { TopHoldings } from '@/components/TopHoldings';
 import Surface from '@/components/Surface';
 import ThemeCustomizer from '@/components/theme-customizer';
 
@@ -29,6 +30,7 @@ export {
   CustomStocksPanel,
   HistoricalDataManager,
   AccountManager,
+  TopHoldings,
   PageHeader,
   Surface,
   ErrorAlert,
