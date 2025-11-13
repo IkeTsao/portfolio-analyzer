@@ -684,30 +684,33 @@ export const calculateTopHoldings = (holdings: Holding[], totalAssets: number): 
   const sortedNonCash = Array.from(mergedHoldings.values())
     .sort((a, b) => b.currentValue - a.currentValue);
 
-  // 3. 提取台幣和美金現金
-  const twdCash = holdings.find(h => h.type === 'cash' && h.currency === 'TWD');
-  const usdCash = holdings.find(h => h.type === 'cash' && h.currency === 'USD');
+  // 3. 合併計算台幣和美金現金
+  const twdCashHoldings = holdings.filter(h => h.type === 'cash' && h.currency === 'TWD');
+  const usdCashHoldings = holdings.filter(h => h.type === 'cash' && h.currency === 'USD');
+
+  const twdTotal = twdCashHoldings.reduce((sum, h) => sum + (h.currentValue || 0), 0);
+  const usdTotal = usdCashHoldings.reduce((sum, h) => sum + (h.currentValue || 0), 0);
 
   const cashHoldings: TopHolding[] = [];
-  if (twdCash) {
+  if (twdTotal > 0) {
     cashHoldings.push({
       id: 'TWD_CASH',
       name: '台幣現金',
       symbol: 'TWD',
-      currentValue: twdCash.currentValue || 0,
-      gainLoss: twdCash.gainLoss || 0,
-      gainLossPercent: twdCash.gainLossPercent || 0,
+      currentValue: twdTotal,
+      gainLoss: 0, // 現金無損益
+      gainLossPercent: 0,
       assetRatio: 0, // 稍後重新計算
     });
   }
-  if (usdCash) {
+  if (usdTotal > 0) {
     cashHoldings.push({
       id: 'USD_CASH',
       name: '美金現金',
       symbol: 'USD',
-      currentValue: usdCash.currentValue || 0,
-      gainLoss: usdCash.gainLoss || 0,
-      gainLossPercent: usdCash.gainLossPercent || 0,
+      currentValue: usdTotal,
+      gainLoss: 0, // 現金無損益
+      gainLossPercent: 0,
       assetRatio: 0, // 稍後重新計算
     });
   }
