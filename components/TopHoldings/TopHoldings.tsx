@@ -59,6 +59,11 @@ export default function TopHoldings({ data, loading }: TopHoldingsProps) {
         </Table.Td>
         <Table.Td>
           <Text size="sm" fw={500}>
+            {holding.quantity}
+          </Text>
+        </Table.Td>
+        <Table.Td>
+          <Text size="sm" fw={500}>
             {formatCurrency(holding.currentValue, 'TWD')}
           </Text>
         </Table.Td>
@@ -92,6 +97,7 @@ export default function TopHoldings({ data, loading }: TopHoldingsProps) {
           <Table.Tr>
             <Table.Th>排名</Table.Th>
             <Table.Th>名稱/代碼</Table.Th>
+            <Table.Th>數量</Table.Th>
             <Table.Th>市值(台幣)</Table.Th>
             <Table.Th>佔資產比例</Table.Th>
             <Table.Th>損益</Table.Th>

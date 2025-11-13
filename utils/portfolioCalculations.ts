@@ -635,6 +635,7 @@ export interface TopHolding {
   id: string;
   name: string;
   symbol: string;
+  quantity: number; // 數量
   currentValue: number; // 台幣市值
   gainLoss: number;     // 台幣損益
   gainLossPercent: number; // 損益百分比
@@ -657,6 +658,7 @@ export const calculateTopHoldings = (holdings: Holding[], totalAssets: number): 
     const existing = mergedHoldings.get(symbol);
 
     if (existing) {
+      existing.quantity += holding.quantity || 0;
       existing.currentValue += holding.currentValue || 0;
       existing.gainLoss += holding.gainLoss || 0;
     } else {
@@ -664,6 +666,7 @@ export const calculateTopHoldings = (holdings: Holding[], totalAssets: number): 
         id: symbol, // 使用 symbol 作為合併後的 id
         name: holding.name,
         symbol: holding.symbol,
+        quantity: holding.quantity || 0,
         currentValue: holding.currentValue || 0,
         gainLoss: holding.gainLoss || 0,
         gainLossPercent: 0, // 稍後重新計算
@@ -697,6 +700,7 @@ export const calculateTopHoldings = (holdings: Holding[], totalAssets: number): 
       id: 'TWD_CASH',
       name: '台幣現金',
       symbol: 'TWD',
+      quantity: twdTotal, // 現金數量即為其價值
       currentValue: twdTotal,
       gainLoss: 0, // 現金無損益
       gainLossPercent: 0,
@@ -708,6 +712,7 @@ export const calculateTopHoldings = (holdings: Holding[], totalAssets: number): 
       id: 'USD_CASH',
       name: '美金現金',
       symbol: 'USD',
+      quantity: usdTotal, // 現金數量即為其價值
       currentValue: usdTotal,
       gainLoss: 0, // 現金無損益
       gainLossPercent: 0,
@@ -728,5 +733,6 @@ export const calculateTopHoldings = (holdings: Holding[], totalAssets: number): 
     gainLoss: formatValue(holding.gainLoss),
     gainLossPercent: formatValue(holding.gainLossPercent),
     assetRatio: formatValue(holding.assetRatio),
+    quantity: formatQuantity(holding.quantity),
   }));
 };
