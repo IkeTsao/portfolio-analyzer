@@ -1,6 +1,6 @@
 import { Paper, Title, Table, Text, Group, Badge } from '@mantine/core';
 import { IconTrendingUp, IconTrendingDown } from '@tabler/icons-react';
-import { TopHolding, formatCurrency, formatPercentage } from '@/utils/portfolioCalculations';
+import { TopHolding, formatCurrency, formatPercentage, formatQuantity } from '@/utils/portfolioCalculations';
 
 interface TopHoldingsProps {
   data: TopHolding[];
@@ -59,7 +59,7 @@ export default function TopHoldings({ data, loading }: TopHoldingsProps) {
         </Table.Td>
         <Table.Td>
           <Text size="sm" fw={500}>
-            {holding.quantity}
+            {formatQuantity(holding.quantity)}
           </Text>
         </Table.Td>
         <Table.Td>
