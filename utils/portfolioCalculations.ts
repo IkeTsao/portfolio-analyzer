@@ -11,6 +11,11 @@ export const formatQuantity = (value: number): number => {
   return parseFloat(value.toFixed(QUANTITY_PRECISION));
 };
 
+// 格式化數量（帶千分位逗號）
+export const formatQuantityWithCommas = (value: number): string => {
+  return value.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 3 });
+};
+
 // 格式化價值（小數點後2位）
 export const formatValue = (value: number): number => {
   return parseFloat(value.toFixed(VALUE_PRECISION));
