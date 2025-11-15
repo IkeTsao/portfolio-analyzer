@@ -60,12 +60,12 @@ export default function TopHoldings({ data, loading }: TopHoldingsProps) {
         </Table.Td>
         <Table.Td style={{ textAlign: 'right' }}>
           <Text size="sm" fw={500}>
-            {formatQuantityWithCommas(holding.quantity)}
+            {holding.quantity.toLocaleString(undefined, { minimumFractionDigits: 3, maximumFractionDigits: 3 })}
           </Text>
         </Table.Td>
         <Table.Td style={{ textAlign: 'right' }}>
           <Text size="sm" fw={500}>
-            {isCash ? '—' : `${holding.currency} ${formatQuantityWithCommas(holding.currentPrice)}`}
+            {isCash ? '—' : `${holding.currency} ${holding.currentPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
           </Text>
         </Table.Td>
         <Table.Td style={{ textAlign: 'right' }}>
