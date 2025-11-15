@@ -702,7 +702,8 @@ export const calculateTopHoldings = (holdings: Holding[], totalAssets: number): 
   const usdCashHoldings = holdings.filter(h => h.type === 'cash' && h.currency === 'USD');
 
   const twdTotal = twdCashHoldings.reduce((sum, h) => sum + (h.currentValue || 0), 0);
-  const usdTotal = usdCashHoldings.reduce((sum, h) => sum + (h.currentValue || 0), 0);
+  const usdTotalTwd = usdCashHoldings.reduce((sum, h) => sum + (h.currentValue || 0), 0); // 台幣價值
+  const usdTotalUsd = usdCashHoldings.reduce((sum, h) => sum + (h.quantity || 0), 0); // 美金原始金額
 
   const cashHoldings: TopHolding[] = [];
   if (twdTotal > 0) {
@@ -719,19 +720,18 @@ export const calculateTopHoldings = (holdings: Holding[], totalAssets: number): 
       assetRatio: 0, // 稍後重新計算
     });
   }
-  if (usdTotal > 0) {
+  if (usdTotalTwd > 0) {
     cashHoldings.push({
       id: 'USD_CASH',
       name: '美金現金',
       symbol: 'USD',
       currency: 'USD',
       currentPrice: 1,
-      quantity: usdTotal, // 現金數量即為其價值
-      currentValue: usdTotal,
+      quantity: usdTotalUsd, // 美金原始金額
+      currentValue: usdTotalTwd, // 台幣價值
       gainLoss: 0, // 現金無損益
       gainLossPercent: 0,
       assetRatio: 0, // 稍後重新計算
-      equivalentTwdValue: usdTotal, // 美金的台幣價值就是其 currentValue
     });
   }
 
