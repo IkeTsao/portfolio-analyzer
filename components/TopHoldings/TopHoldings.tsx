@@ -103,11 +103,11 @@ export default function TopHoldings({ data, loading }: TopHoldingsProps) {
           <Table.Tr>
             <Table.Th>排名</Table.Th>
             <Table.Th>名稱/代碼</Table.Th>
-            <Table.Th>數量</Table.Th>
-            <Table.Th>現價(原幣)</Table.Th>
-            <Table.Th>市值(台幣)</Table.Th>
-            <Table.Th>佔資產比例</Table.Th>
-            <Table.Th>損益(台幣)</Table.Th>
+            <Table.Th style={{ textAlign: 'right' }}>數量</Table.Th>
+            <Table.Th style={{ textAlign: 'right' }}>現價(原幣)</Table.Th>
+            <Table.Th style={{ textAlign: 'right' }}>市值(台幣)</Table.Th>
+            <Table.Th style={{ textAlign: 'right' }}>佔資產比例</Table.Th>
+            <Table.Th style={{ textAlign: 'right' }}>損益(台幣)</Table.Th>
           </Table.Tr>
         </Table.Thead>
         <Table.Tbody>
