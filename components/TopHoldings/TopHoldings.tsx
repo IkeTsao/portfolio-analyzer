@@ -55,6 +55,12 @@ export default function TopHoldings({ data, loading }: TopHoldingsProps) {
             <Text size="xs" c="dimmed">
               {holding.symbol}
             </Text>
+            {/* 美金現金等價台幣註記 */}
+            {holding.symbol === 'USD' && holding.equivalentTwdValue && (
+              <Text size="xs" c="dimmed" mt={2}>
+                等價 {formatCurrency(holding.equivalentTwdValue, 'TWD')}
+              </Text>
+            )}
           </div>
         </Table.Td>
         <Table.Td>

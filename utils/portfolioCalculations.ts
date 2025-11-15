@@ -646,7 +646,8 @@ export interface TopHolding {
   currentValue: number; // 台幣市值
   gainLoss: number;     // 台幣損益
   gainLossPercent: number; // 損益百分比
-  assetRatio: number; // 佔總資產比例
+  assetRatio: number;
+  equivalentTwdValue?: number; // 新增：美金等價台幣價值
 }
 
 // 計算持股排序與現金
@@ -730,6 +731,7 @@ export const calculateTopHoldings = (holdings: Holding[], totalAssets: number): 
       gainLoss: 0, // 現金無損益
       gainLossPercent: 0,
       assetRatio: 0, // 稍後重新計算
+      equivalentTwdValue: usdTotal, // 美金的台幣價值就是其 currentValue
     });
   }
 
