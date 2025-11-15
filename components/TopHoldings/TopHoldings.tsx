@@ -58,28 +58,28 @@ export default function TopHoldings({ data, loading }: TopHoldingsProps) {
 
           </div>
         </Table.Td>
-        <Table.Td>
+        <Table.Td style={{ textAlign: 'right' }}>
           <Text size="sm" fw={500}>
             {formatQuantityWithCommas(holding.quantity)}
           </Text>
         </Table.Td>
-        <Table.Td>
+        <Table.Td style={{ textAlign: 'right' }}>
           <Text size="sm" fw={500}>
             {isCash ? '—' : `${holding.currency} ${formatQuantityWithCommas(holding.currentPrice)}`}
           </Text>
         </Table.Td>
-        <Table.Td>
+        <Table.Td style={{ textAlign: 'right' }}>
           <Text size="sm" fw={500}>
             {formatCurrency(holding.currentValue, 'TWD')}
           </Text>
         </Table.Td>
-        <Table.Td>
+        <Table.Td style={{ textAlign: 'right' }}>
           <Text size="sm" fw={500} c="blue">
             {holding.assetRatio.toFixed(2)}%
           </Text>
         </Table.Td>
-        <Table.Td>
-          <Group gap="xs">
+        <Table.Td style={{ textAlign: 'right' }}>
+          <Group gap="xs" justify="flex-end">
             {!isCash && profitIcon}
             <div>
               <Text size="sm" c={isCash ? 'dimmed' : profitColor} fw={500}>
