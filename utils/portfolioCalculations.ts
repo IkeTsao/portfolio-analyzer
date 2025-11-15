@@ -635,6 +635,8 @@ export interface TopHolding {
   id: string;
   name: string;
   symbol: string;
+  currency: string;
+  currentPrice: number;
   quantity: number; // 數量
   currentValue: number; // 台幣市值
   gainLoss: number;     // 台幣損益
@@ -666,6 +668,8 @@ export const calculateTopHoldings = (holdings: Holding[], totalAssets: number): 
         id: symbol, // 使用 symbol 作為合併後的 id
         name: holding.name,
         symbol: holding.symbol,
+        currency: holding.currency,
+        currentPrice: holding.currentPrice || 0,
         quantity: holding.quantity || 0,
         currentValue: holding.currentValue || 0,
         gainLoss: holding.gainLoss || 0,
@@ -700,6 +704,8 @@ export const calculateTopHoldings = (holdings: Holding[], totalAssets: number): 
       id: 'TWD_CASH',
       name: '台幣現金',
       symbol: 'TWD',
+      currency: 'TWD',
+      currentPrice: 1,
       quantity: twdTotal, // 現金數量即為其價值
       currentValue: twdTotal,
       gainLoss: 0, // 現金無損益
@@ -712,6 +718,8 @@ export const calculateTopHoldings = (holdings: Holding[], totalAssets: number): 
       id: 'USD_CASH',
       name: '美金現金',
       symbol: 'USD',
+      currency: 'USD',
+      currentPrice: 1,
       quantity: usdTotal, // 現金數量即為其價值
       currentValue: usdTotal,
       gainLoss: 0, // 現金無損益
