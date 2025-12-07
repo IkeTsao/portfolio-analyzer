@@ -60,6 +60,11 @@ export default function TopHoldings({ data, loading }: TopHoldingsProps) {
         </Table.Td>
         <Table.Td style={{ textAlign: 'right' }}>
           <Text size="sm" fw={500}>
+            {isCash ? '—' : `${holding.currency} ${holding.costBasis.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+          </Text>
+        </Table.Td>
+        <Table.Td style={{ textAlign: 'right' }}>
+          <Text size="sm" fw={500}>
             {holding.quantity.toLocaleString(undefined, { minimumFractionDigits: 3, maximumFractionDigits: 3 })}
           </Text>
         </Table.Td>
@@ -103,6 +108,7 @@ export default function TopHoldings({ data, loading }: TopHoldingsProps) {
           <Table.Tr>
             <Table.Th>排名</Table.Th>
             <Table.Th>名稱/代碼</Table.Th>
+            <Table.Th style={{ textAlign: 'right' }}>購入成本(原幣)</Table.Th>
             <Table.Th style={{ textAlign: 'right' }}>數量</Table.Th>
             <Table.Th style={{ textAlign: 'right' }}>現價(原幣)</Table.Th>
             <Table.Th style={{ textAlign: 'right' }}>市值(台幣)</Table.Th>
