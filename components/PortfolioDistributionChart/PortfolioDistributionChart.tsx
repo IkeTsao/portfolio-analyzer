@@ -218,7 +218,7 @@ export default function PortfolioDistributionChart({
                 borderRadius: 2,
               }}
             />
-            <Text size="sm">{entry.value}</Text>
+            <Text size="sm">{entry.payload.name}</Text>
             <Text size="sm" c="dimmed">
               {formatPercentage(entry.payload.percentage)}
             </Text>

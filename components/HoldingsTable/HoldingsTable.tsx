@@ -78,6 +78,7 @@ const TYPE_LABELS: { [key: string]: string } = {
 
 const MARKET_LABELS: { [key: string]: string } = {
   US: '美國',
+  JP: '日本',
   TW: '台灣',
   OTHER: '其他',
 };
@@ -850,6 +851,7 @@ export function HoldingsTable({
             data={[
               { value: '', label: '全部區域' },
               { value: 'US', label: '美國市場' },
+              { value: 'JP', label: '日本市場' },
               { value: 'TW', label: '台灣市場' },
               { value: 'OTHER', label: '其他市場' },
             ]}
