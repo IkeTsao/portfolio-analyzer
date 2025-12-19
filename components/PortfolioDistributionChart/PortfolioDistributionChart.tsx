@@ -45,12 +45,14 @@ const ACCOUNT_LABELS = {
 
 const MARKET_COLORS = {
   US: '#22b8cf',
+  JP: '#20c997',
   TW: '#339af0',
   OTHER: '#5c7cfa',
 };
 
 const MARKET_LABELS = {
   US: '美國市場',
+  JP: '日本市場',
   TW: '台灣市場',
   OTHER: '其他地區',
 };
