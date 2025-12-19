@@ -161,6 +161,7 @@ export const calculatePortfolioStats = (
   // 市場分布
   const marketDistribution = {
     US: { value: 0, percentage: 0 },
+    JP: { value: 0, percentage: 0 },
     TW: { value: 0, percentage: 0 },
     OTHER: { value: 0, percentage: 0 },
   };

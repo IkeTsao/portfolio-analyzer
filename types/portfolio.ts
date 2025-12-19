@@ -14,7 +14,7 @@ export interface Holding {
   symbol: string; // 股票代碼、貨幣代碼等
   name: string; // 產品名稱
   type: 'stock' | 'fund' | 'bond' | 'gold' | 'crypto' | 'cash' | 'commodity';
-  market: 'US' | 'TW' | 'OTHER'; // 市場分類
+  market: 'US' | 'JP' | 'TW' | 'OTHER'; // 市場分類
   quantity: number; // 持有數量
   costBasis: number; // 成本價
   currency: string; // 計價貨幣
@@ -57,6 +57,7 @@ export interface PortfolioStats {
   // 按市場分布
   marketDistribution: {
     US: { value: number; percentage: number };
+    JP: { value: number; percentage: number };
     TW: { value: number; percentage: number };
     OTHER: { value: number; percentage: number };
   };
@@ -150,6 +151,7 @@ export const INVESTMENT_TYPES = [
 
 export const MARKET_TYPES = [
   { value: 'US', label: '美國市場' },
+  { value: 'JP', label: '日本市場' },
   { value: 'TW', label: '台灣市場' },
   { value: 'OTHER', label: '其他市場' },
 ];
