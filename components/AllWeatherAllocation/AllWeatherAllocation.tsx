@@ -136,23 +136,122 @@ export function AllWeatherAllocation({ stats, loading }: AllWeatherAllocationPro
             ** 「核心+動態調整」**的方法：
           </Text>
           
-          <div style={{ marginBottom: '12px' }}>
-            <Text size="sm" fw={600} mb="xs">1. 50% 核心地基：無論景氣好壞，永遠持有 大盤 ETF + 高股息價值股。</Text>
-          </div>
+          <Table striped>
+            <Table.Thead>
+              <Table.Tr>
+                <Table.Th>策略分項</Table.Th>
+                <Table.Th>建議比例</Table.Th>
+                <Table.Th>包含資產</Table.Th>
+                <Table.Th style={{ textAlign: 'right' }}>當前金額</Table.Th>
+                <Table.Th style={{ textAlign: 'right' }}>當前佔比</Table.Th>
+              </Table.Tr>
+            </Table.Thead>
+            <Table.Tbody>
+              <Table.Tr>
+                <Table.Td fw={600}>核心地基</Table.Td>
+                <Table.Td>50%</Table.Td>
+                <Table.Td>大盤 ETF + 高股息價值股</Table.Td>
+                <Table.Td style={{ textAlign: 'right' }}>
+                  <Text fw={500}>
+                    {formatCurrencyNTD(
+                      (stats.distributionByType['index']?.totalValue || 0) +
+                      (stats.distributionByType['dividend']?.totalValue || 0)
+                    )}
+                  </Text>
+                </Table.Td>
+                <Table.Td style={{ textAlign: 'right' }}>
+                  <Text fw={500} c="blue">
+                    {formatPercentage(
+                      (stats.distributionByType['index']?.percentage || 0) +
+                      (stats.distributionByType['dividend']?.percentage || 0)
+                    )}
+                  </Text>
+                </Table.Td>
+              </Table.Tr>
+              <Table.Tr>
+                <Table.Td fw={600}>攻防切換（看好經濟）</Table.Td>
+                <Table.Td>30%</Table.Td>
+                <Table.Td>成長股、加密貨幣</Table.Td>
+                <Table.Td style={{ textAlign: 'right' }}>
+                  <Text fw={500}>
+                    {formatCurrencyNTD(
+                      (stats.distributionByType['growth']?.totalValue || 0) +
+                      (stats.distributionByType['crypto']?.totalValue || 0)
+                    )}
+                  </Text>
+                </Table.Td>
+                <Table.Td style={{ textAlign: 'right' }}>
+                  <Text fw={500} c="blue">
+                    {formatPercentage(
+                      (stats.distributionByType['growth']?.percentage || 0) +
+                      (stats.distributionByType['crypto']?.percentage || 0)
+                    )}
+                  </Text>
+                </Table.Td>
+              </Table.Tr>
+              <Table.Tr>
+                <Table.Td fw={600}>攻防切換（擔心衰退）</Table.Td>
+                <Table.Td>30%</Table.Td>
+                <Table.Td>中長債、黃金</Table.Td>
+                <Table.Td style={{ textAlign: 'right' }}>
+                  <Text fw={500}>
+                    {formatCurrencyNTD(
+                      (stats.distributionByType['longBond']?.totalValue || 0) +
+                      (stats.distributionByType['gold']?.totalValue || 0)
+                    )}
+                  </Text>
+                </Table.Td>
+                <Table.Td style={{ textAlign: 'right' }}>
+                  <Text fw={500} c="blue">
+                    {formatPercentage(
+                      (stats.distributionByType['longBond']?.percentage || 0) +
+                      (stats.distributionByType['gold']?.percentage || 0)
+                    )}
+                  </Text>
+                </Table.Td>
+              </Table.Tr>
+              <Table.Tr>
+                <Table.Td fw={600}>通膨對沖</Table.Td>
+                <Table.Td>10%</Table.Td>
+                <Table.Td>大宗物資</Table.Td>
+                <Table.Td style={{ textAlign: 'right' }}>
+                  <Text fw={500}>
+                    {formatCurrencyNTD(stats.distributionByType['commodity']?.totalValue || 0)}
+                  </Text>
+                </Table.Td>
+                <Table.Td style={{ textAlign: 'right' }}>
+                  <Text fw={500} c="blue">
+                    {formatPercentage(stats.distributionByType['commodity']?.percentage || 0)}
+                  </Text>
+                </Table.Td>
+              </Table.Tr>
+              <Table.Tr>
+                <Table.Td fw={600}>現金子彈</Table.Td>
+                <Table.Td>10%</Table.Td>
+                <Table.Td>短債與現金</Table.Td>
+                <Table.Td style={{ textAlign: 'right' }}>
+                  <Text fw={500}>
+                    {formatCurrencyNTD(
+                      (stats.distributionByType['shortBond']?.totalValue || 0) +
+                      (stats.distributionByType['cash']?.totalValue || 0)
+                    )}
+                  </Text>
+                </Table.Td>
+                <Table.Td style={{ textAlign: 'right' }}>
+                  <Text fw={500} c="blue">
+                    {formatPercentage(
+                      (stats.distributionByType['shortBond']?.percentage || 0) +
+                      (stats.distributionByType['cash']?.percentage || 0)
+                    )}
+                  </Text>
+                </Table.Td>
+              </Table.Tr>
+            </Table.Tbody>
+          </Table>
           
-          <div style={{ marginBottom: '12px' }}>
-            <Text size="sm" fw={600} mb="xs">2. 30% 攻防切換：</Text>
-            <Text size="sm" ml="md" mb="xs">• 看好經濟時：配置 成長股、加密貨幣。</Text>
-            <Text size="sm" ml="md" mb="xs">• 擔心衰退時：配置 中長債、黃金。</Text>
-          </div>
-          
-          <div style={{ marginBottom: '12px' }}>
-            <Text size="sm" fw={600} mb="xs">3. 10% 通膨對沖：配置 大宗物資。</Text>
-          </div>
-          
-          <div>
-            <Text size="sm" fw={600} mb="xs">4. 10% 現金子彈：隨時準備在崩盤時買進上述任何一項。</Text>
-          </div>
+          <Text size="xs" c="dimmed" mt="sm" style={{ fontStyle: 'italic' }}>
+            註：「攻防切換」的 30% 可依據當前經濟情況，在「看好經濟」與「擔心衰退」兩種配置間靈活調整。
+          </Text>
         </div>
 
         {/* 投資時鐘 */}
