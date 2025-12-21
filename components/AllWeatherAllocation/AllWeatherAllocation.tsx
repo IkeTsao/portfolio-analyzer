@@ -216,6 +216,65 @@ export function AllWeatherAllocation({ stats, loading }: AllWeatherAllocationPro
           </Text>
         </div>
 
+        {/* 2026 戰術建議 */}
+        <div style={{ marginBottom: '24px' }}>
+          <Text size="md" fw={700} mb="md">
+            8 種資產的 2026 戰術建議
+          </Text>
+          
+          <Table striped>
+            <Table.Thead>
+              <Table.Tr>
+                <Table.Th>資產分類</Table.Th>
+                <Table.Th>2026 配置權重</Table.Th>
+                <Table.Th>具體建議與理由</Table.Th>
+              </Table.Tr>
+            </Table.Thead>
+            <Table.Tbody>
+              <Table.Tr>
+                <Table.Td fw={600}>成長股</Table.Td>
+                <Table.Td>策略中性（核心）</Table.Td>
+                <Table.Td>決弱弱強。 2026 年市場會變「賣」，只有毛利高、資產負債表強的公司能存活。重點關注「自帶、核能轉型、AI 軟體」。</Table.Td>
+              </Table.Tr>
+              <Table.Tr>
+                <Table.Td fw={600}>大盤 ETF</Table.Td>
+                <Table.Td>核心持有（60%）</Table.Td>
+                <Table.Td>區域分散。除了美股，可適度配置包含印度、越南或日本的區域型 ETF，台灣 GDP 預計維持穩健但基期已高，操作需更靈活。</Table.Td>
+              </Table.Tr>
+              <Table.Tr>
+                <Table.Td fw={600}>高股息價值股</Table.Td>
+                <Table.Td>防禦核心（加碼）</Table.Td>
+                <Table.Td>防禦波動。當率潰成長回歸平平，穩定的 5-7% 息收將成為資金避風港。特別是受惠於源頭轉型的公用事業股。</Table.Td>
+              </Table.Tr>
+              <Table.Tr>
+                <Table.Td fw={600}>黃金</Table.Td>
+                <Table.Td>避險配置（10%）</Table.Td>
+                <Table.Td>地緣政治與財政對沖。 2026 年美國財政赤字可能超過 GDP 的 8%，加上地緣衝突不減，黃金作為「無國籍貨幣」的地位不可動搖。</Table.Td>
+              </Table.Tr>
+              <Table.Tr>
+                <Table.Td fw={600}>債券</Table.Td>
+                <Table.Td>核心穩定（30%）</Table.Td>
+                <Table.Td>領取高票息。 2026 年利率已降至中性，債券大漲空間變小，但相較於現金，債券能提供更優質的固定回報。</Table.Td>
+              </Table.Tr>
+              <Table.Tr>
+                <Table.Td fw={600}>現金</Table.Td>
+                <Table.Td>低比重（保持流動性）</Table.Td>
+                <Table.Td>2026 年現金存放利率不再誘人，應維持在 5-10% 用於市場過度震盪時的「策略性加碼」。</Table.Td>
+              </Table.Tr>
+              <Table.Tr>
+                <Table.Td fw={600}>加密貨幣</Table.Td>
+                <Table.Td>衛星投機（5%）</Table.Td>
+                <Table.Td>隨時美聯儲利率觸底，流動性可能重新外溢，作為數位資產的試金石，可小量持有但須做好 50% 以上波動的心理準備。</Table.Td>
+              </Table.Tr>
+              <Table.Tr>
+                <Table.Td fw={600}>大宗物資</Table.Td>
+                <Table.Td>策略減碼</Table.Td>
+                <Table.Td>全球經濟增速放緩（預計 2.7-2.8%），除非發生石油供應衝擊，否則原物料在 2026 年可能表現較平淡。</Table.Td>
+              </Table.Tr>
+            </Table.Tbody>
+          </Table>
+        </div>
+
         {/* 全天候配置 */}
         <div style={{ marginBottom: '24px' }}>
           <Text size="md" fw={700} mb="md">
