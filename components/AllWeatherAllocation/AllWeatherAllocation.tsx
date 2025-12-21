@@ -138,6 +138,31 @@ export function AllWeatherAllocation({ stats, loading }: AllWeatherAllocationPro
           以下為您將這 6 種資產，依照景氣循環的建議配置整理如下：
         </Text>
 
+        {/* 核心+動態調整建議 */}
+        <div style={{ marginBottom: '32px', padding: '16px', backgroundColor: '#e7f5ff', borderRadius: '8px', borderLeft: '4px solid #228be6' }}>
+          <Text size="md" fw={700} mb="md">
+            如果您覺得判斷景氣太難，可以採取以下** 「核心+動態調整」**的方法：
+          </Text>
+          
+          <div style={{ marginBottom: '12px' }}>
+            <Text size="sm" fw={600} mb="xs">1. 50% 核心地基：無論景氣好壞，永遠持有 大盤 ETF + 高股息價值股。</Text>
+          </div>
+          
+          <div style={{ marginBottom: '12px' }}>
+            <Text size="sm" fw={600} mb="xs">2. 30% 攻防切換：</Text>
+            <Text size="sm" ml="md" mb="xs">• 看好經濟時：配置 成長股、加密貨幣。</Text>
+            <Text size="sm" ml="md" mb="xs">• 擔心衰退時：配置 中長債、黃金。</Text>
+          </div>
+          
+          <div style={{ marginBottom: '12px' }}>
+            <Text size="sm" fw={600} mb="xs">3. 10% 通膨對沖：配置 大宗物資。</Text>
+          </div>
+          
+          <div>
+            <Text size="sm" fw={600} mb="xs">4. 10% 現金子彈：隨時準備在崩盤時買進上述任何一項。</Text>
+          </div>
+        </div>
+
         {/* 四個經濟階段 */}
         <div style={{ marginBottom: '24px' }}>
           <Text size="md" fw={700} mb="sm">1. 復甦期 (Recovery)：景氣剛好轉、低利率、低通膨</Text>
@@ -212,22 +237,7 @@ export function AllWeatherAllocation({ stats, loading }: AllWeatherAllocationPro
           </Table>
         </div>
 
-        {/* 核心+動態調整建議 */}
-        <div style={{ marginTop: '32px', padding: '16px', backgroundColor: '#e7f5ff', borderRadius: '8px', borderLeft: '4px solid #228be6' }}>
-          <Text size="md" fw={700} mb="md">
-            如果您覺得判斷景氣太難，可以採取以下** 「核心+動態調整」**的方法：
-          </Text>
-          
-          <Text size="sm" mb="xs" fw={600}>1. 50% 核心地基：無論景氣好壞，永遠持有 大盤 ETF + 高股息價值股。</Text>
-          
-          <Text size="sm" mb="xs" fw={600} mt="md">2. 30% 攻防切換：</Text>
-          <Text size="sm" ml="md" mb="xs">• 看好經濟時：配置 成長股、加密貨幣。</Text>
-          <Text size="sm" ml="md" mb="xs">• 擔心衰退時：配置 中長債、黃金。</Text>
-          
-          <Text size="sm" mb="xs" fw={600} mt="md">3. 10% 通膨對沖：配置 大宗物資。</Text>
-          
-          <Text size="sm" mb="xs" fw={600} mt="md">4. 10% 現金子彈：隨時準備在崩盤時買進上述任何一項。</Text>
-        </div>
+
       </div>
     </Paper>
   );
