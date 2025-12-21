@@ -130,18 +130,10 @@ export function AllWeatherAllocation({ stats, loading }: AllWeatherAllocationPro
 
       {/* 投資時鐘說明 */}
       <div style={{ marginTop: '32px', padding: '20px', backgroundColor: '#f8f9fa', borderRadius: '8px' }}>
-        <Text size="md" fw={600} mb="md">
-          要根據景氣好壞來配置資產，最經典的架構是參考** 「投資時鐘」(Investment Clock) ** 。它將景氣分為四個階段，每一階段都有最適合的「進攻」與「防禦」資產。
-        </Text>
-        
-        <Text size="md" fw={600} mb="lg">
-          以下為您將這 6 種資產，依照景氣循環的建議配置整理如下：
-        </Text>
-
         {/* 核心+動態調整建議 */}
         <div style={{ marginBottom: '32px', padding: '16px', backgroundColor: '#e7f5ff', borderRadius: '8px', borderLeft: '4px solid #228be6' }}>
           <Text size="md" fw={700} mb="md">
-            如果您覺得判斷景氣太難，可以採取以下** 「核心+動態調整」**的方法：
+            ** 「核心+動態調整」**的方法：
           </Text>
           
           <div style={{ marginBottom: '12px' }}>
@@ -161,6 +153,16 @@ export function AllWeatherAllocation({ stats, loading }: AllWeatherAllocationPro
           <div>
             <Text size="sm" fw={600} mb="xs">4. 10% 現金子彈：隨時準備在崩盤時買進上述任何一項。</Text>
           </div>
+        </div>
+
+        {/* 投資時鐘 */}
+        <div style={{ marginBottom: '24px' }}>
+          <Text size="md" fw={700} mb="md">
+            ** 「投資時鐘」(Investment Clock) ** 將景氣分為四個階段，每一階段都有最適合的「進攻」與「防禦」資產。
+          </Text>
+          <Text size="md" fw={600} mb="lg">
+            依照景氣循環的建議配置整理如下：
+          </Text>
         </div>
 
         {/* 四個經濟階段 */}
