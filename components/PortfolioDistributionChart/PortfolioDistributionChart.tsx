@@ -232,10 +232,10 @@ export default function PortfolioDistributionChart({
     
     // 計算四大總和
     const totals = {
-      stock: { value: 0, percentage: 0, label: '股票類總和', types: ['index', 'growth', 'dividend'] },
-      goldCommodity: { value: 0, percentage: 0, label: '黃金與大宗物資總和', types: ['gold', 'commodity'] },
-      shortBondCash: { value: 0, percentage: 0, label: '短債與現金總和', types: ['shortBond', 'cash'] },
-      crypto: { value: 0, percentage: 0, label: '加密貨幣', types: ['crypto'] }
+      stock: { value: 0, percentage: 0, label: '股票類', types: ['index', 'growth', 'dividend'] },
+      longBond: { value: 0, percentage: 0, label: '中長債', types: ['longBond'] },
+      goldCommodity: { value: 0, percentage: 0, label: '黃金與大宗物資', types: ['gold', 'commodity'] },
+      shortBondCash: { value: 0, percentage: 0, label: '短債與現金', types: ['shortBond', 'cash'] }
     };
 
     if (shouldShowTotals && payload && Array.isArray(payload)) {
@@ -284,6 +284,13 @@ export default function PortfolioDistributionChart({
                 <Text size="sm" c="dimmed" fw={600}>{formatPercentage(totals.stock.percentage)}</Text>
               </Group>
             )}
+            {totals.longBond.value > 0 && (
+              <Group gap="xs" style={{ borderLeft: '2px solid #dee2e6', paddingLeft: '12px', marginLeft: '8px' }}>
+                <div style={{ width: 12, height: 12, backgroundColor: '#868e96', borderRadius: 2 }} />
+                <Text size="sm" fw={600}>{totals.longBond.label}</Text>
+                <Text size="sm" c="dimmed" fw={600}>{formatPercentage(totals.longBond.percentage)}</Text>
+              </Group>
+            )}
             {totals.goldCommodity.value > 0 && (
               <Group gap="xs" style={{ borderLeft: '2px solid #dee2e6', paddingLeft: '12px', marginLeft: '8px' }}>
                 <div style={{ width: 12, height: 12, backgroundColor: '#868e96', borderRadius: 2 }} />
@@ -296,13 +303,6 @@ export default function PortfolioDistributionChart({
                 <div style={{ width: 12, height: 12, backgroundColor: '#868e96', borderRadius: 2 }} />
                 <Text size="sm" fw={600}>{totals.shortBondCash.label}</Text>
                 <Text size="sm" c="dimmed" fw={600}>{formatPercentage(totals.shortBondCash.percentage)}</Text>
-              </Group>
-            )}
-            {totals.crypto.value > 0 && (
-              <Group gap="xs" style={{ borderLeft: '2px solid #dee2e6', paddingLeft: '12px', marginLeft: '8px' }}>
-                <div style={{ width: 12, height: 12, backgroundColor: '#868e96', borderRadius: 2 }} />
-                <Text size="sm" fw={600}>{totals.crypto.label}</Text>
-                <Text size="sm" c="dimmed" fw={600}>{formatPercentage(totals.crypto.percentage)}</Text>
               </Group>
             )}
           </>
