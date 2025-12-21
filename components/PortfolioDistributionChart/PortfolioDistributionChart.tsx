@@ -256,6 +256,32 @@ export default function PortfolioDistributionChart({
         }
       });
     }
+    
+    // 計算三大類別加總
+    const superTotals = {
+      core: { value: 0, percentage: 0, label: '核心類', types: ['index', 'dividend', 'longBond'] },
+      strategy: { value: 0, percentage: 0, label: '策略類', types: ['growth', 'gold', 'commodity', 'crypto'] },
+      cash: { value: 0, percentage: 0, label: '現金類', types: ['shortBond', 'cash'] }
+    };
+    
+    if (shouldShowTotals && payload && Array.isArray(payload)) {
+      payload.forEach((entry: any) => {
+        if (!entry || !entry.payload || !entry.payload.name) return;
+        const originalData = data.find((d: any) => d && d.name === entry.payload.name) as any;
+        if (originalData && typeof originalData.value === 'number') {
+          const typeKey = Object.keys(TYPE_LABELS).find(key => TYPE_LABELS[key as keyof typeof TYPE_LABELS] === entry.payload.name);
+          if (typeKey) {
+            // 檢查屬於哪個三大類別
+            Object.values(superTotals).forEach(superTotal => {
+              if (superTotal.types.includes(typeKey)) {
+                superTotal.value += originalData.value;
+                superTotal.percentage += (originalData.percentage || 0);
+              }
+            });
+          }
+        }
+      });
+    }
 
     return (
       <Group justify="center" gap="md" mt="md" wrap="wrap">
@@ -306,6 +332,30 @@ export default function PortfolioDistributionChart({
               </Group>
             )}
           </>
+        )}
+        
+        {/* 三大類別加總 */}
+        {shouldShowTotals && (
+          <Group gap="md" mt="md" style={{ width: '100%', justifyContent: 'center', borderTop: '1px solid #dee2e6', paddingTop: '12px' }}>
+            {superTotals.core.value > 0 && (
+              <Group gap="xs">
+                <Text size="md" fw={700} c="blue">{superTotals.core.label}</Text>
+                <Text size="md" c="blue" fw={700}>{formatPercentage(superTotals.core.percentage)}</Text>
+              </Group>
+            )}
+            {superTotals.strategy.value > 0 && (
+              <Group gap="xs">
+                <Text size="md" fw={700} c="blue">{superTotals.strategy.label}</Text>
+                <Text size="md" c="blue" fw={700}>{formatPercentage(superTotals.strategy.percentage)}</Text>
+              </Group>
+            )}
+            {superTotals.cash.value > 0 && (
+              <Group gap="xs">
+                <Text size="md" fw={700} c="blue">{superTotals.cash.label}</Text>
+                <Text size="md" c="blue" fw={700}>{formatPercentage(superTotals.cash.percentage)}</Text>
+              </Group>
+            )}
+          </Group>
         )}
       </Group>
     );
