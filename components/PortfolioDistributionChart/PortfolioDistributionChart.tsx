@@ -16,7 +16,8 @@ const TYPE_COLORS = {
   growth: '#339af0',
   dividend: '#7950f2',
   fund: '#9775fa',
-  bond: '#5c7cfa',
+  shortBond: '#5c7cfa',
+  longBond: '#748ffc',
   gold: '#20c997',
   crypto: '#51cf66',
   commodity: '#fd7e14',
@@ -28,7 +29,8 @@ const TYPE_LABELS = {
   growth: '成長股',
   dividend: '高股息與價值股',
   fund: '基金',
-  bond: '債券',
+  shortBond: '短債',
+  longBond: '中長債',
   gold: '黃金',
   crypto: '加密貨幣',
   commodity: '大宗物資',
@@ -214,7 +216,7 @@ export default function PortfolioDistributionChart({
     const shouldShowTotals = viewMode === 'type' && type === 'amount';
     
     // 定義排序順序
-    const typeOrder = ['指數與ETF', '成長股', '高股息與價值股', '債券', '黃金', '大宗物資', '加密貨幣', '現金', '基金'];
+    const typeOrder = ['指數與ETF', '成長股', '高股息與價值股', '中長債', '黃金', '大宗物資', '加密貨幣', '短債', '現金', '基金'];
     
     // 按照指定順序排序 payload
     let sortedPayload = payload ? [...payload] : [];
@@ -232,7 +234,7 @@ export default function PortfolioDistributionChart({
     const totals = {
       stock: { value: 0, percentage: 0, label: '股票類總和', types: ['index', 'growth', 'dividend'] },
       goldCommodity: { value: 0, percentage: 0, label: '黃金與大宗物資總和', types: ['gold', 'commodity'] },
-      bondCash: { value: 0, percentage: 0, label: '債券與現金總和', types: ['bond', 'cash'] },
+      shortBondCash: { value: 0, percentage: 0, label: '短債與現金總和', types: ['shortBond', 'cash'] },
       crypto: { value: 0, percentage: 0, label: '加密貨幣', types: ['crypto'] }
     };
 
@@ -289,11 +291,11 @@ export default function PortfolioDistributionChart({
                 <Text size="sm" c="dimmed" fw={600}>{formatPercentage(totals.goldCommodity.percentage)}</Text>
               </Group>
             )}
-            {totals.bondCash.value > 0 && (
+            {totals.shortBondCash.value > 0 && (
               <Group gap="xs" style={{ borderLeft: '2px solid #dee2e6', paddingLeft: '12px', marginLeft: '8px' }}>
                 <div style={{ width: 12, height: 12, backgroundColor: '#868e96', borderRadius: 2 }} />
-                <Text size="sm" fw={600}>{totals.bondCash.label}</Text>
-                <Text size="sm" c="dimmed" fw={600}>{formatPercentage(totals.bondCash.percentage)}</Text>
+                <Text size="sm" fw={600}>{totals.shortBondCash.label}</Text>
+                <Text size="sm" c="dimmed" fw={600}>{formatPercentage(totals.shortBondCash.percentage)}</Text>
               </Group>
             )}
             {totals.crypto.value > 0 && (
