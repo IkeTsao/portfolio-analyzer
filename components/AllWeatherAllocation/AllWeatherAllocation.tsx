@@ -122,33 +122,14 @@ export function AllWeatherAllocation({ stats, loading }: AllWeatherAllocationPro
                 </Table.Td>
               </Table.Tr>
               <Table.Tr>
-                <Table.Td fw={600}>攻防切換（看好經濟）</Table.Td>
+                <Table.Td fw={600}>攻防切換</Table.Td>
                 <Table.Td>30%</Table.Td>
-                <Table.Td>成長股、加密貨幣</Table.Td>
+                <Table.Td>成長股、加密貨幣、中長債、黃金</Table.Td>
                 <Table.Td style={{ textAlign: 'right' }}>
                   <Text fw={500}>
                     {formatCurrencyNTD(
                       (stats.distributionByType['growth']?.totalValue || 0) +
-                      (stats.distributionByType['crypto']?.totalValue || 0)
-                    )}
-                  </Text>
-                </Table.Td>
-                <Table.Td style={{ textAlign: 'right' }}>
-                  <Text fw={500} c="blue">
-                    {formatPercentage(
-                      (stats.distributionByType['growth']?.percentage || 0) +
-                      (stats.distributionByType['crypto']?.percentage || 0)
-                    )}
-                  </Text>
-                </Table.Td>
-              </Table.Tr>
-              <Table.Tr>
-                <Table.Td fw={600}>攻防切換（擔心衰退）</Table.Td>
-                <Table.Td>30%</Table.Td>
-                <Table.Td>中長債、黃金</Table.Td>
-                <Table.Td style={{ textAlign: 'right' }}>
-                  <Text fw={500}>
-                    {formatCurrencyNTD(
+                      (stats.distributionByType['crypto']?.totalValue || 0) +
                       (stats.distributionByType['longBond']?.totalValue || 0) +
                       (stats.distributionByType['gold']?.totalValue || 0)
                     )}
@@ -157,6 +138,8 @@ export function AllWeatherAllocation({ stats, loading }: AllWeatherAllocationPro
                 <Table.Td style={{ textAlign: 'right' }}>
                   <Text fw={500} c="blue">
                     {formatPercentage(
+                      (stats.distributionByType['growth']?.percentage || 0) +
+                      (stats.distributionByType['crypto']?.percentage || 0) +
                       (stats.distributionByType['longBond']?.percentage || 0) +
                       (stats.distributionByType['gold']?.percentage || 0)
                     )}
@@ -197,6 +180,17 @@ export function AllWeatherAllocation({ stats, loading }: AllWeatherAllocationPro
                       (stats.distributionByType['cash']?.percentage || 0)
                     )}
                   </Text>
+                </Table.Td>
+              </Table.Tr>
+              <Table.Tr style={{ borderTop: '2px solid #dee2e6' }}>
+                <Table.Td fw={700}>總計</Table.Td>
+                <Table.Td fw={700}>100%</Table.Td>
+                <Table.Td></Table.Td>
+                <Table.Td style={{ textAlign: 'right' }}>
+                  <Text fw={700}>{formatCurrencyNTD(stats.totalValue)}</Text>
+                </Table.Td>
+                <Table.Td style={{ textAlign: 'right' }}>
+                  <Text fw={700} c="blue">100.00%</Text>
                 </Table.Td>
               </Table.Tr>
             </Table.Tbody>
