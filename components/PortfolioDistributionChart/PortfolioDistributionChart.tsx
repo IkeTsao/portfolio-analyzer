@@ -210,35 +210,49 @@ export default function PortfolioDistributionChart({
   };
 
   const CustomLegend = ({ payload }: any) => {
-    // 只在類型視圖且非損益模式時顯示股票類總和
-    const shouldShowStockTotal = viewMode === 'type' && type === 'amount';
+    // 只在類型視圖且非損益模式時顯示總和
+    const shouldShowTotals = viewMode === 'type' && type === 'amount';
     
-    // 計算股票類總和（指數與ETF + 成長股 + 高股息與價值股）
-    let stockTotal = 0;
-    let stockPercentage = 0;
-    if (shouldShowStockTotal && payload && Array.isArray(payload)) {
-      const stockTypes = ['index', 'growth', 'dividend'];
+    // 定義排序順序
+    const typeOrder = ['指數與ETF', '成長股', '高股息與價值股', '債券', '黃金', '大宗物資', '加密貨幣', '現金', '基金'];
+    
+    // 按照指定順序排序 payload
+    let sortedPayload = payload ? [...payload] : [];
+    if (shouldShowTotals && sortedPayload.length > 0) {
+      sortedPayload.sort((a: any, b: any) => {
+        const aIndex = typeOrder.indexOf(a.payload?.name || '');
+        const bIndex = typeOrder.indexOf(b.payload?.name || '');
+        const aPos = aIndex === -1 ? 999 : aIndex;
+        const bPos = bIndex === -1 ? 999 : bIndex;
+        return aPos - bPos;
+      });
+    }
+    
+    // 計算四大總和
+    const totals = {
+      stock: { value: 0, percentage: 0, label: '股票類總和', types: ['index', 'growth', 'dividend'] },
+      goldCommodity: { value: 0, percentage: 0, label: '黃金與大宗物資總和', types: ['gold', 'commodity'] },
+      bondCash: { value: 0, percentage: 0, label: '債券與現金總和', types: ['bond', 'cash'] },
+      crypto: { value: 0, percentage: 0, label: '加密貨幣', types: ['crypto'] }
+    };
+
+    if (shouldShowTotals && payload && Array.isArray(payload)) {
       payload.forEach((entry: any) => {
         if (!entry || !entry.payload || !entry.payload.name) return;
         const originalData = data.find((d: any) => d && d.name === entry.payload.name) as any;
         if (originalData && typeof originalData.value === 'number') {
-          // 檢查是否為股票類
           const typeKey = Object.keys(TYPE_LABELS).find(key => TYPE_LABELS[key as keyof typeof TYPE_LABELS] === entry.payload.name);
-          if (typeKey && stockTypes.includes(typeKey)) {
-            stockTotal += originalData.value;
-            stockPercentage += (originalData.percentage || 0);
+          if (typeKey) {
+            // 檢查屬於哪個總和類別
+            Object.values(totals).forEach(total => {
+              if (total.types.includes(typeKey)) {
+                total.value += originalData.value;
+                total.percentage += (originalData.percentage || 0);
+              }
+            });
           }
         }
       });
-    }
-
-    // 重新排序 payload：將股票相關類型排在一起
-    let sortedPayload = payload ? [...payload] : [];
-    if (shouldShowStockTotal) {
-      const stockTypes = ['指數與ETF', '成長股', '高股息與價值股'];
-      const stockEntries = sortedPayload.filter((entry: any) => stockTypes.includes(entry.payload.name));
-      const otherEntries = sortedPayload.filter((entry: any) => !stockTypes.includes(entry.payload.name));
-      sortedPayload = [...stockEntries, ...otherEntries];
     }
 
     return (
@@ -259,21 +273,37 @@ export default function PortfolioDistributionChart({
             </Text>
           </Group>
         ))}
-        {shouldShowStockTotal && stockTotal > 0 && (
-          <Group gap="xs" style={{ borderLeft: '2px solid #dee2e6', paddingLeft: '12px', marginLeft: '8px' }}>
-            <div
-              style={{
-                width: 12,
-                height: 12,
-                backgroundColor: '#868e96',
-                borderRadius: 2,
-              }}
-            />
-            <Text size="sm" fw={600}>股票類總和</Text>
-            <Text size="sm" c="dimmed" fw={600}>
-              {formatPercentage(stockPercentage)}
-            </Text>
-          </Group>
+        {shouldShowTotals && (
+          <>
+            {totals.stock.value > 0 && (
+              <Group gap="xs" style={{ borderLeft: '2px solid #dee2e6', paddingLeft: '12px', marginLeft: '8px' }}>
+                <div style={{ width: 12, height: 12, backgroundColor: '#868e96', borderRadius: 2 }} />
+                <Text size="sm" fw={600}>{totals.stock.label}</Text>
+                <Text size="sm" c="dimmed" fw={600}>{formatPercentage(totals.stock.percentage)}</Text>
+              </Group>
+            )}
+            {totals.goldCommodity.value > 0 && (
+              <Group gap="xs" style={{ borderLeft: '2px solid #dee2e6', paddingLeft: '12px', marginLeft: '8px' }}>
+                <div style={{ width: 12, height: 12, backgroundColor: '#868e96', borderRadius: 2 }} />
+                <Text size="sm" fw={600}>{totals.goldCommodity.label}</Text>
+                <Text size="sm" c="dimmed" fw={600}>{formatPercentage(totals.goldCommodity.percentage)}</Text>
+              </Group>
+            )}
+            {totals.bondCash.value > 0 && (
+              <Group gap="xs" style={{ borderLeft: '2px solid #dee2e6', paddingLeft: '12px', marginLeft: '8px' }}>
+                <div style={{ width: 12, height: 12, backgroundColor: '#868e96', borderRadius: 2 }} />
+                <Text size="sm" fw={600}>{totals.bondCash.label}</Text>
+                <Text size="sm" c="dimmed" fw={600}>{formatPercentage(totals.bondCash.percentage)}</Text>
+              </Group>
+            )}
+            {totals.crypto.value > 0 && (
+              <Group gap="xs" style={{ borderLeft: '2px solid #dee2e6', paddingLeft: '12px', marginLeft: '8px' }}>
+                <div style={{ width: 12, height: 12, backgroundColor: '#868e96', borderRadius: 2 }} />
+                <Text size="sm" fw={600}>{totals.crypto.label}</Text>
+                <Text size="sm" c="dimmed" fw={600}>{formatPercentage(totals.crypto.percentage)}</Text>
+              </Group>
+            )}
+          </>
         )}
       </Group>
     );
