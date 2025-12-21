@@ -70,6 +70,9 @@ const MARKET_MAP: { [key: string]: string } = {
   '美國': 'US',
   '美國市場': 'US',
   'US': 'US',
+  '日本': 'JP',
+  '日本市場': 'JP',
+  'JP': 'JP',
   '台灣': 'TW',
   '台灣市場': 'TW',
   'TW': 'TW',
@@ -383,6 +386,7 @@ function getTypeDisplayName(type: string): string {
 function getMarketDisplayName(market: string): string {
   const displayNames: { [key: string]: string } = {
     'US': '美國',
+    'JP': '日本',
     'TW': '台灣',
     'OTHER': '其他'
   };
