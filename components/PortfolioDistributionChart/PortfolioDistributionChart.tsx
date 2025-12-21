@@ -70,7 +70,7 @@ export default function PortfolioDistributionChart({
   title
 }: PortfolioDistributionChartProps) {
   
-  const [viewMode, setViewMode] = useState<'type' | 'account' | 'market' | 'allocation'>('type');
+  const [viewMode, setViewMode] = useState<'type' | 'account' | 'market' | 'allocation'>('allocation');
 
   // 準備類型分布數據
   const getTypeDistributionData = (isGainLoss = false) => {
@@ -163,18 +163,18 @@ export default function PortfolioDistributionChart({
   const getAllocationDistributionData = (isGainLoss = false) => {
     if (!stats?.distributionByType) return [];
     
-    // 定義五種戰略配置
-    const allocations = {
-      core: { label: '核心股', types: ['index', 'dividend'], color: '#339af0' },
-      offensive: { label: '進攻資產', types: ['growth', 'crypto'], color: '#51cf66' },
-      defensive: { label: '防守資產', types: ['gold', 'longBond'], color: '#20c997' },
-      hedge: { label: '對沖資產', types: ['commodity'], color: '#fd7e14' },
-      cash: { label: '現金', types: ['shortBond', 'cash'], color: '#94d82d' }
-    };
+    // 定義五種戰略配置（按固定順序）
+    const allocations = [
+      { key: 'core', label: '核心股', types: ['index', 'dividend'], color: '#339af0' },
+      { key: 'offensive', label: '進攻資產', types: ['growth', 'crypto'], color: '#51cf66' },
+      { key: 'defensive', label: '防守資產', types: ['gold', 'longBond'], color: '#20c997' },
+      { key: 'hedge', label: '對沖資產', types: ['commodity'], color: '#fd7e14' },
+      { key: 'cash', label: '類現金', types: ['shortBond', 'cash'], color: '#94d82d' }
+    ];
     
     if (isGainLoss) {
-      // 為損益分布準備數據
-      const categories = Object.entries(allocations).map(([key, config]) => {
+      // 為損益分布準備數據（保持固定順序）
+      const categories = allocations.map((config) => {
         const totalGainLoss = config.types.reduce((sum, type) => {
           const typeData = stats.distributionByType[type as keyof typeof stats.distributionByType];
           return sum + (typeData?.totalGainLoss || 0);
@@ -184,14 +184,13 @@ export default function PortfolioDistributionChart({
           name: config.label,
           value: totalGainLoss
         };
-      }).filter(item => item.value !== 0)
-        .sort((a, b) => Math.abs(b.value) - Math.abs(a.value));
+      }).filter(item => item.value !== 0);
       
       return categories;
     }
     
-    // 為金額分布準備數據
-    return Object.entries(allocations).map(([key, config]) => {
+    // 為金額分布準備數據（保持固定順序）
+    return allocations.map((config) => {
       const totalValue = config.types.reduce((sum, type) => {
         const typeData = stats.distributionByType[type as keyof typeof stats.distributionByType];
         return sum + (typeData?.totalValue || 0);
@@ -208,8 +207,7 @@ export default function PortfolioDistributionChart({
         percentage: percentage,
         fill: config.color
       };
-    }).filter(item => item.value > 0)
-      .sort((a, b) => b.value - a.value);
+    }).filter(item => item.value > 0);
   };
 
   const getCurrentData = () => {
@@ -291,7 +289,7 @@ export default function PortfolioDistributionChart({
       offensive: { value: 0, percentage: 0, label: '進攻資產', types: ['growth', 'crypto'] },
       defensive: { value: 0, percentage: 0, label: '防守資產', types: ['gold', 'longBond'] },
       hedge: { value: 0, percentage: 0, label: '對沖資產', types: ['commodity'] },
-      cash: { value: 0, percentage: 0, label: '現金', types: ['shortBond', 'cash'] }
+      cash: { value: 0, percentage: 0, label: '類現金', types: ['shortBond', 'cash'] }
     };
 
     if (shouldShowTotals && payload && Array.isArray(payload)) {
