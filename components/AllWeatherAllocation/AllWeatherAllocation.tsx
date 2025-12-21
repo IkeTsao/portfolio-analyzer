@@ -94,6 +94,7 @@ export function AllWeatherAllocation({ stats, loading }: AllWeatherAllocationPro
               <Table.Tr>
                 <Table.Th>策略分項</Table.Th>
                 <Table.Th>建議比例</Table.Th>
+                <Table.Th>包含資產</Table.Th>
                 <Table.Th style={{ textAlign: 'right' }}>當前金額</Table.Th>
                 <Table.Th style={{ textAlign: 'right' }}>當前佔比</Table.Th>
               </Table.Tr>
@@ -101,7 +102,8 @@ export function AllWeatherAllocation({ stats, loading }: AllWeatherAllocationPro
             <Table.Tbody>
               <Table.Tr>
                 <Table.Td fw={600}>核心地基</Table.Td>
-                <Table.Td>50% 大盤 ETF + 高股息價值股</Table.Td>
+                <Table.Td>50%</Table.Td>
+                <Table.Td>大盤 ETF + 高股息價值股</Table.Td>
                 <Table.Td style={{ textAlign: 'right' }}>
                   <Text fw={500}>
                     {formatCurrencyNTD(
@@ -121,25 +123,38 @@ export function AllWeatherAllocation({ stats, loading }: AllWeatherAllocationPro
               </Table.Tr>
               <Table.Tr>
                 <Table.Td fw={600} rowSpan={2}>攻防切換</Table.Td>
-                <Table.Td>
-                  <div>30%</div>
-                  <div style={{ marginTop: '4px' }}>看好經濟：成長股、加密貨幣</div>
-                </Table.Td>
-                <Table.Td style={{ textAlign: 'right' }} rowSpan={2}>
+                <Table.Td rowSpan={2}>30%</Table.Td>
+                <Table.Td>看好經濟：成長股、加密貨幣</Table.Td>
+                <Table.Td style={{ textAlign: 'right' }}>
                   <Text fw={500}>
                     {formatCurrencyNTD(
                       (stats.distributionByType['growth']?.totalValue || 0) +
-                      (stats.distributionByType['crypto']?.totalValue || 0) +
+                      (stats.distributionByType['crypto']?.totalValue || 0)
+                    )}
+                  </Text>
+                </Table.Td>
+                <Table.Td style={{ textAlign: 'right' }}>
+                  <Text fw={500} c="blue">
+                    {formatPercentage(
+                      (stats.distributionByType['growth']?.percentage || 0) +
+                      (stats.distributionByType['crypto']?.percentage || 0)
+                    )}
+                  </Text>
+                </Table.Td>
+              </Table.Tr>
+              <Table.Tr>
+                <Table.Td>擔心衰退：中長債、黃金</Table.Td>
+                <Table.Td style={{ textAlign: 'right' }}>
+                  <Text fw={500}>
+                    {formatCurrencyNTD(
                       (stats.distributionByType['longBond']?.totalValue || 0) +
                       (stats.distributionByType['gold']?.totalValue || 0)
                     )}
                   </Text>
                 </Table.Td>
-                <Table.Td style={{ textAlign: 'right' }} rowSpan={2}>
+                <Table.Td style={{ textAlign: 'right' }}>
                   <Text fw={500} c="blue">
                     {formatPercentage(
-                      (stats.distributionByType['growth']?.percentage || 0) +
-                      (stats.distributionByType['crypto']?.percentage || 0) +
                       (stats.distributionByType['longBond']?.percentage || 0) +
                       (stats.distributionByType['gold']?.percentage || 0)
                     )}
@@ -147,11 +162,9 @@ export function AllWeatherAllocation({ stats, loading }: AllWeatherAllocationPro
                 </Table.Td>
               </Table.Tr>
               <Table.Tr>
-                <Table.Td>擔心衰退：中長債、黃金</Table.Td>
-              </Table.Tr>
-              <Table.Tr>
                 <Table.Td fw={600}>通膨對沖</Table.Td>
-                <Table.Td>10% 大宗物資</Table.Td>
+                <Table.Td>10%</Table.Td>
+                <Table.Td>大宗物資</Table.Td>
                 <Table.Td style={{ textAlign: 'right' }}>
                   <Text fw={500}>
                     {formatCurrencyNTD(stats.distributionByType['commodity']?.totalValue || 0)}
@@ -165,7 +178,8 @@ export function AllWeatherAllocation({ stats, loading }: AllWeatherAllocationPro
               </Table.Tr>
               <Table.Tr>
                 <Table.Td fw={600}>現金子彈</Table.Td>
-                <Table.Td>10% 短債與現金</Table.Td>
+                <Table.Td>10%</Table.Td>
+                <Table.Td>短債與現金</Table.Td>
                 <Table.Td style={{ textAlign: 'right' }}>
                   <Text fw={500}>
                     {formatCurrencyNTD(
@@ -186,6 +200,7 @@ export function AllWeatherAllocation({ stats, loading }: AllWeatherAllocationPro
               <Table.Tr style={{ borderTop: '2px solid #dee2e6' }}>
                 <Table.Td fw={700}>總計</Table.Td>
                 <Table.Td fw={700}>100%</Table.Td>
+                <Table.Td></Table.Td>
                 <Table.Td style={{ textAlign: 'right' }}>
                   <Text fw={700}>{formatCurrencyNTD(stats.totalValue)}</Text>
                 </Table.Td>
