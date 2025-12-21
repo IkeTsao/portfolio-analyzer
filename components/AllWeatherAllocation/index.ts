@@ -1,0 +1,1 @@
+export { AllWeatherAllocation } from './AllWeatherAllocation';

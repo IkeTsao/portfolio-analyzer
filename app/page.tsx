@@ -5,6 +5,7 @@ import {
   Container,
   Grid,
   Stack,
+  Tabs,
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 
@@ -17,6 +18,7 @@ import {
   LiveInfoDisplay,
   TopHoldings,
 } from '@/components';
+import { AllWeatherAllocation } from '@/components/AllWeatherAllocation';
 import { usePortfolio } from '@/hooks/usePortfolio';
 
 export default function HomePage() {
@@ -206,10 +208,26 @@ export default function HomePage() {
               />
             </Grid.Col>
             <Grid.Col span={{ base: 12 }}>
-              <TopHoldings
-                data={topHoldings}
-                loading={loading}
-              />
+              <Tabs defaultValue="holdings">
+                <Tabs.List>
+                  <Tabs.Tab value="holdings">持股排序與現金</Tabs.Tab>
+                  <Tabs.Tab value="allweather">全天候</Tabs.Tab>
+                </Tabs.List>
+
+                <Tabs.Panel value="holdings" pt="md">
+                  <TopHoldings
+                    data={topHoldings}
+                    loading={loading}
+                  />
+                </Tabs.Panel>
+
+                <Tabs.Panel value="allweather" pt="md">
+                  <AllWeatherAllocation
+                    stats={portfolioStats}
+                    loading={loading}
+                  />
+                </Tabs.Panel>
+              </Tabs>
             </Grid.Col>
           </Grid>
 
