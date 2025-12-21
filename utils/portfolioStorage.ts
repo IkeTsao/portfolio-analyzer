@@ -194,7 +194,9 @@ export const getHoldingsStats = () => {
       esun: holdings.filter(h => h.accountId === 'esun').length,
     },
     byType: {
-      stock: holdings.filter(h => h.type === 'stock').length,
+      index: holdings.filter(h => h.type === 'index').length,
+      growth: holdings.filter(h => h.type === 'growth').length,
+      dividend: holdings.filter(h => h.type === 'dividend').length,
       fund: holdings.filter(h => h.type === 'fund').length,
       bond: holdings.filter(h => h.type === 'bond').length,
       gold: holdings.filter(h => h.type === 'gold').length,

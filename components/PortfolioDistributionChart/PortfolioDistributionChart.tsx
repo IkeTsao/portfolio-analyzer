@@ -12,9 +12,10 @@ interface PortfolioDistributionChartProps {
 }
 
 const TYPE_COLORS = {
-  stock: '#22b8cf',
+  index: '#22b8cf',
+  growth: '#339af0',
   dividend: '#7950f2',
-  fund: '#339af0',
+  fund: '#9775fa',
   bond: '#5c7cfa',
   gold: '#20c997',
   crypto: '#51cf66',
@@ -23,7 +24,8 @@ const TYPE_COLORS = {
 };
 
 const TYPE_LABELS = {
-  stock: '指數與成長股',
+  index: '指數與ETF',
+  growth: '成長股',
   dividend: '高股息與價值股',
   fund: '基金',
   bond: '債券',
@@ -208,9 +210,39 @@ export default function PortfolioDistributionChart({
   };
 
   const CustomLegend = ({ payload }: any) => {
+    // 只在類型視圖且非損益模式時顯示股票類總和
+    const shouldShowStockTotal = viewMode === 'type' && type === 'amount';
+    
+    // 計算股票類總和（指數與ETF + 成長股 + 高股息與價值股）
+    let stockTotal = 0;
+    let stockPercentage = 0;
+    if (shouldShowStockTotal && payload) {
+      const stockTypes = ['index', 'growth', 'dividend'];
+      payload.forEach((entry: any) => {
+        const originalData = data.find((d: any) => d.name === entry.payload.name) as any;
+        if (originalData) {
+          // 檢查是否為股票類
+          const typeKey = Object.keys(TYPE_LABELS).find(key => TYPE_LABELS[key as keyof typeof TYPE_LABELS] === entry.payload.name);
+          if (typeKey && stockTypes.includes(typeKey)) {
+            stockTotal += originalData.value;
+            stockPercentage += (originalData.percentage || 0);
+          }
+        }
+      });
+    }
+
+    // 重新排序 payload：將股票相關類型排在一起
+    let sortedPayload = payload ? [...payload] : [];
+    if (shouldShowStockTotal) {
+      const stockTypes = ['指數與ETF', '成長股', '高股息與價值股'];
+      const stockEntries = sortedPayload.filter((entry: any) => stockTypes.includes(entry.payload.name));
+      const otherEntries = sortedPayload.filter((entry: any) => !stockTypes.includes(entry.payload.name));
+      sortedPayload = [...stockEntries, ...otherEntries];
+    }
+
     return (
-      <Group justify="center" gap="md" mt="md">
-        {payload?.map((entry: any, index: number) => (
+      <Group justify="center" gap="md" mt="md" wrap="wrap">
+        {sortedPayload?.map((entry: any, index: number) => (
           <Group key={index} gap="xs">
             <div
               style={{
@@ -226,6 +258,22 @@ export default function PortfolioDistributionChart({
             </Text>
           </Group>
         ))}
+        {shouldShowStockTotal && stockTotal > 0 && (
+          <Group gap="xs" style={{ borderLeft: '2px solid #dee2e6', paddingLeft: '12px', marginLeft: '8px' }}>
+            <div
+              style={{
+                width: 12,
+                height: 12,
+                backgroundColor: '#868e96',
+                borderRadius: 2,
+              }}
+            />
+            <Text size="sm" fw={600}>股票類總和</Text>
+            <Text size="sm" c="dimmed" fw={600}>
+              {formatPercentage(stockPercentage)}
+            </Text>
+          </Group>
+        )}
       </Group>
     );
   };

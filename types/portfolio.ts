@@ -13,7 +13,7 @@ export interface Holding {
   accountId: string;
   symbol: string; // 股票代碼、貨幣代碼等
   name: string; // 產品名稱
-  type: 'stock' | 'dividend' | 'fund' | 'bond' | 'gold' | 'crypto' | 'cash' | 'commodity';
+  type: 'index' | 'growth' | 'dividend' | 'fund' | 'bond' | 'gold' | 'crypto' | 'cash' | 'commodity';
   market: 'US' | 'JP' | 'TW' | 'OTHER'; // 市場分類
   quantity: number; // 持有數量
   costBasis: number; // 成本價
@@ -64,7 +64,8 @@ export interface PortfolioStats {
   
   // 按產品類型分布
   typeDistribution: {
-    stock: { value: number; percentage: number };
+    index: { value: number; percentage: number };
+    growth: { value: number; percentage: number };
     dividend: { value: number; percentage: number };
     fund: { value: number; percentage: number };
     bond: { value: number; percentage: number };
@@ -142,7 +143,8 @@ export const ACCOUNT_TYPES = [
 ];
 
 export const INVESTMENT_TYPES = [
-  { value: 'stock', label: '指數與成長股' },
+  { value: 'index', label: '指數與ETF' },
+  { value: 'growth', label: '成長股' },
   { value: 'dividend', label: '高股息與價值股' },
   { value: 'bond', label: '債券' },
   { value: 'gold', label: '黃金' },

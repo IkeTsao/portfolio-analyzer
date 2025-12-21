@@ -47,10 +47,16 @@ const ACCOUNT_ID_MAP: { [key: string]: string } = {
 
 // 投資類型映射
 const TYPE_MAP: { [key: string]: string } = {
-  '指數與成長股': 'stock',
-  '股票': 'stock',
-  '股票與基金': 'stock',
-  'stock': 'stock',
+  '指數與ETF': 'index',
+  '指數': 'index',
+  'ETF': 'index',
+  'index': 'index',
+  '成長股': 'growth',
+  'growth': 'growth',
+  '指數與成長股': 'index',
+  '股票': 'index',
+  '股票與基金': 'index',
+  'stock': 'index',
   '高股息與價值股': 'dividend',
   '高股息': 'dividend',
   'dividend': 'dividend',
@@ -374,7 +380,8 @@ function getAccountDisplayName(accountId: string): string {
  */
 function getTypeDisplayName(type: string): string {
   const displayNames: { [key: string]: string } = {
-    'stock': '指數與成長股',
+    'index': '指數與ETF',
+    'growth': '成長股',
     'dividend': '高股息與價值股',
     'fund': '基金',
     'bond': '債券',
