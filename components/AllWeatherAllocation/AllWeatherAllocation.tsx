@@ -52,7 +52,7 @@ export function AllWeatherAllocation({ stats, loading }: AllWeatherAllocationPro
   if (loading || !stats) {
     return (
       <Paper p="md" withBorder>
-        <Title order={3} mb="md">全天候配置</Title>
+        <Title order={3} mb="md">配置建議</Title>
         <Text c="dimmed">載入中...</Text>
       </Paper>
     );
@@ -81,55 +81,8 @@ export function AllWeatherAllocation({ stats, loading }: AllWeatherAllocationPro
 
   return (
     <Paper p="md" withBorder>
-      <Title order={3} mb="md">全天候配置</Title>
-      
-      <Table striped highlightOnHover>
-        <Table.Thead>
-          <Table.Tr>
-            <Table.Th>戰鬥位置</Table.Th>
-            <Table.Th>資產名稱</Table.Th>
-            <Table.Th>最強表現時期</Table.Th>
-            <Table.Th>扮演角色</Table.Th>
-            <Table.Th style={{ textAlign: 'right' }}>金額</Table.Th>
-            <Table.Th style={{ textAlign: 'right' }}>佔比</Table.Th>
-          </Table.Tr>
-        </Table.Thead>
-        <Table.Tbody>
-          {roleStats.map((role) => (
-            <Table.Tr key={role.key}>
-              <Table.Td>
-                <Text fw={600}>{role.label}</Text>
-              </Table.Td>
-              <Table.Td>{role.assets}</Table.Td>
-              <Table.Td>{role.bestPeriod}</Table.Td>
-              <Table.Td>{role.role}</Table.Td>
-              <Table.Td style={{ textAlign: 'right' }}>
-                <Text fw={500}>{formatCurrencyNTD(role.totalValue)}</Text>
-              </Table.Td>
-              <Table.Td style={{ textAlign: 'right' }}>
-                <Text fw={500} c={role.totalPercentage > 0 ? 'blue' : 'dimmed'}>
-                  {formatPercentage(role.totalPercentage)}
-                </Text>
-              </Table.Td>
-            </Table.Tr>
-          ))}
-        </Table.Tbody>
-      </Table>
-
-      {/* 總和統計 */}
-      <Group justify="flex-end" mt="md" gap="xl">
-        <Group gap="xs">
-          <Text size="sm" c="dimmed">總金額：</Text>
-          <Text size="sm" fw={700}>{formatCurrencyNTD(stats.totalValue)}</Text>
-        </Group>
-        <Group gap="xs">
-          <Text size="sm" c="dimmed">總佔比：</Text>
-          <Text size="sm" fw={700}>100.00%</Text>
-        </Group>
-      </Group>
-
       {/* 投資時鐘說明 */}
-      <div style={{ marginTop: '32px', padding: '20px', backgroundColor: '#f8f9fa', borderRadius: '8px' }}>
+      <div style={{ padding: '20px', backgroundColor: '#f8f9fa', borderRadius: '8px' }}>
         {/* 核心+動態調整建議 */}
         <div style={{ marginBottom: '24px' }}>
           <Text size="md" fw={700} mb="md">
@@ -252,6 +205,36 @@ export function AllWeatherAllocation({ stats, loading }: AllWeatherAllocationPro
           <Text size="xs" c="dimmed" mt="sm" style={{ fontStyle: 'italic' }}>
             註：「攻防切換」的 30% 可依據當前經濟情況，在「看好經濟」與「擔心衰退」兩種配置間靈活調整。
           </Text>
+        </div>
+
+        {/* 全天候配置 */}
+        <div style={{ marginBottom: '24px' }}>
+          <Text size="md" fw={700} mb="md">
+            全天候配置
+          </Text>
+          
+          <Table striped highlightOnHover>
+            <Table.Thead>
+              <Table.Tr>
+                <Table.Th>戰鬥位置</Table.Th>
+                <Table.Th>資產名稱</Table.Th>
+                <Table.Th>最強表現時期</Table.Th>
+                <Table.Th>扮演角色</Table.Th>
+              </Table.Tr>
+            </Table.Thead>
+            <Table.Tbody>
+              {roleStats.map((role) => (
+                <Table.Tr key={role.key}>
+                  <Table.Td>
+                    <Text fw={600}>{role.label}</Text>
+                  </Table.Td>
+                  <Table.Td>{role.assets}</Table.Td>
+                  <Table.Td>{role.bestPeriod}</Table.Td>
+                  <Table.Td>{role.role}</Table.Td>
+                </Table.Tr>
+              ))}
+            </Table.Tbody>
+          </Table>
         </div>
 
         {/* 投資時鐘 */}

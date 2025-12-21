@@ -211,7 +211,7 @@ export default function HomePage() {
               <Tabs defaultValue="holdings">
                 <Tabs.List>
                   <Tabs.Tab value="holdings">持股排序與現金</Tabs.Tab>
-                  <Tabs.Tab value="allweather">全天候</Tabs.Tab>
+                  <Tabs.Tab value="allweather">配置建議</Tabs.Tab>
                 </Tabs.List>
 
                 <Tabs.Panel value="holdings" pt="md">
