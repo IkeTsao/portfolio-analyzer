@@ -58,6 +58,7 @@ interface HoldingsTableProps {
 
 const TYPE_COLORS: { [key: string]: string } = {
   stock: 'cyan',
+  dividend: 'violet',
   fund: 'blue',
   bond: 'indigo',
   gold: 'teal',
@@ -67,7 +68,8 @@ const TYPE_COLORS: { [key: string]: string } = {
 };
 
 const TYPE_LABELS: { [key: string]: string } = {
-  stock: '股票與基金',
+  stock: '指數與成長股',
+  dividend: '高股息與價值股',
   fund: '基金',
   bond: '債券',
   gold: '黃金',
@@ -823,7 +825,8 @@ export function HoldingsTable({
             onChange={setTypeFilter}
             data={[
               { value: '', label: '全部類型' },
-              { value: 'stock', label: '股票與基金' },
+              { value: 'stock', label: '指數與成長股' },
+              { value: 'dividend', label: '高股息與價值股' },
               { value: 'bond', label: '債券' },
               { value: 'gold', label: '黃金' },
               { value: 'crypto', label: '加密貨幣' },

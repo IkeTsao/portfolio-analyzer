@@ -169,6 +169,7 @@ export const calculatePortfolioStats = (
   // 產品類型分布
   const typeDistribution = {
     stock: { value: 0, percentage: 0 },
+    dividend: { value: 0, percentage: 0 },
     fund: { value: 0, percentage: 0 },
     bond: { value: 0, percentage: 0 },
     gold: { value: 0, percentage: 0 },

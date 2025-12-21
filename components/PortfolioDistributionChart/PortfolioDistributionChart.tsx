@@ -13,6 +13,7 @@ interface PortfolioDistributionChartProps {
 
 const TYPE_COLORS = {
   stock: '#22b8cf',
+  dividend: '#7950f2',
   fund: '#339af0',
   bond: '#5c7cfa',
   gold: '#20c997',
@@ -22,7 +23,8 @@ const TYPE_COLORS = {
 };
 
 const TYPE_LABELS = {
-  stock: '股票與基金',
+  stock: '指數與成長股',
+  dividend: '高股息與價值股',
   fund: '基金',
   bond: '債券',
   gold: '黃金',
