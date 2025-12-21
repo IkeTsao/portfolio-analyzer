@@ -70,7 +70,7 @@ export default function PortfolioDistributionChart({
   title
 }: PortfolioDistributionChartProps) {
   
-  const [viewMode, setViewMode] = useState<'type' | 'account' | 'market'>('type');
+  const [viewMode, setViewMode] = useState<'type' | 'account' | 'market' | 'allocation'>('type');
 
   // 準備類型分布數據
   const getTypeDistributionData = (isGainLoss = false) => {
@@ -159,6 +159,59 @@ export default function PortfolioDistributionChart({
       .sort((a, b) => b.value - a.value);
   };
 
+  // 準備配置分布數據（五種戰略配置）
+  const getAllocationDistributionData = (isGainLoss = false) => {
+    if (!stats?.distributionByType) return [];
+    
+    // 定義五種戰略配置
+    const allocations = {
+      core: { label: '核心股', types: ['index', 'dividend'], color: '#339af0' },
+      offensive: { label: '進攻資產', types: ['growth', 'crypto'], color: '#51cf66' },
+      defensive: { label: '防守資產', types: ['gold', 'longBond'], color: '#20c997' },
+      hedge: { label: '對沖資產', types: ['commodity'], color: '#fd7e14' },
+      cash: { label: '現金', types: ['shortBond', 'cash'], color: '#94d82d' }
+    };
+    
+    if (isGainLoss) {
+      // 為損益分布準備數據
+      const categories = Object.entries(allocations).map(([key, config]) => {
+        const totalGainLoss = config.types.reduce((sum, type) => {
+          const typeData = stats.distributionByType[type as keyof typeof stats.distributionByType];
+          return sum + (typeData?.totalGainLoss || 0);
+        }, 0);
+        
+        return {
+          name: config.label,
+          value: totalGainLoss
+        };
+      }).filter(item => item.value !== 0)
+        .sort((a, b) => Math.abs(b.value) - Math.abs(a.value));
+      
+      return categories;
+    }
+    
+    // 為金額分布準備數據
+    return Object.entries(allocations).map(([key, config]) => {
+      const totalValue = config.types.reduce((sum, type) => {
+        const typeData = stats.distributionByType[type as keyof typeof stats.distributionByType];
+        return sum + (typeData?.totalValue || 0);
+      }, 0);
+      
+      const percentage = config.types.reduce((sum, type) => {
+        const typeData = stats.distributionByType[type as keyof typeof stats.distributionByType];
+        return sum + (typeData?.percentage || 0);
+      }, 0);
+      
+      return {
+        name: config.label,
+        value: totalValue,
+        percentage: percentage,
+        fill: config.color
+      };
+    }).filter(item => item.value > 0)
+      .sort((a, b) => b.value - a.value);
+  };
+
   const getCurrentData = () => {
     const isGainLoss = type === 'gainloss';
     
@@ -169,6 +222,8 @@ export default function PortfolioDistributionChart({
         return getAccountDistributionData(isGainLoss);
       case 'market':
         return getMarketDistributionData(isGainLoss);
+      case 'allocation':
+        return getAllocationDistributionData(isGainLoss);
       default:
         return [];
     }
@@ -230,12 +285,13 @@ export default function PortfolioDistributionChart({
       });
     }
     
-    // 計算四大總和
+    // 計算五種戰略配置總和
     const totals = {
-      stock: { value: 0, percentage: 0, label: '股票類', types: ['index', 'growth', 'dividend'] },
-      longBond: { value: 0, percentage: 0, label: '中長債', types: ['longBond'] },
-      goldCommodity: { value: 0, percentage: 0, label: '黃金與大宗物資', types: ['gold', 'commodity'] },
-      shortBondCash: { value: 0, percentage: 0, label: '短債與現金', types: ['shortBond', 'cash'] }
+      core: { value: 0, percentage: 0, label: '核心股', types: ['index', 'dividend'] },
+      offensive: { value: 0, percentage: 0, label: '進攻資產', types: ['growth', 'crypto'] },
+      defensive: { value: 0, percentage: 0, label: '防守資產', types: ['gold', 'longBond'] },
+      hedge: { value: 0, percentage: 0, label: '對沖資產', types: ['commodity'] },
+      cash: { value: 0, percentage: 0, label: '現金', types: ['shortBond', 'cash'] }
     };
 
     if (shouldShowTotals && payload && Array.isArray(payload)) {
@@ -279,32 +335,39 @@ export default function PortfolioDistributionChart({
         ))}
         {shouldShowTotals && (
           <>
-            {totals.stock.value > 0 && (
+            {totals.core.value > 0 && (
               <Group gap="xs" style={{ borderLeft: '2px solid #dee2e6', paddingLeft: '12px', marginLeft: '8px' }}>
                 <div style={{ width: 12, height: 12, backgroundColor: '#868e96', borderRadius: 2 }} />
-                <Text size="sm" fw={600}>{totals.stock.label}</Text>
-                <Text size="sm" c="dimmed" fw={600}>{formatPercentage(totals.stock.percentage)}</Text>
+                <Text size="sm" fw={600}>{totals.core.label}</Text>
+                <Text size="sm" c="dimmed" fw={600}>{formatPercentage(totals.core.percentage)}</Text>
               </Group>
             )}
-            {totals.longBond.value > 0 && (
+            {totals.offensive.value > 0 && (
               <Group gap="xs" style={{ borderLeft: '2px solid #dee2e6', paddingLeft: '12px', marginLeft: '8px' }}>
                 <div style={{ width: 12, height: 12, backgroundColor: '#868e96', borderRadius: 2 }} />
-                <Text size="sm" fw={600}>{totals.longBond.label}</Text>
-                <Text size="sm" c="dimmed" fw={600}>{formatPercentage(totals.longBond.percentage)}</Text>
+                <Text size="sm" fw={600}>{totals.offensive.label}</Text>
+                <Text size="sm" c="dimmed" fw={600}>{formatPercentage(totals.offensive.percentage)}</Text>
               </Group>
             )}
-            {totals.goldCommodity.value > 0 && (
+            {totals.defensive.value > 0 && (
               <Group gap="xs" style={{ borderLeft: '2px solid #dee2e6', paddingLeft: '12px', marginLeft: '8px' }}>
                 <div style={{ width: 12, height: 12, backgroundColor: '#868e96', borderRadius: 2 }} />
-                <Text size="sm" fw={600}>{totals.goldCommodity.label}</Text>
-                <Text size="sm" c="dimmed" fw={600}>{formatPercentage(totals.goldCommodity.percentage)}</Text>
+                <Text size="sm" fw={600}>{totals.defensive.label}</Text>
+                <Text size="sm" c="dimmed" fw={600}>{formatPercentage(totals.defensive.percentage)}</Text>
               </Group>
             )}
-            {totals.shortBondCash.value > 0 && (
+            {totals.hedge.value > 0 && (
               <Group gap="xs" style={{ borderLeft: '2px solid #dee2e6', paddingLeft: '12px', marginLeft: '8px' }}>
                 <div style={{ width: 12, height: 12, backgroundColor: '#868e96', borderRadius: 2 }} />
-                <Text size="sm" fw={600}>{totals.shortBondCash.label}</Text>
-                <Text size="sm" c="dimmed" fw={600}>{formatPercentage(totals.shortBondCash.percentage)}</Text>
+                <Text size="sm" fw={600}>{totals.hedge.label}</Text>
+                <Text size="sm" c="dimmed" fw={600}>{formatPercentage(totals.hedge.percentage)}</Text>
+              </Group>
+            )}
+            {totals.cash.value > 0 && (
+              <Group gap="xs" style={{ borderLeft: '2px solid #dee2e6', paddingLeft: '12px', marginLeft: '8px' }}>
+                <div style={{ width: 12, height: 12, backgroundColor: '#868e96', borderRadius: 2 }} />
+                <Text size="sm" fw={600}>{totals.cash.label}</Text>
+                <Text size="sm" c="dimmed" fw={600}>{formatPercentage(totals.cash.percentage)}</Text>
               </Group>
             )}
           </>
@@ -335,11 +398,12 @@ export default function PortfolioDistributionChart({
         <SegmentedControl
           size="xs"
           value={viewMode}
-          onChange={(value) => setViewMode(value as 'type' | 'account' | 'market')}
+          onChange={(value) => setViewMode(value as 'type' | 'account' | 'market' | 'allocation')}
           data={[
             { label: '類別', value: 'type' },
             { label: '帳戶', value: 'account' },
             { label: '區域', value: 'market' },
+            { label: '配置', value: 'allocation' },
           ]}
         />
       </Group>
