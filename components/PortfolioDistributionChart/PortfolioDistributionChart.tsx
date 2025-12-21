@@ -216,11 +216,12 @@ export default function PortfolioDistributionChart({
     // 計算股票類總和（指數與ETF + 成長股 + 高股息與價值股）
     let stockTotal = 0;
     let stockPercentage = 0;
-    if (shouldShowStockTotal && payload) {
+    if (shouldShowStockTotal && payload && Array.isArray(payload)) {
       const stockTypes = ['index', 'growth', 'dividend'];
       payload.forEach((entry: any) => {
-        const originalData = data.find((d: any) => d.name === entry.payload.name) as any;
-        if (originalData) {
+        if (!entry || !entry.payload || !entry.payload.name) return;
+        const originalData = data.find((d: any) => d && d.name === entry.payload.name) as any;
+        if (originalData && typeof originalData.value === 'number') {
           // 檢查是否為股票類
           const typeKey = Object.keys(TYPE_LABELS).find(key => TYPE_LABELS[key as keyof typeof TYPE_LABELS] === entry.payload.name);
           if (typeKey && stockTypes.includes(typeKey)) {
