@@ -255,7 +255,9 @@ export const calculatePortfolioStats = (
     marketDistribution[holding.market].value += currentValue;
 
     // 產品類型分布
-    typeDistribution[holding.type].value += currentValue;
+    if (typeDistribution[holding.type]) {
+      typeDistribution[holding.type].value += currentValue;
+    }
 
     // 帳戶分布
     if (!accountDistribution[holding.accountId]) {
@@ -357,10 +359,10 @@ export const calculatePortfolioStats = (
     });
     
     distributionByType[type] = {
-      totalValue: typeDistribution[type].value,
+      totalValue: typeDistribution[type]?.value || 0,
       totalCost: typeCost,
       totalGainLoss: typeGainLoss,
-      percentage: typeDistribution[type].percentage,
+      percentage: typeDistribution[type]?.percentage || 0,
     };
   });
 
