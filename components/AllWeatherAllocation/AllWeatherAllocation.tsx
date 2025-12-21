@@ -131,7 +131,7 @@ export function AllWeatherAllocation({ stats, loading }: AllWeatherAllocationPro
       {/* 投資時鐘說明 */}
       <div style={{ marginTop: '32px', padding: '20px', backgroundColor: '#f8f9fa', borderRadius: '8px' }}>
         {/* 核心+動態調整建議 */}
-        <div style={{ marginBottom: '32px', padding: '16px', backgroundColor: '#e7f5ff', borderRadius: '8px', borderLeft: '4px solid #228be6' }}>
+        <div style={{ marginBottom: '24px' }}>
           <Text size="md" fw={700} mb="md">
             ** 「核心+動態調整」**的方法：
           </Text>
