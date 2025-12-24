@@ -54,10 +54,10 @@ export default function TopHoldings({ data, loading }: TopHoldingsProps) {
             return (
               <Badge 
                 size="xs" 
-                color={isOffensive ? 'green' : 'teal'}
-                variant="light"
+                color={isOffensive ? 'blue' : 'orange'}
+                variant="filled"
               >
-                {isOffensive ? '攻擊類' : '防禦類'}
+                {isOffensive ? '攻擊端' : '防禦端'}
               </Badge>
             );
           })()}
@@ -80,7 +80,7 @@ export default function TopHoldings({ data, loading }: TopHoldingsProps) {
         </Table.Td>
         <Table.Td style={{ textAlign: 'right' }}>
           <Text size="sm" fw={500}>
-            {holding.quantity.toLocaleString(undefined, { minimumFractionDigits: 3, maximumFractionDigits: 3 })}
+            {holding.quantity.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </Text>
         </Table.Td>
         <Table.Td style={{ textAlign: 'right' }}>

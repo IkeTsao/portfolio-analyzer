@@ -707,9 +707,17 @@ export const calculateTopHoldings = (holdings: Holding[], totalAssets: number): 
     }
   });
 
-  // 2. 排序所有非現金持股
-  const sortedNonCash = Array.from(mergedHoldings.values())
+  // 2. 排序所有非現金持股：攻擊端→防禦端
+  const offensiveTypes = ['growth', 'index', 'dividend', 'crypto'];
+  const allNonCash = Array.from(mergedHoldings.values());
+  
+  // 分離攻擊端與防禦端
+  const offensiveHoldings = allNonCash.filter(h => offensiveTypes.includes(h.type))
     .sort((a, b) => b.currentValue - a.currentValue);
+  const defensiveHoldings = allNonCash.filter(h => !offensiveTypes.includes(h.type))
+    .sort((a, b) => b.currentValue - a.currentValue);
+  
+  const sortedNonCash = [...offensiveHoldings, ...defensiveHoldings];
 
   // 3. 合併計算台幣和美金現金
   const twdCashHoldings = holdings.filter(h => h.type === 'cash' && h.currency === 'TWD');

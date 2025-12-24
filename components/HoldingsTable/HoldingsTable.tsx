@@ -33,11 +33,11 @@ import { Holding } from '@/types/portfolio';
 import { formatCurrency, formatPercentage } from '@/utils/portfolioCalculations';
 import { formatCurrencyWithSymbol } from '@/utils/currencyUtils';
 
-// 格式化數量，包含千分位逗號和3位小數
+// 格式化數量，包含千分位逗號和2位小數
 const formatQuantityWithCommas = (quantity: number): string => {
   return quantity.toLocaleString('en-US', {
-    minimumFractionDigits: 3,
-    maximumFractionDigits: 3
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
   });
 };
 import { deleteHolding } from '@/utils/portfolioStorage';
