@@ -48,7 +48,7 @@ export default function TopHoldings({ data, loading }: TopHoldingsProps) {
           </Badge>
         </Table.Td>
         <Table.Td style={{ textAlign: 'center' }}>
-          {!isCash && (() => {
+          {(() => {
             const offensiveTypes = ['growth', 'index', 'dividend', 'crypto'];
             const isOffensive = offensiveTypes.includes(holding.type);
             return (

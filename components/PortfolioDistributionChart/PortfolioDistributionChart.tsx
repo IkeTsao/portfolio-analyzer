@@ -188,8 +188,8 @@ export default function PortfolioDistributionChart({
     
     // 定義政擊端與防禦端（按固定順序）
     const allocations = [
-      { key: 'offensive', label: '攻擊端資產', types: ['growth', 'index', 'dividend', 'crypto'], color: '#51cf66' },
-      { key: 'defensive', label: '防禦端資產', types: ['cash', 'shortBond', 'gold', 'commodity', 'longBond'], color: '#20c997' }
+      { key: 'offensive', label: '攻擊端資產', types: ['growth', 'index', 'dividend', 'crypto'], color: '#1971c2' },  // 冷色調：深藍
+      { key: 'defensive', label: '防禦端資產', types: ['cash', 'shortBond', 'gold', 'commodity', 'longBond'], color: '#fd7e14' }  // 暖色調：橙色
     ];
     
     if (isGainLoss) {
