@@ -47,6 +47,21 @@ export default function TopHoldings({ data, loading }: TopHoldingsProps) {
             {displayRank}
           </Badge>
         </Table.Td>
+        <Table.Td style={{ textAlign: 'center' }}>
+          {!isCash && (() => {
+            const offensiveTypes = ['growth', 'index', 'dividend', 'crypto'];
+            const isOffensive = offensiveTypes.includes(holding.type);
+            return (
+              <Badge 
+                size="xs" 
+                color={isOffensive ? 'green' : 'teal'}
+                variant="light"
+              >
+                {isOffensive ? '攻擊類' : '防禦類'}
+              </Badge>
+            );
+          })()}
+        </Table.Td>
         <Table.Td>
           <div>
             <Text size="sm" fw={500}>
@@ -88,21 +103,6 @@ export default function TopHoldings({ data, loading }: TopHoldingsProps) {
             {holding.assetRatio.toFixed(2)}%
           </Text>
         </Table.Td>
-        <Table.Td style={{ textAlign: 'center' }}>
-          {!isCash && (() => {
-            const offensiveTypes = ['growth', 'index', 'dividend', 'crypto'];
-            const isOffensive = offensiveTypes.includes(holding.type);
-            return (
-              <Badge 
-                size="xs" 
-                color={isOffensive ? 'green' : 'teal'}
-                variant="light"
-              >
-                {isOffensive ? '攻擊類' : '防禦類'}
-              </Badge>
-            );
-          })()}
-        </Table.Td>
         <Table.Td style={{ textAlign: 'right' }}>
           <Group gap="xs" justify="flex-end">
             {!isCash && profitIcon}
@@ -127,6 +127,7 @@ export default function TopHoldings({ data, loading }: TopHoldingsProps) {
         <Table.Thead>
           <Table.Tr>
             <Table.Th>排名</Table.Th>
+            <Table.Th style={{ textAlign: 'center' }}>資產類型</Table.Th>
             <Table.Th>名稱/代碼</Table.Th>
             <Table.Th style={{ textAlign: 'right' }}>購入成本(原幣)</Table.Th>
             <Table.Th style={{ textAlign: 'right' }}>數量</Table.Th>
@@ -134,7 +135,6 @@ export default function TopHoldings({ data, loading }: TopHoldingsProps) {
             <Table.Th style={{ textAlign: 'right' }}>市值(原幣)</Table.Th>
             <Table.Th style={{ textAlign: 'right' }}>市值(台幣)</Table.Th>
             <Table.Th style={{ textAlign: 'right' }}>佔資產比例</Table.Th>
-            <Table.Th style={{ textAlign: 'center' }}>資產類型</Table.Th>
             <Table.Th style={{ textAlign: 'right' }}>損益(台幣)</Table.Th>
           </Table.Tr>
         </Table.Thead>
