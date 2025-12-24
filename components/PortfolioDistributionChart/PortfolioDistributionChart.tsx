@@ -265,8 +265,8 @@ export default function PortfolioDistributionChart({
     // 只在類型視圖且非損益模式時顯示總和
     const shouldShowTotals = viewMode === 'type' && type === 'amount';
     
-    // 定義排序順序
-    const typeOrder = ['指數與ETF', '成長股', '高股息與價值股', '中長債', '黃金', '大宗物資', '加密貨幣', '短債', '現金', '基金'];
+    // 定義排序順序（攻擊端到防禦端）
+    const typeOrder = ['成長股', '指數與ETF', '高股息與價值股', '加密貨幣', '大宗物資', '中長債', '短債', '現金', '黃金', '基金'];
     
     // 按照指定順序排序 payload
     let sortedPayload = payload ? [...payload] : [];
