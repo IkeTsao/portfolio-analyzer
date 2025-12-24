@@ -159,17 +159,14 @@ export default function PortfolioDistributionChart({
       .sort((a, b) => b.value - a.value);
   };
 
-  // 準備配置分布數據（五種戰略配置）
+  // 準備配置分布數據（攻擊端與防禦端）
   const getAllocationDistributionData = (isGainLoss = false) => {
     if (!stats?.distributionByType) return [];
     
-    // 定義五種戰略配置（按固定順序）
+    // 定義政擊端與防禦端（按固定順序）
     const allocations = [
-      { key: 'core', label: '核心股', types: ['index', 'dividend'], color: '#339af0' },
-      { key: 'offensive', label: '進攻資產', types: ['growth', 'crypto'], color: '#51cf66' },
-      { key: 'defensive', label: '防守資產', types: ['gold', 'longBond'], color: '#20c997' },
-      { key: 'hedge', label: '對沖資產', types: ['commodity'], color: '#fd7e14' },
-      { key: 'cash', label: '類現金', types: ['shortBond', 'cash'], color: '#94d82d' }
+      { key: 'offensive', label: '攻擊端資產', types: ['growth', 'index', 'dividend', 'crypto'], color: '#51cf66' },
+      { key: 'defensive', label: '防禦端資產', types: ['cash', 'shortBond', 'gold', 'commodity', 'longBond'], color: '#20c997' }
     ];
     
     if (isGainLoss) {
@@ -283,13 +280,10 @@ export default function PortfolioDistributionChart({
       });
     }
     
-    // 計算五種戰略配置總和
+    // 計算攻擊端與防禦端總和
     const totals = {
-      core: { value: 0, percentage: 0, label: '核心股', types: ['index', 'dividend'] },
-      offensive: { value: 0, percentage: 0, label: '進攻資產', types: ['growth', 'crypto'] },
-      defensive: { value: 0, percentage: 0, label: '防守資產', types: ['gold', 'longBond'] },
-      hedge: { value: 0, percentage: 0, label: '對沖資產', types: ['commodity'] },
-      cash: { value: 0, percentage: 0, label: '類現金', types: ['shortBond', 'cash'] }
+      offensive: { value: 0, percentage: 0, label: '攻擊端資產', types: ['growth', 'index', 'dividend', 'crypto'] },
+      defensive: { value: 0, percentage: 0, label: '防禦端資產', types: ['cash', 'shortBond', 'gold', 'commodity', 'longBond'] }
     };
 
     if (shouldShowTotals && payload && Array.isArray(payload)) {
@@ -333,39 +327,18 @@ export default function PortfolioDistributionChart({
         ))}
         {shouldShowTotals && (
           <>
-            {totals.core.value > 0 && (
-              <Group gap="xs" style={{ borderLeft: '2px solid #dee2e6', paddingLeft: '12px', marginLeft: '8px' }}>
-                <div style={{ width: 12, height: 12, backgroundColor: '#868e96', borderRadius: 2 }} />
-                <Text size="sm" fw={600}>{totals.core.label}</Text>
-                <Text size="sm" c="dimmed" fw={600}>{formatPercentage(totals.core.percentage)}</Text>
-              </Group>
-            )}
             {totals.offensive.value > 0 && (
               <Group gap="xs" style={{ borderLeft: '2px solid #dee2e6', paddingLeft: '12px', marginLeft: '8px' }}>
-                <div style={{ width: 12, height: 12, backgroundColor: '#868e96', borderRadius: 2 }} />
+                <div style={{ width: 12, height: 12, backgroundColor: '#51cf66', borderRadius: 2 }} />
                 <Text size="sm" fw={600}>{totals.offensive.label}</Text>
                 <Text size="sm" c="dimmed" fw={600}>{formatPercentage(totals.offensive.percentage)}</Text>
               </Group>
             )}
             {totals.defensive.value > 0 && (
               <Group gap="xs" style={{ borderLeft: '2px solid #dee2e6', paddingLeft: '12px', marginLeft: '8px' }}>
-                <div style={{ width: 12, height: 12, backgroundColor: '#868e96', borderRadius: 2 }} />
+                <div style={{ width: 12, height: 12, backgroundColor: '#20c997', borderRadius: 2 }} />
                 <Text size="sm" fw={600}>{totals.defensive.label}</Text>
                 <Text size="sm" c="dimmed" fw={600}>{formatPercentage(totals.defensive.percentage)}</Text>
-              </Group>
-            )}
-            {totals.hedge.value > 0 && (
-              <Group gap="xs" style={{ borderLeft: '2px solid #dee2e6', paddingLeft: '12px', marginLeft: '8px' }}>
-                <div style={{ width: 12, height: 12, backgroundColor: '#868e96', borderRadius: 2 }} />
-                <Text size="sm" fw={600}>{totals.hedge.label}</Text>
-                <Text size="sm" c="dimmed" fw={600}>{formatPercentage(totals.hedge.percentage)}</Text>
-              </Group>
-            )}
-            {totals.cash.value > 0 && (
-              <Group gap="xs" style={{ borderLeft: '2px solid #dee2e6', paddingLeft: '12px', marginLeft: '8px' }}>
-                <div style={{ width: 12, height: 12, backgroundColor: '#868e96', borderRadius: 2 }} />
-                <Text size="sm" fw={600}>{totals.cash.label}</Text>
-                <Text size="sm" c="dimmed" fw={600}>{formatPercentage(totals.cash.percentage)}</Text>
               </Group>
             )}
           </>
