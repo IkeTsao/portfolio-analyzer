@@ -647,9 +647,11 @@ export interface TopHolding {
   name: string;
   symbol: string;
   currency: string;
+  type: string; // 資產類型
   costBasis: number; // 購入成本(原幣)
   currentPrice: number;
   quantity: number; // 數量
+  currentValueInOriginalCurrency: number; // 原幣市值
   currentValue: number; // 台幣市值
   gainLoss: number;     // 台幣損益
   gainLossPercent: number; // 損益百分比
@@ -674,17 +676,21 @@ export const calculateTopHoldings = (holdings: Holding[], totalAssets: number): 
 
     if (existing) {
       existing.quantity += holding.quantity || 0;
+      existing.currentValueInOriginalCurrency += (holding.quantity || 0) * (holding.currentPrice || 0);
       existing.currentValue += holding.currentValue || 0;
       existing.gainLoss += holding.gainLoss || 0;
     } else {
+      const currentValueInOriginalCurrency = (holding.quantity || 0) * (holding.currentPrice || 0);
       mergedHoldings.set(symbol, {
         id: symbol, // 使用 symbol 作為合併後的 id
         name: holding.name,
         symbol: holding.symbol,
         currency: holding.currency,
+        type: holding.type, // 資產類型
         costBasis: holding.costBasis || 0,
         currentPrice: holding.currentPrice || 0,
         quantity: holding.quantity || 0,
+        currentValueInOriginalCurrency: currentValueInOriginalCurrency,
         currentValue: holding.currentValue || 0,
         gainLoss: holding.gainLoss || 0,
         gainLossPercent: 0, // 稍後重新計算
@@ -720,9 +726,11 @@ export const calculateTopHoldings = (holdings: Holding[], totalAssets: number): 
       name: '台幣現金',
       symbol: 'TWD',
       currency: 'TWD',
+      type: 'cash',
       costBasis: 1,
       currentPrice: 1,
       quantity: twdTotal, // 現金數量即為其價值
+      currentValueInOriginalCurrency: twdTotal,
       currentValue: twdTotal,
       gainLoss: 0, // 現金無損益
       gainLossPercent: 0,
@@ -735,9 +743,11 @@ export const calculateTopHoldings = (holdings: Holding[], totalAssets: number): 
       name: '美金現金',
       symbol: 'USD',
       currency: 'USD',
+      type: 'cash',
       costBasis: 1,
       currentPrice: 1,
       quantity: usdTotalUsd, // 美金原始金額
+      currentValueInOriginalCurrency: usdTotalUsd,
       currentValue: usdTotalTwd, // 台幣價值
       gainLoss: 0, // 現金無損益
       gainLossPercent: 0,
@@ -754,6 +764,7 @@ export const calculateTopHoldings = (holdings: Holding[], totalAssets: number): 
   // 格式化數值
   return finalTopHoldings.map(holding => ({
     ...holding,
+    currentValueInOriginalCurrency: formatValue(holding.currentValueInOriginalCurrency),
     currentValue: formatValue(holding.currentValue),
     gainLoss: formatValue(holding.gainLoss),
     gainLossPercent: formatValue(holding.gainLossPercent),

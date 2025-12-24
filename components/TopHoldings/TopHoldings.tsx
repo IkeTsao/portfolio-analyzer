@@ -75,6 +75,11 @@ export default function TopHoldings({ data, loading }: TopHoldingsProps) {
         </Table.Td>
         <Table.Td style={{ textAlign: 'right' }}>
           <Text size="sm" fw={500}>
+            {`${holding.currency} ${holding.currentValueInOriginalCurrency.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+          </Text>
+        </Table.Td>
+        <Table.Td style={{ textAlign: 'right' }}>
+          <Text size="sm" fw={500}>
             {formatCurrency(holding.currentValue, 'TWD')}
           </Text>
         </Table.Td>
@@ -82,6 +87,21 @@ export default function TopHoldings({ data, loading }: TopHoldingsProps) {
           <Text size="sm" fw={500} c="blue">
             {holding.assetRatio.toFixed(2)}%
           </Text>
+        </Table.Td>
+        <Table.Td style={{ textAlign: 'center' }}>
+          {!isCash && (() => {
+            const offensiveTypes = ['growth', 'index', 'dividend', 'crypto'];
+            const isOffensive = offensiveTypes.includes(holding.type);
+            return (
+              <Badge 
+                size="xs" 
+                color={isOffensive ? 'green' : 'teal'}
+                variant="light"
+              >
+                {isOffensive ? '攻擊類' : '防禦類'}
+              </Badge>
+            );
+          })()}
         </Table.Td>
         <Table.Td style={{ textAlign: 'right' }}>
           <Group gap="xs" justify="flex-end">
@@ -111,8 +131,10 @@ export default function TopHoldings({ data, loading }: TopHoldingsProps) {
             <Table.Th style={{ textAlign: 'right' }}>購入成本(原幣)</Table.Th>
             <Table.Th style={{ textAlign: 'right' }}>數量</Table.Th>
             <Table.Th style={{ textAlign: 'right' }}>現價(原幣)</Table.Th>
+            <Table.Th style={{ textAlign: 'right' }}>市值(原幣)</Table.Th>
             <Table.Th style={{ textAlign: 'right' }}>市值(台幣)</Table.Th>
             <Table.Th style={{ textAlign: 'right' }}>佔資產比例</Table.Th>
+            <Table.Th style={{ textAlign: 'center' }}>資產類型</Table.Th>
             <Table.Th style={{ textAlign: 'right' }}>損益(台幣)</Table.Th>
           </Table.Tr>
         </Table.Thead>
