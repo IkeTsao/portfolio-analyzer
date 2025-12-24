@@ -11,17 +11,24 @@ interface PortfolioDistributionChartProps {
   title: string;
 }
 
+// 攻擊端資產：冷色系（藍、青、紫）
+// 防禦端資產：暖色系（橙、黃、綠）
 const TYPE_COLORS = {
-  index: '#22b8cf',
-  growth: '#339af0',
-  dividend: '#7950f2',
+  // 攻擊端（冷色系）
+  growth: '#1971c2',      // 成長股：深藍
+  index: '#1098ad',       // 指數ETF：青藍
+  dividend: '#5f3dc4',    // 高股息與價值股：紫色
+  crypto: '#0c8599',      // 加密貨幣：深青
+  
+  // 防禦端（暖色系）
+  commodity: '#fd7e14',   // 大宗物資：橙色
+  gold: '#fab005',        // 黃金：金黃
+  longBond: '#fcc419',    // 中長債：亮黃
+  shortBond: '#ffd43b',   // 短債：淺黃
+  cash: '#74b816',        // 現金：綠色
+  
+  // 其他
   fund: '#9775fa',
-  shortBond: '#5c7cfa',
-  longBond: '#748ffc',
-  gold: '#20c997',
-  crypto: '#51cf66',
-  commodity: '#fd7e14',
-  cash: '#94d82d',
 };
 
 const TYPE_LABELS = {
