@@ -77,19 +77,29 @@ export default function PortfolioDistributionChart({
     if (!stats?.distributionByType) return [];
     
     if (isGainLoss) {
-      // 為直條圖準備數據：只顯示實際的損益值
+      // 為直條圖準備數據：按固定順序排列
+      const typeOrder = ['成長股', '指數與ETF', '高股息與價值股', '加密貨幣', '大宗物資', '中長債', '短債', '現金'];
+      
       const categories = Object.entries(stats.distributionByType)
         .filter(([_, data]) => data.totalGainLoss !== 0)
         .map(([type, data]) => ({
           name: TYPE_LABELS[type as keyof typeof TYPE_LABELS] || type,
           value: data.totalGainLoss,  // 直接使用損益值（正數或負數）
         }))
-        .sort((a, b) => Math.abs(b.value) - Math.abs(a.value));
+        .sort((a, b) => {
+          const aIndex = typeOrder.indexOf(a.name);
+          const bIndex = typeOrder.indexOf(b.name);
+          const aPos = aIndex === -1 ? 999 : aIndex;
+          const bPos = bIndex === -1 ? 999 : bIndex;
+          return aPos - bPos;
+        });
       
       return categories;
     }
     
-    // 金額分布保持原邏輯
+    // 金額分布：按固定順序排列
+    const typeOrder = ['成長股', '指數與ETF', '高股息與價值股', '加密貨幣', '大宗物資', '中長債', '短債', '現金'];
+    
     return Object.entries(stats.distributionByType)
       .filter(([_, data]) => data.totalValue > 0)
       .map(([type, data]) => ({
@@ -98,7 +108,13 @@ export default function PortfolioDistributionChart({
         percentage: data.percentage,
         fill: TYPE_COLORS[type as keyof typeof TYPE_COLORS] || '#868e96',
       }))
-      .sort((a, b) => b.value - a.value);
+      .sort((a, b) => {
+        const aIndex = typeOrder.indexOf(a.name);
+        const bIndex = typeOrder.indexOf(b.name);
+        const aPos = aIndex === -1 ? 999 : aIndex;
+        const bPos = bIndex === -1 ? 999 : bIndex;
+        return aPos - bPos;
+      });
   };
 
   // 準備帳戶分布數據

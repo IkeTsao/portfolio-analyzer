@@ -695,6 +695,26 @@ export function HoldingsTable({
       ),
     },
     {
+      accessor: 'assetCategory',
+      title: '資產類型',
+      width: 100,
+      textAlign: 'center' as const,
+      render: (holding: Holding) => {
+        // 判斷是攻擊類還是防禦類
+        const offensiveTypes = ['growth', 'index', 'dividend', 'crypto'];
+        const isOffensive = offensiveTypes.includes(holding.type);
+        return (
+          <Badge 
+            size="xs" 
+            color={isOffensive ? 'green' : 'teal'}
+            variant="light"
+          >
+            {isOffensive ? '攻擊類' : '防禦類'}
+          </Badge>
+        );
+      },
+    },
+    {
       accessor: 'gainLoss',
       title: '損益(台幣)',
       width: 140,
