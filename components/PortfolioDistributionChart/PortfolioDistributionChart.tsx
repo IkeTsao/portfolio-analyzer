@@ -352,14 +352,14 @@ export default function PortfolioDistributionChart({
           <>
             {totals.offensive.value > 0 && (
               <Group gap="xs" style={{ borderLeft: '2px solid #dee2e6', paddingLeft: '12px', marginLeft: '8px' }}>
-                <div style={{ width: 12, height: 12, backgroundColor: '#51cf66', borderRadius: 2 }} />
+                <div style={{ width: 12, height: 12, backgroundColor: TYPE_COLORS.growth, borderRadius: 2 }} />
                 <Text size="sm" fw={600}>{totals.offensive.label}</Text>
                 <Text size="sm" c="dimmed" fw={600}>{formatPercentage(totals.offensive.percentage)}</Text>
               </Group>
             )}
             {totals.defensive.value > 0 && (
               <Group gap="xs" style={{ borderLeft: '2px solid #dee2e6', paddingLeft: '12px', marginLeft: '8px' }}>
-                <div style={{ width: 12, height: 12, backgroundColor: '#20c997', borderRadius: 2 }} />
+                <div style={{ width: 12, height: 12, backgroundColor: TYPE_COLORS.cash, borderRadius: 2 }} />
                 <Text size="sm" fw={600}>{totals.defensive.label}</Text>
                 <Text size="sm" c="dimmed" fw={600}>{formatPercentage(totals.defensive.percentage)}</Text>
               </Group>
