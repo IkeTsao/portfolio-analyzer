@@ -447,8 +447,9 @@ export default function PortfolioDistributionChart({
                     const percentage = props.payload.percentage || 0;
                     const isProfit = numValue >= 0;
                     const label = isProfit ? '獲利' : '虧損';
+                    const sign = isProfit ? '+' : '-';
                     return [
-                      `${label} ${formatCurrency(Math.abs(numValue), 'TWD')} (${formatPercentage(Math.abs(percentage))})`
+                      `${label} ${formatCurrency(Math.abs(numValue), 'TWD')} (${sign}${formatPercentage(Math.abs(percentage))})`
                     ];
                   }}
                   labelFormatter={(label) => label}

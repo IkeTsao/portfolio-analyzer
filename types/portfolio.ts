@@ -128,7 +128,7 @@ export interface CurrencyInfo {
 
 export const SUPPORTED_CURRENCIES: CurrencyInfo[] = [
   { code: 'TWD', name: '新台幣', symbol: 'NT$' },
-  { code: 'USD', name: '美元', symbol: '$' },
+  { code: 'USD', name: '美元', symbol: 'US$' },
   { code: 'EUR', name: '歐元', symbol: '€' },
   { code: 'GBP', name: '英鎊', symbol: '£' },
   { code: 'CHF', name: '瑞士法郎', symbol: 'CHF' },
