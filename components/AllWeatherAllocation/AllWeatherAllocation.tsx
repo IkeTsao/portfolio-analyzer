@@ -65,14 +65,14 @@ export function AllWeatherAllocation({ stats, loading }: AllWeatherAllocationPro
         <Table.Tbody>
           <Table.Tr>
             <Table.Td style={{ fontWeight: 600 }}>攻擊端<br />(Risk On)</Table.Td>
-            <Table.Td style={{ fontWeight: 600 }}>50%</Table.Td>
+            <Table.Td style={{ fontWeight: 600 }}>50% +/- 10%</Table.Td>
             <Table.Td>成長股 + 指數 ETF + 高股息股票 + 加密貨幣</Table.Td>
             <Table.Td style={{ textAlign: 'right' }}>{formatCurrencyNTD(offensiveValue)}</Table.Td>
             <Table.Td style={{ textAlign: 'right', color: '#1971c2' }}>{formatPercentage(offensivePercentage)}</Table.Td>
           </Table.Tr>
           <Table.Tr>
             <Table.Td style={{ fontWeight: 600 }}>防禦端<br />(Risk Off)</Table.Td>
-            <Table.Td style={{ fontWeight: 600 }}>50%</Table.Td>
+            <Table.Td style={{ fontWeight: 600 }}>50% -/+ 10%</Table.Td>
             <Table.Td>現金 + 黃金/大宗物資 + 債券</Table.Td>
             <Table.Td style={{ textAlign: 'right' }}>{formatCurrencyNTD(defensiveValue)}</Table.Td>
             <Table.Td style={{ textAlign: 'right', color: '#1971c2' }}>{formatPercentage(defensivePercentage)}</Table.Td>
@@ -116,7 +116,7 @@ export function AllWeatherAllocation({ stats, loading }: AllWeatherAllocationPro
 
       <Title order={4} mb="sm">針對 2026 年的建議變化</Title>
       <Text mb="md" style={{ fontSize: '0.95rem', lineHeight: 1.7 }}>
-        既然您提到 2026 年展望不錯，但金銀又創新高，您可以這樣思考高股息股票：
+        既然 2026 年展望不錯，但金銀又創新高，您可以這樣思考高股息股票：
       </Text>
       <List mb="xl" spacing="xs" style={{ fontSize: '0.95rem', lineHeight: 1.7 }}>
         <List.Item>
@@ -235,7 +235,7 @@ export function AllWeatherAllocation({ stats, loading }: AllWeatherAllocationPro
           </List>
         </List.Item>
         <List.Item>
-          <strong>10% 準則（更寬鬆）</strong>：如果您持有的個股（如 MU, TSMC）波動極大，可設為 10% 偏離。也就是當攻擊端衝到 60% 時才賣出。
+          <strong>10% 準則（更寬鬆）</strong>：如果您持有的個股波動極大，可設為 10% 偏離。也就是當攻擊端衝到 60% 時才賣出。
         </List.Item>
       </List>
 
@@ -245,7 +245,7 @@ export function AllWeatherAllocation({ stats, loading }: AllWeatherAllocationPro
       </Text>
       <List mb="md" spacing="xs" style={{ fontSize: '0.95rem', lineHeight: 1.7 }}>
         <List.Item>
-          <strong>當股票（攻擊端）創新高時</strong>：雖然 2026 展望好，但如果 TSMC 漲到讓你的攻擊端佔了總資產的 58%，依照紀律，你必須賣掉那 8% 的股票。這叫<strong>「收割獲利」</strong>。
+          <strong>當股票（攻擊端）創新高時</strong>：雖然 2026 展望好，但如果成長股漲到讓你的攻擊端佔了總資產的 60%，依照紀律，你必須賣掉那 10% 的股票。這叫<strong>「收割獲利」</strong>。
         </List.Item>
         <List.Item>
           <strong>當金銀（防禦端）創新高時</strong>：如果金銀價格噴發，讓防禦端比例升高，你應該賣掉部分金銀，轉成現金。這叫<strong>「子彈入庫」</strong>。
@@ -256,7 +256,7 @@ export function AllWeatherAllocation({ stats, loading }: AllWeatherAllocationPro
       </Text>
       <List mb="md" spacing="xs" style={{ fontSize: '0.95rem', lineHeight: 1.7 }}>
         <List.Item>
-          <strong>向上再平衡（用現金）</strong>：如果您覺得 TSMC, MU 展望太好，不想賣掉它們，但目前的攻擊端只有 {formatPercentage(offensivePercentage)}（低於 50%），您不需要賣股票，而是動用那 {formatPercentage(cashPercentage)} 的現金去買股票，直到攻擊端回到 50%。
+          <strong>向上再平衡（用現金）</strong>：如果您覺得成長股展望太好，不想賣掉它們，但目前的攻擊端只有 {formatPercentage(offensivePercentage)}（低於 50%），您不需要賣股票，而是動用那 {formatPercentage(cashPercentage)} 的現金去買股票，直到攻擊端回到 50%。
         </List.Item>
         <List.Item>
           <strong>內部再平衡（金銀切換）</strong>：既然金銀都破新高，目前不需要增加防禦端總量，而是做「內部優化」。若金銀比仍高，將部分黃金換成白銀，這也是一種再平衡。
@@ -283,7 +283,7 @@ export function AllWeatherAllocation({ stats, loading }: AllWeatherAllocationPro
         <List.Item><strong>大趨勢轉折</strong>：像您現在提到的 2026 展望與金銀新高，這就是一個<strong>「戰術性檢查點」</strong>。</List.Item>
       </List>
       <Text mb="md" style={{ fontSize: '0.95rem', lineHeight: 1.7 }}>
-        您現在的攻擊端是 {formatPercentage(offensivePercentage)}，防禦端（含現金）是 {formatPercentage(defensivePercentage)}。如果按照 50/50 紀律，您現在的時機其實是：「利用現金，稍微補一點攻擊端（如 QQQ 或 MU），或者按兵不動等待股票大漲自動填滿那 5% 的缺口。」
+        您現在的攻擊端是 {formatPercentage(offensivePercentage)}，防禦端（含現金）是 {formatPercentage(defensivePercentage)}。如果按照 50/50 紀律，您可以考慮：「利用現金，稍微補一點攻擊端，或者按兵不動等待股票大漲自動填滿缺口。」
       </Text>
     </Paper>
   );
