@@ -572,12 +572,12 @@ export const formatCurrency = (
   // 應用統一精度：小數點後2位
   const formattedAmount = formatValue(amount);
   
-  // 對於台幣顯示，去除NT前綴，不顯示小數點
+  // 對於台幣顯示，使用 NT$ 符號，不顯示小數點
   if (currency === 'TWD') {
-    return formattedAmount.toLocaleString('en-US', {
+    return `NT$${formattedAmount.toLocaleString('en-US', {
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
-    });
+    })}`;
   }
 
   const currencySymbols: { [key: string]: string } = {

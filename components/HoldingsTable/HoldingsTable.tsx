@@ -913,7 +913,7 @@ export function HoldingsTable({
                     市值(台幣)小計
                   </Text>
                   <Text fw={600} size="lg">
-                    ${(() => {
+                    {(() => {
                       const subtotal = filteredHoldings.reduce((sum, holding) => 
                         sum + (holding.currentValue || 0), 0
                       );
@@ -921,9 +921,7 @@ export function HoldingsTable({
                         sum + (holding.currentValue || 0), 0
                       );
                       const percentage = totalPortfolioValue > 0 ? (subtotal / totalPortfolioValue * 100) : 0;
-                      const formatted = formatCurrency(subtotal);
-                      const formattedValue = formatted ? formatted.replace('NT$ ', '') : '0';
-                      return `${formattedValue} (${percentage.toFixed(2)}%)`;
+                      return `${formatCurrency(subtotal)} (${percentage.toFixed(2)}%)`;
                     })()}
                   </Text>
                 </div>
@@ -940,7 +938,7 @@ export function HoldingsTable({
                       sum + (holding.gainLoss || 0), 0
                     ) >= 0 ? 'green' : 'red'}
                   >
-                    ${(() => {
+                    {(() => {
                       const totalGainLoss = filteredHoldings.reduce((sum, holding) => 
                         sum + (holding.gainLoss || 0), 0
                       );
@@ -950,9 +948,7 @@ export function HoldingsTable({
                       // 分母為市值小計扣除損益之前的成本 = 市值小計 - 損益小計
                       const totalCost = totalMarketValue - totalGainLoss;
                       const gainLossPercent = totalCost > 0 ? (totalGainLoss / totalCost * 100) : 0;
-                      const formatted = formatCurrency(totalGainLoss);
-                      const formattedValue = formatted ? formatted.replace('NT$ ', '') : '0';
-                      return `${formattedValue} (${gainLossPercent >= 0 ? '+' : ''}${gainLossPercent.toFixed(2)}%)`;
+                      return `${formatCurrency(totalGainLoss)} (${gainLossPercent >= 0 ? '+' : ''}${gainLossPercent.toFixed(2)}%)`;
                     })()}
                   </Text>
                 </div>
