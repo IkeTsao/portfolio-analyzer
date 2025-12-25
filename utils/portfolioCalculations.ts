@@ -572,9 +572,9 @@ export const formatCurrency = (
   // 應用統一精度：小數點後2位
   const formattedAmount = formatValue(amount);
   
-  // 對於台幣顯示，使用 NT$ 符號，不顯示小數點
+  // 對於台幣顯示，使用 $ 符號，不顯示小數點
   if (currency === 'TWD') {
-    return `NT$${formattedAmount.toLocaleString('en-US', {
+    return `$${formattedAmount.toLocaleString('en-US', {
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     })}`;
@@ -599,10 +599,10 @@ export const formatCurrency = (
   })}`;
 };
 
-// 格式化台幣顯示為 NTD $ XXXX 格式（用於投資組合總覽）
+// 格式化台幣顯示為 NT$ XXXX 格式（用於投資組合總覽）
 export const formatCurrencyNTD = (amount: number): string => {
   const formattedAmount = formatValue(amount);
-  return `NTD $ ${formattedAmount.toLocaleString('en-US', {
+  return `NT$ ${formattedAmount.toLocaleString('en-US', {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   })}`;
