@@ -1,6 +1,7 @@
 import { Paper, Title, Table, Text, Group, Badge } from '@mantine/core';
 import { IconTrendingUp, IconTrendingDown } from '@tabler/icons-react';
 import { TopHolding, formatCurrency, formatPercentage, formatQuantity, formatQuantityWithCommas } from '@/utils/portfolioCalculations';
+import { formatCurrencyWithSymbol } from '@/utils/currencyUtils';
 
 interface TopHoldingsProps {
   data: TopHolding[];
@@ -75,7 +76,7 @@ export default function TopHoldings({ data, loading }: TopHoldingsProps) {
         </Table.Td>
         <Table.Td style={{ textAlign: 'right' }}>
           <Text size="sm" fw={500}>
-            {isCash ? '—' : `${holding.currency} ${holding.costBasis.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+            {isCash ? '—' : formatCurrencyWithSymbol(holding.costBasis, holding.currency)}
           </Text>
         </Table.Td>
         <Table.Td style={{ textAlign: 'right' }}>
@@ -85,12 +86,12 @@ export default function TopHoldings({ data, loading }: TopHoldingsProps) {
         </Table.Td>
         <Table.Td style={{ textAlign: 'right' }}>
           <Text size="sm" fw={500}>
-            {isCash ? '—' : `${holding.currency} ${holding.currentPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+            {isCash ? '—' : formatCurrencyWithSymbol(holding.currentPrice, holding.currency)}
           </Text>
         </Table.Td>
         <Table.Td style={{ textAlign: 'right' }}>
           <Text size="sm" fw={500}>
-            {`${holding.currency} ${holding.currentValueInOriginalCurrency.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+            {formatCurrencyWithSymbol(holding.currentValueInOriginalCurrency, holding.currency)}
           </Text>
         </Table.Td>
         <Table.Td style={{ textAlign: 'right' }}>

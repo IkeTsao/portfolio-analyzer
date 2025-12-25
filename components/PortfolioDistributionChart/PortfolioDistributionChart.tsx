@@ -92,6 +92,7 @@ export default function PortfolioDistributionChart({
         .map(([type, data]) => ({
           name: TYPE_LABELS[type as keyof typeof TYPE_LABELS] || type,
           value: data.totalGainLoss,  // 直接使用損益值（正數或負數）
+          percentage: data.totalCost > 0 ? (data.totalGainLoss / data.totalCost) * 100 : 0,  // 損益比例
         }))
         .sort((a, b) => {
           const aIndex = typeOrder.indexOf(a.name);
@@ -135,6 +136,7 @@ export default function PortfolioDistributionChart({
         .map(([account, data]) => ({
           name: ACCOUNT_LABELS[account as keyof typeof ACCOUNT_LABELS] || account,
           value: data.totalGainLoss,  // 直接使用損益值（正數或負數）
+          percentage: data.totalCost > 0 ? (data.totalGainLoss / data.totalCost) * 100 : 0,  // 損益比例
         }))
         .sort((a, b) => Math.abs(b.value) - Math.abs(a.value));
       
@@ -164,6 +166,7 @@ export default function PortfolioDistributionChart({
         .map(([market, data]) => ({
           name: MARKET_LABELS[market as keyof typeof MARKET_LABELS] || market,
           value: data.totalGainLoss,  // 直接使用損益值（正數或負數）
+          percentage: data.totalCost > 0 ? (data.totalGainLoss / data.totalCost) * 100 : 0,  // 損益比例
         }))
         .sort((a, b) => Math.abs(b.value) - Math.abs(a.value));
       
@@ -200,9 +203,15 @@ export default function PortfolioDistributionChart({
           return sum + (typeData?.totalGainLoss || 0);
         }, 0);
         
+        const totalCost = config.types.reduce((sum, type) => {
+          const typeData = stats.distributionByType[type as keyof typeof stats.distributionByType];
+          return sum + (typeData?.totalCost || 0);
+        }, 0);
+        
         return {
           name: config.label,
-          value: totalGainLoss
+          value: totalGainLoss,
+          percentage: totalCost > 0 ? (totalGainLoss / totalCost) * 100 : 0
         };
       }).filter(item => item.value !== 0);
       
@@ -433,12 +442,13 @@ export default function PortfolioDistributionChart({
                 />
                 <ReferenceLine y={0} stroke="#333" strokeWidth={1} strokeDasharray="3 3" />
                 <Tooltip 
-                  formatter={(value, name) => {
+                  formatter={(value, name, props) => {
                     const numValue = value as number;
+                    const percentage = props.payload.percentage || 0;
                     const isProfit = numValue >= 0;
                     const label = isProfit ? '獲利' : '虧損';
                     return [
-                      `${label} ${formatCurrency(Math.abs(numValue), 'TWD')}`
+                      `${label} ${formatCurrency(Math.abs(numValue), 'TWD')} (${formatPercentage(Math.abs(percentage))})`
                     ];
                   }}
                   labelFormatter={(label) => label}
