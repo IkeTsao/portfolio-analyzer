@@ -320,26 +320,29 @@ export function AllWeatherAllocation({ stats, loading }: AllWeatherAllocationPro
 
       <Title order={4} mb="sm">3. ATH (歷史新高) 再平衡</Title>
       <Text mb="md" style={{ fontSize: '0.95rem', lineHeight: 1.7 }}>
-        現在正是您考慮再平衡的關鍵時刻，因為您的「雙端」都在創新高：
+        當市場創新高時，正是檢視再平衡的關鍵時刻：
       </Text>
       <List mb="md" spacing="xs" style={{ fontSize: '0.95rem', lineHeight: 1.7 }}>
         <List.Item>
-          <strong>當股票（攻擊端）創新高時</strong>：雖然 2026 展望好，但如果成長股漲到讓你的攻擊端佔了總資產的 60%，依照紀律，你必須賣掉那 10% 的股票。這叫<strong>「收割獲利」</strong>。
+          <strong>當股票（攻擊端）創新高時</strong>：雖然 2026 展望好，但如果成長股漲到讓你的攻擊端佔了總資產的 60%，依照紀律，你必須賣掉那 10% 的股票，轉為現金或其他防禦端資產。這叫<strong>「收割獲利」</strong>。
         </List.Item>
         <List.Item>
-          <strong>當金銀（防禦端）創新高時</strong>：如果金銀價格噴發，讓防禦端比例升高，你應該賣掉部分金銀，轉成現金。這叫<strong>「子彈入庫」</strong>。
+          <strong>當金銀創新高時</strong>：如果金銀價格噴發，但你不想減少貴金屬部位，可以考慮「內部再平衡」——將部分黃金換成白銀，或調整金銀比例。
         </List.Item>
       </List>
       
       <Text mb="md" style={{ fontSize: '0.95rem', lineHeight: 1.7 }}>
-        <strong>特殊情況</strong>：
+        <strong>再平衡的執行方式</strong>：
       </Text>
       <List mb="md" spacing="xs" style={{ fontSize: '0.95rem', lineHeight: 1.7 }}>
         <List.Item>
-          <strong>向上再平衡（用現金）</strong>：如果您覺得成長股展望太好，不想賣掉它們，如果攻擊端只有 43.5%（低於 50%），您不需要賣股票，而是動用現金去買股票，直到攻擊端回到 50%。
+          <strong>當攻擊端 &gt; 55%</strong>：賣出部分股票，轉為現金或貴金屬，讓攻擊端回到 50% 左右。
         </List.Item>
         <List.Item>
-          <strong>內部再平衡（金銀切換）</strong>：既然金銀都破新高，目前不需要增加防禦端總量，而是做「內部優化」。若金銀比仍高，將部分黃金換成白銀，這也是一種再平衡。
+          <strong>當攻擊端 &lt; 45%</strong>：動用防禦端的現金買入股票，讓攻擊端回到 50% 左右。
+        </List.Item>
+        <List.Item>
+          <strong>當攻擊端在 45-55% 之間</strong>：可以按兵不動，或進行防禦端內部優化（例如調整金銀比例）。
         </List.Item>
       </List>
 
@@ -363,7 +366,14 @@ export function AllWeatherAllocation({ stats, loading }: AllWeatherAllocationPro
         <List.Item><strong>大趨勢轉折</strong>：像 2026 展望與金銀新高，這就是一個<strong>「戰術性檢查點」</strong>。</List.Item>
       </List>
       <Text mb="xl" style={{ fontSize: '0.95rem', lineHeight: 1.7 }}>
-        您現在的攻擊端是 {formatPercentage(offensivePercentage)}，防禦端（含現金）是 {formatPercentage(defensivePercentage)}。如果按照 50/50 紀律，您可以考慮：「利用現金，稍微補一點攻擊端，或者按兵不動等待股票大漲自動填滿缺口。」
+        您現在的攻擊端是 {formatPercentage(offensivePercentage)}，防禦端是 {formatPercentage(defensivePercentage)}。
+        {offensivePercentage > 55 ? (
+          <span>攻擊端已超過 55%，建議考慮<strong>賣出部分股票轉為現金</strong>，進行「收割獲利」。</span>
+        ) : offensivePercentage < 45 ? (
+          <span>攻擊端低於 45%，可以考慮<strong>動用現金買入股票</strong>，讓攻擊端回到 50%。</span>
+        ) : (
+          <span>目前比例在合理範圍內（45-55%），可以<strong>按兵不動</strong>，或進行防禦端內部優化。</span>
+        )}
       </Text>
     </Paper>
   );
