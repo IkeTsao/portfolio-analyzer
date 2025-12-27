@@ -2,7 +2,7 @@
 
 import { Paper, Title, Table, Text, List } from '@mantine/core';
 import { PortfolioStats } from '@/types/portfolio';
-import { formatCurrencyNTD, formatPercentage } from '@/utils/portfolioCalculations';
+import { formatCurrencyNTD, formatPercentage, formatCurrency } from '@/utils/portfolioCalculations';
 
 interface AllWeatherAllocationProps {
   stats: PortfolioStats | null;
@@ -43,8 +43,19 @@ export function AllWeatherAllocation({ stats, loading }: AllWeatherAllocationPro
                               (stats.distributionByType.commodity?.percentage || 0) +
                               (stats.distributionByType.longBond?.percentage || 0);
 
-  // 計算現金佔比（用於動態顯示）
+  // 計算現金相關數據
+  const cashValue = stats.distributionByType.cash?.totalValue || 0;
   const cashPercentage = stats.distributionByType.cash?.percentage || 0;
+
+  // 計算貴金屬相關數據
+  const goldValue = stats.distributionByType.gold?.totalValue || 0;
+  const commodityValue = stats.distributionByType.commodity?.totalValue || 0;
+  const preciousMetalsValue = goldValue + commodityValue;
+  const preciousMetalsPercentage = (stats.distributionByType.gold?.percentage || 0) + 
+                                    (stats.distributionByType.commodity?.percentage || 0);
+  
+  // 白銀佔總資產比例（假設 commodity 主要是白銀）
+  const silverPercentage = stats.distributionByType.commodity?.percentage || 0;
 
   return (
     <Paper p="md" withBorder>
@@ -141,7 +152,11 @@ export function AllWeatherAllocation({ stats, loading }: AllWeatherAllocationPro
           <strong>黃金</strong>：純粹的避險。波動相對穩定，主要隨利率與避險情緒起伏。
         </List.Item>
         <List.Item>
-          <strong>大宗物資（如白銀）</strong>：避險 + 工業需求。它具備避險屬性（跟隨黃金漲跌）。它具備積極屬性（當經濟好、製造業強，銀的需求會暴增）。
+          <strong>大宗物資（如白銀）</strong>：避險 + 工業需求。
+          <List withPadding>
+            <List.Item>它具備避險屬性（跟隨黃金漲跌）</List.Item>
+            <List.Item>它具備積極屬性（當經濟好、製造業強，銀的需求會暴增）</List.Item>
+          </List>
         </List.Item>
       </List>
       <Text mb="md" style={{ fontSize: '0.95rem', lineHeight: 1.7, color: '#fa5252' }}>
@@ -157,6 +172,9 @@ export function AllWeatherAllocation({ stats, loading }: AllWeatherAllocationPro
         <List.Item><strong>標準平衡型 70：30</strong> - 最推薦。兼顧黃金的穩定與白銀的工業成長潛力。目標：銀佔總資產約 7-8%</List.Item>
       </List>
       <Text mb="md" style={{ fontSize: '0.95rem', lineHeight: 1.7 }}>
+        <strong>您目前的貴金屬配置</strong>：總計 {formatCurrencyNTD(preciousMetalsValue)} ({formatPercentage(preciousMetalsPercentage)})，其中白銀佔總資產 {formatPercentage(silverPercentage)}。
+      </Text>
+      <Text mb="md" style={{ fontSize: '0.95rem', lineHeight: 1.7 }}>
         <strong>防禦端的安全性</strong> = 現金 &gt; 黃金 &gt; 白銀/大宗物資
       </Text>
 
@@ -169,7 +187,7 @@ export function AllWeatherAllocation({ stats, loading }: AllWeatherAllocationPro
           <strong>通膨風險 vs. 利率風險</strong>：債券最怕通膨。如果 2026 年通膨無法降至目標，利率維持高位，債券價格會持續受壓。此時，黃金與白銀比債券更能對抗通膨。
         </List.Item>
         <List.Item>
-          <strong>現金的「期權價值」</strong>：您目前持有 {formatPercentage(cashPercentage)} 的現金。雖然現金不生息（或利息低），但它沒有「價格跌損」的風險。在 2026 年展望看好的情況下，現金讓您保有隨時能加碼的權力。債券則會受利率波動影響，流動性雖好但有價差損失風險。
+          <strong>現金的「期權價值」</strong>：您目前持有 {formatCurrencyNTD(cashValue)} ({formatPercentage(cashPercentage)}) 的現金。雖然現金不生息（或利息低），但它沒有「價格跌損」的風險。在 2026 年展望看好的情況下，現金讓您保有隨時能加碼的權力。債券則會受利率波動影響，流動性雖好但有價差損失風險。
         </List.Item>
       </List>
 
@@ -200,6 +218,67 @@ export function AllWeatherAllocation({ stats, loading }: AllWeatherAllocationPro
       </List>
       <Text mb="xl" style={{ fontSize: '0.95rem', lineHeight: 1.7 }}>
         <strong>簡單來說</strong>：在 50/50 策略裡，債券是「傳統防禦」，而您目前的 現金+貴金屬 是「強硬防禦」。
+      </Text>
+
+      {/* 現金管理 */}
+      <Title order={4} mb="sm">現金</Title>
+      <Text mb="md" style={{ fontSize: '0.95rem', lineHeight: 1.7 }}>
+        您目前有約 {formatCurrency(cashValue / 1000000, 'TWD')} 百萬台幣現金（佔總資產 {formatPercentage(cashPercentage)}）。建議將其中部分換成美元，並採用以下結構：
+      </Text>
+      
+      <Table striped withTableBorder withColumnBorders mb="md">
+        <Table.Thead>
+          <Table.Tr>
+            <Table.Th>分配方案</Table.Th>
+            <Table.Th>比例</Table.Th>
+            <Table.Th>執行方式</Table.Th>
+            <Table.Th>目的</Table.Th>
+          </Table.Tr>
+        </Table.Thead>
+        <Table.Tbody>
+          <Table.Tr>
+            <Table.Td>1 個月期定存</Table.Td>
+            <Table.Td>30%</Table.Td>
+            <Table.Td>每月到期自動續存本金</Table.Td>
+            <Table.Td>隨時備戰。若美股 2026 年出現 10% 以上拉回，立即解約進場。</Table.Td>
+          </Table.Tr>
+          <Table.Tr>
+            <Table.Td>3 個月期定存</Table.Td>
+            <Table.Td>50%</Table.Td>
+            <Table.Td>分三梯次進場（階梯式）</Table.Td>
+            <Table.Td>鎖定利息。在降息週期中，3 個月期的利率通常比 1 個月更具防禦力。</Table.Td>
+          </Table.Tr>
+          <Table.Tr>
+            <Table.Td>美元活存</Table.Td>
+            <Table.Td>20%</Table.Td>
+            <Table.Td>放在富邦外幣活存</Table.Td>
+            <Table.Td>極致靈活性。配合富邦複委託的「定期定額」或「限價單」。</Table.Td>
+          </Table.Tr>
+        </Table.Tbody>
+      </Table>
+
+      <Text mb="md" style={{ fontSize: '0.95rem', lineHeight: 1.7 }}>
+        <strong>注意 2026 年的「匯率」與「利率」風險</strong>
+      </Text>
+      <List mb="md" spacing="xs" style={{ fontSize: '0.95rem', lineHeight: 1.7 }}>
+        <List.Item>
+          <strong>匯率變數</strong>：2026 年若美國降息速度快於預期，美元可能走弱（台幣相對升值）。現在換美元雖然有利息，但會有匯損風險。
+        </List.Item>
+        <List.Item>
+          <strong>對策</strong>：既然您是為了「買美股」而換匯，匯損其實是偽命題。因為美元貶值時，您能買到更多單位的股票，這在槓鈴策略中屬於「內部對沖」。
+        </List.Item>
+      </List>
+
+      <Text mb="md" style={{ fontSize: '0.95rem', lineHeight: 1.7 }}>
+        <strong>操作建議清單</strong>
+      </Text>
+      <List mb="md" spacing="xs" style={{ fontSize: '0.95rem', lineHeight: 1.7 }}>
+        <List.Item><strong>分批換匯</strong>：不要一次將台幣全換成美元。建議分 3-4 個月，趁台幣強勢（美元回檔）時分批撥入富邦。</List.Item>
+        <List.Item><strong>開啟「複委託購買力」功能</strong>：確保富邦美元戶頭的錢與複委託帳戶連動，這樣定存一到期，您可以直接下單。</List.Item>
+        <List.Item><strong>鎖定 2026 年的進場點</strong>：當您的攻擊端佔比（目前 {formatPercentage(offensivePercentage)}）因為市場修正掉到 48% 以下時，就是動用這筆「循環定存資金」的最佳時機。</List.Item>
+      </List>
+      <Text mb="xl" style={{ fontSize: '0.95rem', lineHeight: 1.7 }}>
+        這是一個非常成熟的「復健」動作。您將原本「死掉的台幣活存」轉換成了「有收益且具戰鬥力的美元彈藥」。
       </Text>
 
       {/* 再平衡說明 */}
@@ -251,12 +330,13 @@ export function AllWeatherAllocation({ stats, loading }: AllWeatherAllocationPro
           <strong>當金銀（防禦端）創新高時</strong>：如果金銀價格噴發，讓防禦端比例升高，你應該賣掉部分金銀，轉成現金。這叫<strong>「子彈入庫」</strong>。
         </List.Item>
       </List>
+      
       <Text mb="md" style={{ fontSize: '0.95rem', lineHeight: 1.7 }}>
-        針對您現在有 {formatPercentage(cashPercentage)} 的現金，這讓您的再平衡變得非常特別，我稱之為<strong>「不賣出的再平衡」</strong>：
+        <strong>特殊情況</strong>：
       </Text>
       <List mb="md" spacing="xs" style={{ fontSize: '0.95rem', lineHeight: 1.7 }}>
         <List.Item>
-          <strong>向上再平衡（用現金）</strong>：如果您覺得成長股展望太好，不想賣掉它們，但目前的攻擊端只有 {formatPercentage(offensivePercentage)}（低於 50%），您不需要賣股票，而是動用那 {formatPercentage(cashPercentage)} 的現金去買股票，直到攻擊端回到 50%。
+          <strong>向上再平衡（用現金）</strong>：如果您覺得成長股展望太好，不想賣掉它們，如果攻擊端只有 43.5%（低於 50%），您不需要賣股票，而是動用現金去買股票，直到攻擊端回到 50%。
         </List.Item>
         <List.Item>
           <strong>內部再平衡（金銀切換）</strong>：既然金銀都破新高，目前不需要增加防禦端總量，而是做「內部優化」。若金銀比仍高，將部分黃金換成白銀，這也是一種再平衡。
@@ -280,9 +360,9 @@ export function AllWeatherAllocation({ stats, loading }: AllWeatherAllocationPro
       <List mb="md" spacing="xs" style={{ fontSize: '0.95rem', lineHeight: 1.7 }}>
         <List.Item><strong>每季檢查</strong>：看一下比例。</List.Item>
         <List.Item><strong>破 5% 動作</strong>：當 50/50 變成 55/45 或 45/55 時，開始調倉。</List.Item>
-        <List.Item><strong>大趨勢轉折</strong>：像您現在提到的 2026 展望與金銀新高，這就是一個<strong>「戰術性檢查點」</strong>。</List.Item>
+        <List.Item><strong>大趨勢轉折</strong>：像 2026 展望與金銀新高，這就是一個<strong>「戰術性檢查點」</strong>。</List.Item>
       </List>
-      <Text mb="md" style={{ fontSize: '0.95rem', lineHeight: 1.7 }}>
+      <Text mb="xl" style={{ fontSize: '0.95rem', lineHeight: 1.7 }}>
         您現在的攻擊端是 {formatPercentage(offensivePercentage)}，防禦端（含現金）是 {formatPercentage(defensivePercentage)}。如果按照 50/50 紀律，您可以考慮：「利用現金，稍微補一點攻擊端，或者按兵不動等待股票大漲自動填滿缺口。」
       </Text>
     </Paper>
