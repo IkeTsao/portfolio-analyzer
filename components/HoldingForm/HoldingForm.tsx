@@ -30,6 +30,7 @@ interface HoldingFormProps {
 
 export default function HoldingForm({ opened, onClose, holding, onSave }: HoldingFormProps) {
   const [loading, setLoading] = useState(false);
+  const [accountOptions, setAccountOptions] = useState(ACCOUNT_TYPES);
   
   const form = useForm({
     initialValues: {
@@ -126,6 +127,27 @@ export default function HoldingForm({ opened, onClose, holding, onSave }: Holdin
     }
   };
 
+  // 載入帳戶配置
+  useEffect(() => {
+    const loadAccountConfigs = () => {
+      try {
+        const saved = localStorage.getItem('portfolioAccountConfigs');
+        if (saved) {
+          const configs = JSON.parse(saved);
+          const options = configs.map((config: any) => ({
+            value: config.id,
+            label: config.label,
+          }));
+          setAccountOptions(options);
+        }
+      } catch (error) {
+        console.error('載入帳戶配置失敗:', error);
+      }
+    };
+    
+    loadAccountConfigs();
+  }, [opened]); // 當對話框打開時重新載入
+
   // 當holding prop改變時更新表單值
   useEffect(() => {
     if (opened && holding) {
@@ -181,7 +203,7 @@ export default function HoldingForm({ opened, onClose, holding, onSave }: Holdin
           <Select
             label="帳戶"
             placeholder="選擇帳戶"
-            data={ACCOUNT_TYPES}
+            data={accountOptions}
             required
             {...form.getInputProps('accountId')}
           />
