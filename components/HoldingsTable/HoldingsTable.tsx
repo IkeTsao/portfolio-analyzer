@@ -32,6 +32,7 @@ import { DataTable } from 'mantine-datatable';
 import { Holding } from '@/types/portfolio';
 import { formatCurrency, formatPercentage } from '@/utils/portfolioCalculations';
 import { formatCurrencyWithSymbol } from '@/utils/currencyUtils';
+import { getAccountLabel } from '@/utils/accountUtils';
 
 // 格式化數量，包含千分位逗號和2位小數
 const formatQuantityWithCommas = (quantity: number): string => {
@@ -569,14 +570,9 @@ export function HoldingsTable({
       title: '帳戶',
       width: 100,
       render: (holding: Holding) => {
-        const accountLabels: { [key: string]: string } = {
-          etrade: 'Etrade',
-          fubon: '富邦銀行',
-          esun: '玉山銀行',
-        };
         return (
           <Badge size="sm" variant="light" color="blue">
-            {accountLabels[holding.accountId] || holding.accountId}
+            {getAccountLabel(holding.accountId)}
           </Badge>
         );
       },

@@ -3,6 +3,7 @@ import { Paper, Title, Group, Text, SegmentedControl } from '@mantine/core';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid, ReferenceLine } from 'recharts';
 import { PortfolioStats } from '@/types/portfolio';
 import { formatCurrency, formatPercentage } from '@/utils/portfolioCalculations';
+import { getAccountLabel, loadAccountConfigs } from '@/utils/accountUtils';
 
 interface PortfolioDistributionChartProps {
   stats: PortfolioStats | null;
@@ -44,16 +45,16 @@ const TYPE_LABELS = {
   cash: '現金',
 };
 
-const ACCOUNT_COLORS = {
-  etrade: '#22b8cf',
-  fubon: '#339af0',
-  esun: '#5c7cfa',
-};
-
-const ACCOUNT_LABELS = {
-  etrade: 'Etrade',
-  fubon: '富邦銀行',
-  esun: '玉山銀行',
+// 帳戶顏色對應表（根據 accountId 分配顏色）
+const getAccountColor = (accountId: string): string => {
+  const colorMap: { [key: string]: string } = {
+    etrade: '#22b8cf',
+    fubon: '#339af0',
+    esun: '#5c7cfa',
+    account4: '#7950f2',
+    account5: '#f06595',
+  };
+  return colorMap[accountId] || '#868e96';
 };
 
 const MARKET_COLORS = {
@@ -134,7 +135,7 @@ export default function PortfolioDistributionChart({
       const categories = Object.entries(stats.distributionByAccount)
         .filter(([_, data]) => data.totalGainLoss !== 0)
         .map(([account, data]) => ({
-          name: ACCOUNT_LABELS[account as keyof typeof ACCOUNT_LABELS] || account,
+          name: getAccountLabel(account),
           value: data.totalGainLoss,  // 直接使用損益值（正數或負數）
           percentage: data.totalCost > 0 ? (data.totalGainLoss / data.totalCost) * 100 : 0,  // 損益比例
         }))
@@ -147,10 +148,10 @@ export default function PortfolioDistributionChart({
     return Object.entries(stats.distributionByAccount)
       .filter(([_, data]) => data.totalValue > 0)
       .map(([account, data]) => ({
-        name: ACCOUNT_LABELS[account as keyof typeof ACCOUNT_LABELS] || account,
+        name: getAccountLabel(account),
         value: data.totalValue,
         percentage: data.percentage,
-        fill: ACCOUNT_COLORS[account as keyof typeof ACCOUNT_COLORS] || '#868e96',
+        fill: getAccountColor(account),
       }))
       .sort((a, b) => b.value - a.value);
   };

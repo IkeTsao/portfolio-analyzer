@@ -20,6 +20,7 @@ import {
   SUPPORTED_CURRENCIES 
 } from '@/types/portfolio';
 import { addHolding, updateHolding, generateId } from '@/utils/portfolioStorage';
+import { getAccountOptions } from '@/utils/accountUtils';
 
 interface HoldingFormProps {
   opened: boolean;
@@ -129,23 +130,7 @@ export default function HoldingForm({ opened, onClose, holding, onSave }: Holdin
 
   // 載入帳戶配置
   useEffect(() => {
-    const loadAccountConfigs = () => {
-      try {
-        const saved = localStorage.getItem('portfolioAccountConfigs');
-        if (saved) {
-          const configs = JSON.parse(saved);
-          const options = configs.map((config: any) => ({
-            value: config.id,
-            label: config.label,
-          }));
-          setAccountOptions(options);
-        }
-      } catch (error) {
-        console.error('載入帳戶配置失敗:', error);
-      }
-    };
-    
-    loadAccountConfigs();
+    setAccountOptions(getAccountOptions());
   }, [opened]); // 當對話框打開時重新載入
 
   // 當holding prop改變時更新表單值
