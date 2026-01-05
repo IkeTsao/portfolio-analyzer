@@ -32,7 +32,7 @@ import { DataTable } from 'mantine-datatable';
 import { Holding } from '@/types/portfolio';
 import { formatCurrency, formatPercentage } from '@/utils/portfolioCalculations';
 import { formatCurrencyWithSymbol } from '@/utils/currencyUtils';
-import { getAccountLabel } from '@/utils/accountUtils';
+import { getAccountLabel, getAccountOptions } from '@/utils/accountUtils';
 
 // 格式化數量，包含千分位逗號和2位小數
 const formatQuantityWithCommas = (quantity: number): string => {
@@ -843,9 +843,7 @@ export function HoldingsTable({
             onChange={setAccountFilter}
             data={[
               { value: '', label: '全部帳戶' },
-              { value: 'etrade', label: 'Etrade' },
-              { value: 'fubon', label: '富邦銀行' },
-              { value: 'esun', label: '玉山銀行' },
+              ...getAccountOptions()
             ]}
             clearable
           />

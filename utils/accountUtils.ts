@@ -20,6 +20,11 @@ const DEFAULT_ACCOUNT_CONFIGS: AccountConfig[] = [
  * @returns 帳戶配置陣列
  */
 export function loadAccountConfigs(): AccountConfig[] {
+  // 檢查是否在客戶端環境
+  if (typeof window === 'undefined') {
+    return DEFAULT_ACCOUNT_CONFIGS;
+  }
+  
   try {
     const saved = localStorage.getItem('portfolioAccountConfigs');
     if (saved) {
