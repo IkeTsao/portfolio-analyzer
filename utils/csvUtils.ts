@@ -1,6 +1,7 @@
 import { Holding } from '@/types/portfolio';
 import { addMultipleHoldings, clearAllHoldings } from '@/utils/portfolioStorage';
 import { notifications } from '@mantine/notifications';
+import { getAccountLabel, loadAccountConfigs } from '@/utils/accountUtils';
 
 // 精度設定常數（與portfolioCalculations.ts保持一致）
 const QUANTITY_PRECISION = 3;  // 數量：小數點後3位
@@ -33,17 +34,25 @@ const CSV_HEADERS = [
   'lastUpdated'
 ];
 
-// 帳戶 ID 映射
-const ACCOUNT_ID_MAP: { [key: string]: string } = {
-  'Etrade': 'etrade',
-  'etrade': 'etrade',
-  '富邦銀行': 'fubon',
-  '富邦': 'fubon',
-  'fubon': 'fubon',
-  '玉山銀行': 'esun',
-  '玉山': 'esun',
-  'esun': 'esun'
-};
+/**
+ * 動態生成帳戶 ID 映射（包含用戶自定義名稱）
+ */
+function getAccountIdMap(): { [key: string]: string } {
+  const configs = loadAccountConfigs();
+  const map: { [key: string]: string } = {};
+  
+  // 建立雙向映射：名稱 -> ID 和 ID -> ID
+  configs.forEach(config => {
+    map[config.label] = config.id;  // 名稱 -> ID
+    map[config.id] = config.id;      // ID -> ID
+  });
+  
+  // 添加常見的簡稱
+  map['富邦'] = 'fubon';
+  map['玉山'] = 'esun';
+  
+  return map;
+}
 
 // 投資類型映射
 const TYPE_MAP: { [key: string]: string } = {
@@ -344,10 +353,11 @@ function parseCSVLine(line: string): string[] {
 }
 
 /**
- * 標準化帳戶 ID
+ * 標準化帳戶 ID（使用動態映射）
  */
 function normalizeAccountId(accountId: string): string {
-  const normalized = ACCOUNT_ID_MAP[accountId.trim()];
+  const accountIdMap = getAccountIdMap();
+  const normalized = accountIdMap[accountId.trim()];
   return normalized || 'etrade'; // 預設為 etrade
 }
 
@@ -368,15 +378,10 @@ function normalizeMarket(market: string): string {
 }
 
 /**
- * 獲取帳戶顯示名稱
+ * 獲取帳戶顯示名稱（從 localStorage 讀取最新配置）
  */
 function getAccountDisplayName(accountId: string): string {
-  const displayNames: { [key: string]: string } = {
-    'etrade': 'Etrade',
-    'fubon': '富邦銀行',
-    'esun': '玉山銀行'
-  };
-  return displayNames[accountId] || accountId;
+  return getAccountLabel(accountId);
 }
 
 /**
