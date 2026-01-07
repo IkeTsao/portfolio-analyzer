@@ -510,34 +510,31 @@ export function HoldingsTable({
     const order: { [key: string]: number } = {
       'etrade': 1,
       'account4': 2,  // Firstrade
-      'fubon': 3, 
-      'esun': 4,
-      'account5': 5   // Wise
+      'account5': 3,  // Wise
+      'fubon': 4, 
+      'esun': 5
     };
     return order[accountId] || 999;
   };
 
-  // 智能代碼排序
+  // 智能代碼排序：先英文字母，再數字
   const sortBySymbol = (a: string, b: string): number => {
-    // 提取數字和字母部分
-    const extractParts = (str: string) => {
-      const match = str.match(/^(\d*)(.*)$/);
-      return {
-        number: match?.[1] ? parseInt(match[1]) : Infinity,
-        text: match?.[2] || str
-      };
-    };
-
-    const partsA = extractParts(a);
-    const partsB = extractParts(b);
-
-    // 先按數字部分排序
-    if (partsA.number !== partsB.number) {
-      return partsA.number - partsB.number;
+    // 判斷是否以數字開頭
+    const startsWithNumber = (str: string) => /^\d/.test(str);
+    
+    const aIsNumber = startsWithNumber(a);
+    const bIsNumber = startsWithNumber(b);
+    
+    // 如果一個是字母開頭，一個是數字開頭，字母優先
+    if (aIsNumber && !bIsNumber) {
+      return 1;  // a 是數字，b 是字母，b 排前面
     }
-
-    // 數字相同則按字母部分排序
-    return partsA.text.localeCompare(partsB.text);
+    if (!aIsNumber && bIsNumber) {
+      return -1; // a 是字母，b 是數字，a 排前面
+    }
+    
+    // 兩個都是字母或都是數字，按字典順序排序
+    return a.localeCompare(b);
   };
 
   // 過濾和排序數據
