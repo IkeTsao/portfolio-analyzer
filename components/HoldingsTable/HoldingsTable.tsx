@@ -510,7 +510,9 @@ export function HoldingsTable({
     const order: { [key: string]: number } = {
       'etrade': 1,
       'fubon': 2, 
-      'esun': 3
+      'esun': 3,
+      'account4': 4,
+      'account5': 5
     };
     return order[accountId] || 999;
   };
