@@ -45,11 +45,18 @@ function getAccountIdMap(): { [key: string]: string } {
   configs.forEach(config => {
     map[config.label] = config.id;  // 名稱 -> ID
     map[config.id] = config.id;      // ID -> ID
+    
+    // 也支援小寫
+    map[config.label.toLowerCase()] = config.id;
+    map[config.id.toLowerCase()] = config.id;
   });
   
   // 添加常見的簡稱
   map['富邦'] = 'fubon';
   map['玉山'] = 'esun';
+  
+  // 除錯輸出
+  console.log('CSV 匯入帳戶映射表:', map);
   
   return map;
 }
@@ -353,11 +360,45 @@ function parseCSVLine(line: string): string[] {
 }
 
 /**
- * 標準化帳戶 ID（使用動態映射）
+ * 標準化帳戶 ID（使用動態映射，支援模糊匹配）
  */
 function normalizeAccountId(accountId: string): string {
   const accountIdMap = getAccountIdMap();
-  const normalized = accountIdMap[accountId.trim()];
+  const trimmed = accountId.trim();
+  
+  // 1. 嘗試精確匹配
+  let normalized = accountIdMap[trimmed];
+  
+  // 2. 嘗試小寫匹配
+  if (!normalized) {
+    normalized = accountIdMap[trimmed.toLowerCase()];
+  }
+  
+  // 3. 嘗試模糊匹配：查找包含輸入字串的帳戶名稱
+  if (!normalized) {
+    const configs = loadAccountConfigs();
+    const lowerInput = trimmed.toLowerCase();
+    
+    // 嘗試找到包含輸入字串的帳戶
+    const matchedConfig = configs.find(config => 
+      config.label.toLowerCase().includes(lowerInput) || 
+      lowerInput.includes(config.label.toLowerCase())
+    );
+    
+    if (matchedConfig) {
+      normalized = matchedConfig.id;
+      console.log(`模糊匹配成功: "${trimmed}" -> "${matchedConfig.label}" (${normalized})`);
+    }
+  }
+  
+  // 除錯輸出
+  if (!normalized) {
+    console.warn(`無法識別的帳戶名稱: "${trimmed}"，使用預設值 etrade`);
+    console.log('可用的帳戶映射:', accountIdMap);
+  } else {
+    console.log(`帳戶映射: "${trimmed}" -> "${normalized}"`);
+  }
+  
   return normalized || 'etrade'; // 預設為 etrade
 }
 
