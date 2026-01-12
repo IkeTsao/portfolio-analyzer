@@ -675,19 +675,26 @@ export const calculateTopHoldings = (holdings: Holding[], totalAssets: number): 
     const existing = mergedHoldings.get(symbol);
 
     if (existing) {
+      // 累加數量、市值、損益
       existing.quantity += holding.quantity || 0;
       existing.currentValueInOriginalCurrency += (holding.quantity || 0) * (holding.currentPrice || 0);
       existing.currentValue += holding.currentValue || 0;
       existing.gainLoss += holding.gainLoss || 0;
+      
+      // 累加總購入成本（用於計算加權平均）
+      const totalCost = (holding.quantity || 0) * (holding.costBasis || 0);
+      (existing as any).totalCostBasis = ((existing as any).totalCostBasis || 0) + totalCost;
     } else {
       const currentValueInOriginalCurrency = (holding.quantity || 0) * (holding.currentPrice || 0);
+      const totalCost = (holding.quantity || 0) * (holding.costBasis || 0);
+      
       mergedHoldings.set(symbol, {
         id: symbol, // 使用 symbol 作為合併後的 id
         name: holding.name,
         symbol: holding.symbol,
         currency: holding.currency,
         type: holding.type, // 資產類型
-        costBasis: holding.costBasis || 0,
+        costBasis: holding.costBasis || 0, // 稍後重新計算為加權平均
         currentPrice: holding.currentPrice || 0,
         quantity: holding.quantity || 0,
         currentValueInOriginalCurrency: currentValueInOriginalCurrency,
@@ -695,12 +702,24 @@ export const calculateTopHoldings = (holdings: Holding[], totalAssets: number): 
         gainLoss: holding.gainLoss || 0,
         gainLossPercent: 0, // 稍後重新計算
         assetRatio: 0, // 稍後重新計算
-      });
+        totalCostBasis: totalCost, // 暫存總成本
+      } as any);
     }
   });
 
-  // 重新計算合併後的損益百分比
+  // 重新計算合併後的加權平均成本和損益百分比
   mergedHoldings.forEach(holding => {
+    const holdingWithCost = holding as any;
+    
+    // 計算加權平均成本
+    if (holding.quantity > 0 && holdingWithCost.totalCostBasis) {
+      holding.costBasis = holdingWithCost.totalCostBasis / holding.quantity;
+    }
+    
+    // 刪除暫存的 totalCostBasis
+    delete holdingWithCost.totalCostBasis;
+    
+    // 計算損益百分比
     const costValue = holding.currentValue - holding.gainLoss;
     if (costValue > 0) {
       holding.gainLossPercent = (holding.gainLoss / costValue) * 100;
