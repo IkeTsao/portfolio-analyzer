@@ -76,7 +76,7 @@ export default function TopHoldings({ data, loading }: TopHoldingsProps) {
         </Table.Td>
         <Table.Td style={{ textAlign: 'right' }}>
           <Text size="sm" fw={500}>
-            {isCash ? '—' : formatCurrencyWithSymbol(holding.costBasis, holding.currency)}
+            {isCash ? '—' : formatCurrencyWithSymbol(holding.currentPrice, holding.currency)}
           </Text>
         </Table.Td>
         <Table.Td style={{ textAlign: 'right' }}>
@@ -86,7 +86,7 @@ export default function TopHoldings({ data, loading }: TopHoldingsProps) {
         </Table.Td>
         <Table.Td style={{ textAlign: 'right' }}>
           <Text size="sm" fw={500}>
-            {isCash ? '—' : formatCurrencyWithSymbol(holding.currentPrice, holding.currency)}
+            {isCash ? '—' : formatCurrencyWithSymbol(holding.costBasis, holding.currency)}
           </Text>
         </Table.Td>
         <Table.Td style={{ textAlign: 'right' }}>
@@ -130,9 +130,9 @@ export default function TopHoldings({ data, loading }: TopHoldingsProps) {
             <Table.Th>排名</Table.Th>
             <Table.Th style={{ textAlign: 'center' }}>資產類型</Table.Th>
             <Table.Th>名稱/代碼</Table.Th>
-            <Table.Th style={{ textAlign: 'right' }}>購入成本(原幣)</Table.Th>
-            <Table.Th style={{ textAlign: 'right' }}>數量</Table.Th>
             <Table.Th style={{ textAlign: 'right' }}>現價(原幣)</Table.Th>
+            <Table.Th style={{ textAlign: 'right' }}>數量</Table.Th>
+            <Table.Th style={{ textAlign: 'right' }}>購入成本(原幣)</Table.Th>
             <Table.Th style={{ textAlign: 'right' }}>市值(原幣)</Table.Th>
             <Table.Th style={{ textAlign: 'right' }}>市值(台幣)</Table.Th>
             <Table.Th style={{ textAlign: 'right' }}>佔資產比例</Table.Th>
