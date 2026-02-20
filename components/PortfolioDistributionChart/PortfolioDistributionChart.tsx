@@ -53,6 +53,9 @@ const getAccountColor = (accountId: string): string => {
     esun: '#5c7cfa',
     account4: '#7950f2',
     account5: '#f06595',
+    account6: '#e64980',
+    account7: '#be4bdb',
+    account8: '#7950f2',
   };
   return colorMap[accountId] || '#868e96';
 };

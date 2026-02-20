@@ -13,6 +13,9 @@ const DEFAULT_ACCOUNT_CONFIGS: AccountConfig[] = [
   { id: 'esun', label: '玉山銀行', isCustom: false },
   { id: 'account4', label: '帳號4', isCustom: true },
   { id: 'account5', label: '帳號5', isCustom: true },
+  { id: 'account6', label: '帳號6', isCustom: true },
+  { id: 'account7', label: '帳號7', isCustom: true },
+  { id: 'account8', label: '帳號8', isCustom: true },
 ];
 
 /**

@@ -512,7 +512,10 @@ export function HoldingsTable({
       'account4': 2,  // Firstrade
       'account5': 3,  // Wise
       'fubon': 4, 
-      'esun': 5
+      'esun': 5,
+      'account6': 6,
+      'account7': 7,
+      'account8': 8
     };
     return order[accountId] || 999;
   };
