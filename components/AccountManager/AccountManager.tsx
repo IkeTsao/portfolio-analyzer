@@ -39,9 +39,9 @@ export default function AccountManager({ onAccountsUpdated }: AccountManagerProp
           { id: 'etrade', label: 'Etrade', isCustom: false },
           { id: 'fubon', label: '富邦銀行', isCustom: false },
           { id: 'esun', label: '玉山銀行', isCustom: false },
-          { id: 'account4', label: '帳號4', isCustom: true },
-          { id: 'account5', label: '帳號5', isCustom: true },
-          { id: 'account6', label: '帳號6', isCustom: true },
+          { id: 'account4', label: 'Wise', isCustom: true },
+          { id: 'account5', label: 'Firstrade', isCustom: true },
+          { id: 'account6', label: 'IBKR Ike', isCustom: true },
           { id: 'account7', label: '帳號7', isCustom: true },
           { id: 'account8', label: '帳號8', isCustom: true },
         ];
